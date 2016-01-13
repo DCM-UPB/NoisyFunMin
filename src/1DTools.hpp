@@ -1,0 +1,19 @@
+#ifndef ONED_TOOLS
+#define ONED_TOOLS
+
+#include "NoisyFunctionValue.hpp"
+#include "Definitions.hpp"
+#include "FunProjection1D.hpp"
+
+
+namespace nfm
+{
+
+   void findBracket(NoisyFunction * f1d, NoisyFunctionValue &a, NoisyFunctionValue &b, NoisyFunctionValue &c);
+   //               ^function   ^three points that will provide the bracket. a contains the starting point (i.e. is also an input)
+
+   void parabgoldMinimization(NoisyFunction * f1d, const double &eps, NoisyFunctionValue &a, NoisyFunctionValue &b, NoisyFunctionValue &c);
+   //                         ^function   ^level of precision ^3 points that initially provide the bracket, in the end the minimum will be in b
+}
+
+#endif
