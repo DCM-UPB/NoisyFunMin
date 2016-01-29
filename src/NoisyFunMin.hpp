@@ -25,7 +25,7 @@ class NFM
       bool _meaningfulGradient(const double * grad, const double * graderr); //check if the gradient is meaningful. i.e. if its values are greater than the statistical errors
 
    public:
-      NFM(const int &ndim, NoisyFunction * targetfun);
+      NFM(NoisyFunction * targetfun);
       virtual ~NFM();
 
       // --- Setters

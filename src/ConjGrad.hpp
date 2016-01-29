@@ -12,7 +12,7 @@ class ConjGrad: public NFM
       void findNextX(const double * dir, double &deltatargetfun, double &deltax);
 
    public:
-      ConjGrad(const int &ndim, NoisyFunctionWithGradient * targetfun):NFM(ndim,targetfun)
+      ConjGrad(NoisyFunctionWithGradient * targetfun):NFM(targetfun)
       {
          setGradientTargetFun(targetfun);
       }

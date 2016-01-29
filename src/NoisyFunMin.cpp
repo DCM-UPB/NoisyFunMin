@@ -45,11 +45,11 @@ void NFM::setX(const double * x)
 
 // --- Constructor and destructor
 
-NFM::NFM(const int &ndim, NoisyFunction * targetfun)
+NFM::NFM(NoisyFunction * targetfun)
 {
    //set ndim and the target function
-   _ndim = ndim;
    _targetfun = targetfun;
+   _ndim = _targetfun->getNDim();
    //allocate and initialize x
    _x = new NoisyFunctionValue(_ndim);
    for (int i=0; i<_ndim; ++i){ _x->setX(i,0.); }

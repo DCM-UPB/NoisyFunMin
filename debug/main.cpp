@@ -80,7 +80,7 @@ int main(){
    // check Conjugate Gradient
    cout << " - - - Check ConjGrad" << endl;
    F3D * f3d = new F3D();
-   ConjGrad cjgrad(3, f3d);
+   ConjGrad cjgrad(f3d);
    cjgrad.findMin();
    cout << "Minimum of f3d is in " << cjgrad.getX(0) << "   " << cjgrad.getX(1) << "   " << cjgrad.getX(2) << endl;
    cout << "Value of the minimum is " << cjgrad.getF() << " +- " << cjgrad.getDf() << endl << endl;
