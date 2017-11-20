@@ -60,11 +60,11 @@ DerivedData
 
 # -- project specific ignores --
 lib*
+*exe*
 
 src/*.o
 
 debug/*.o
-debug/exe
 
 examples/*/a.out
 examples/*/*.o
