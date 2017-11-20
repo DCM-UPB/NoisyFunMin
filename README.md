@@ -1,17 +1,9 @@
-
-#NoisyFunMin
-
-C++ Library for minimising noisy functions, such as integrals computed with the Monte Carlo method.
-
-In `doc/` there is a user manual in pdf.
-
-In `examples/` there are several examples (STILL TO BE DONE).
+# LEGEND OF THE EXAMPLES
 
 
 
-#Build the library
+## Example 1
 
-Insert the system parameters in the `config.sh` and then simply execute the command
+`ex1/`: integration of a 1-dimensional quadratic function, without and with a sampling function.
 
-   `./build.sh`
 

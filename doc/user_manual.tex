@@ -26,8 +26,8 @@ NoisyFunOpt is a C++ library that contains simple tools for optimising (minimize
 It currently supports only the Conjugate Gradient algorithm, with some minor modifications made to handle the noise.
 More specifically, two function values \verb+a+ and \verb+b+ with associated standard deviations \verb+da+ and \verb+db+ are considered to be:
 \begin{itemize}
-   \item $\verb+a+ > \verb+b+ \quad $ iff $ \quad \verb+a+ - 2 \verb+da+ > \verb+b+ - 2 \verb+db+$;
-   \item $\verb+a+ < \verb+b+ \quad $ iff $ \quad \verb+a+ + 2 \verb+da+ < \verb+b+ + 2 \verb+db+$;
+   \item $\verb+a+ > \verb+b+ \quad $ iff $ \quad \verb+a+ - 2 \verb+da+ > \verb+b+ + 2 \verb+db+$;
+   \item $\verb+a+ < \verb+b+ \quad $ iff $ \quad \verb+a+ + 2 \verb+da+ < \verb+b+ - 2 \verb+db+$;
    \item $\verb+a+ = \verb+b+ \quad $ otherwise.
 \end{itemize}
 
