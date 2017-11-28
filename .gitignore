@@ -60,6 +60,7 @@ DerivedData
 
 # -- project specific ignores --
 lib*
+config.sh
 *exe*
 
 src/*.o
