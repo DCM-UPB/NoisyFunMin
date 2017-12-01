@@ -4,24 +4,32 @@
 #include "NoisyFunMin.hpp"
 #include "NoisyFunction.hpp"
 
-class ConjGrad: public NFM
+   class ConjGrad: public NFM
 {
-   protected:
-      
-      // --- Internal methods
-      void findNextX(const double * dir, double &deltatargetfun, double &deltax);
+private:
+   bool _use_conjgrad;
+   
+protected:
 
-   public:
-      ConjGrad(NoisyFunctionWithGradient * targetfun):NFM(targetfun)
-      {
-         setGradientTargetFun(targetfun);
-      }
-      ~ConjGrad(){ }
+   // --- Internal methods
+   void findNextX(const double * dir, double &deltatargetfun, double &deltax);
+
+public:
+   ConjGrad(NoisyFunctionWithGradient * targetfun):NFM(targetfun)
+   {
+      setGradientTargetFun(targetfun);
+      _use_conjgrad = true;
+   }
+   ~ConjGrad(){ }
 
 
-      // --- Minimization
-      void findMin();
-      
+   // Configuration
+   void configureToFollowSimpleGradient(){_use_conjgrad = false;};  // make ConjGrad a Steepest Descent
+
+
+   // --- Minimization
+   void findMin();
+
 };
 
 

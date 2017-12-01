@@ -66,13 +66,21 @@ void ConjGrad::findMin()
             //cout << graderr[0] << "   " << graderr[1] << "   " << graderr[2] << endl;
             break;
          }
-         //determine the new conjugate vector
-         scalprodnew=0.;
-         for (i=0; i<_ndim; ++i){ scalprodnew+=gradnew[i]*gradnew[i]; }
-         scalprodold=0.;
-         for (i=0; i<_ndim; ++i){ scalprodold+=gradold[i]*gradold[i]; }
-         ratio=scalprodnew/scalprodold;
-         for (i=0; i<_ndim; ++i){ conjvnew[i]=gradnew[i]+conjvold[i]*ratio; }
+         // compute the direction to follow for finding the next x
+         // if _use_conjgrad == true -> Conjugate Gradient
+         // else -> Steepest Descent
+         if (_use_conjgrad){
+            //determine the new conjugate vector
+            scalprodnew=0.;
+            for (i=0; i<_ndim; ++i){ scalprodnew+=gradnew[i]*gradnew[i]; }
+            scalprodold=0.;
+            for (i=0; i<_ndim; ++i){ scalprodold+=gradold[i]*gradold[i]; }
+            ratio=scalprodnew/scalprodold;
+            for (i=0; i<_ndim; ++i){ conjvnew[i]=gradnew[i]+conjvold[i]*ratio; }
+         } else {
+            // simply use as conjugate gradient the gradient (i.e. make a steepest descent!)
+            for (i=0; i<_ndim; ++i){ conjvnew[i]=gradnew[i]; }
+         }
          //find new position
          this->findNextX(conjvnew,deltatargetfun,deltax);
          //cout << "deltatargetfunction = " << deltatargetfun << "   " << _epstargetfun << endl;
