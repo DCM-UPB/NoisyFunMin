@@ -56,6 +56,6 @@ void NFMLogManager::writeOnLog(std::string s){
          out.close();
       }
       
-      this_thread::sleep_for (chrono::milliseconds(150));
+      //this_thread::sleep_for (chrono::milliseconds(150));
    }
 }

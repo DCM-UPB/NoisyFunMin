@@ -78,22 +78,24 @@ namespace nfm
          f1d->f(c.getX(),newf,dnewf);
          c.setF(newf,dnewf);
          
-         _writeabcInLog("findBracket", a, b, c);
+         _writeabcInLog("findBracket (A)", a, b, c);
          
          while (!(c>b)){
+            //cout << "WHILE 2" << endl;
             if (c<b)
             {
                a=b;
                b=c;
+               c.setX(b.getX(0)+2.*(b.getX(0)-a.getX(0)));
+            } else {
+               c.setX(c.getX(0)+2.*(c.getX(0)-b.getX(0)));
             }
-            //cout << "WHILE 2" << endl;
-            c.setX(b.getX(0)+2.*(b.getX(0)-a.getX(0)));
             //cout << "c=" << c.getX(0) << endl;
             if (++count_newf > MAX_NUM_EVAL_FOR_BRACKET) _abortFindBracket();
             f1d->f(c.getX(), newf, dnewf);
             c.setF(newf,dnewf);
             
-            _writeabcInLog("findBracket", a, b, c);
+            _writeabcInLog("findBracket (B)", a, b, c);
          }
       } else
       {
@@ -106,23 +108,25 @@ namespace nfm
          f1d->f(a.getX(), newf, dnewf);
          a.setF(newf, dnewf);
          
-         _writeabcInLog("findBracket", a, b, c);
+         _writeabcInLog("findBracket (C)", a, b, c);
          
          while (!(a>b))
          {
+            //cout << "WHILE 2" << endl;
             if (a<b)
             {
                c=b;
                b=a;
+               a.setX(b.getX(0)-2.*(c.getX(0)-b.getX(0)));
+            } else {
+               a.setX(a.getX(0)-2.*(b.getX(0)-a.getX(0)));
             }
-            //cout << "WHILE 2" << endl;
-            a.setX(b.getX(0)-2.*(c.getX(0)-b.getX(0)));
             //cout << "c=" << c.getX(0) << endl;
             if (++count_newf > MAX_NUM_EVAL_FOR_BRACKET) _abortFindBracket();
             f1d->f(a.getX(), newf, dnewf);
             a.setF(newf, dnewf);
             
-            _writeabcInLog("findBracket", a, b, c);
+            _writeabcInLog("findBracket (D)", a, b, c);
          }
       }
       
