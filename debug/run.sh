@@ -40,8 +40,11 @@ case ${OS_NAME} in
          $CC $FLAGS $DEBUGFLAGS -L$(pwd)/../ -Wl,-rpath=$(pwd)/../ -o exe *.o -l${LIBNAME}
          ;;
       "Darwin")
-         echo "$CC $FLAGS $DEBUGFLAGS -I$(pwd)/../src/ -L$(pwd)/../ -o exe *.o -l${LIBNAME}"
-         $CC $FLAGS $DEBUGFLAGS -I$(pwd)/../src/ -L$(pwd)/../ -o exe *.o -l${LIBNAME}
+         echo "$CC $FLAGS $DEBUGFLAGS -L$(pwd)/../ -o exe *.o -l${LIBNAME}"
+         $CC $FLAGS $DEBUGFLAGS -L$(pwd)/../ -o exe *.o -l${LIBNAME}
+
+         echo "install_name_tool -change lib${LIBNAME}.so $(pwd)/../lib${LIBNAME}.so exe"
+         install_name_tool -change lib${LIBNAME}.so $(pwd)/../lib${LIBNAME}.so exe
          ;;
       *)
          echo "The detected operating system is not between the known ones (Linux and Darwin)"
@@ -52,9 +55,9 @@ echo "Rebuilt the debugging executable"
 echo ""
 echo ""
 
-
+rm -f log.txt
 
 # Run the debugging executable
-valgrind --track-origins=yes ./exe
-#./exe
+#valgrind --track-origins=yes ./exe
+./exe
 

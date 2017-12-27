@@ -4,10 +4,14 @@
 #include "NoisyFunMin.hpp"
 #include "NoisyFunction.hpp"
 
-   class ConjGrad: public NFM
-{
+class ConjGrad: public NFM{
+   
 private:
    bool _use_conjgrad;
+   
+   void writeCurrentXInLog();
+   void writeDirectionInLog(const double * direction, const double * directionerror);
+   void reportMeaninglessGradientInLog();
    
 protected:
 

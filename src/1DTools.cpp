@@ -1,83 +1,132 @@
 #include "1DTools.hpp"
 
+#include "LogNFM.hpp"
+
 #include <iostream>
+#include <sstream>
+
+
 
 namespace nfm
 {
+   const double HUGE = 1.e+6;
+   const int MAX_NUM_EVAL_FOR_BRACKET = 100;
+   
    
    void findBracket(NoisyFunction * f1d, NoisyFunctionValue &a, NoisyFunctionValue &b, NoisyFunctionValue &c)
    {
       using namespace std;
-
-      if (f1d->getNDim() != 1) cout << "ERROR parabgoldMinimization(): The NoisyFunction is not 1D. Ndim=" << f1d->getNDim()  << endl;
       
-      NoisyFunctionValue fooa(1), foob(1), fooc(1);
-
+      if (f1d->getNDim() != 1) cout << "ERROR parabgoldMinimization(): The NoisyFunction is not 1D. Ndim=" << f1d->getNDim()  << endl;
+            
+      double newf, dnewf;
+      int count_newf = 0;
+            
       //cout << "a=" << a.getX(0) << endl;
       b.setX(a.getX(0)+0.25);
       //cout << "b=" << b.getX(0) << endl;
-      double newf, dnewf;
+      if (++count_newf > MAX_NUM_EVAL_FOR_BRACKET) _abortFindBracket();
       f1d->f(b.getX(),newf,dnewf);
       b.setF(newf,dnewf);
-      while(b==a)
-      {
+      _writeabcInLog("findBracket init", a, b, b);
+      
+      while(b==a){   // if fb==fa, increase b until when the two values are different
          //cout << "WHILE 1    fa=" << a.getF() << "   fb=" << b.getF() << endl;
          //cout << "dfa=" << a.getDf() << "   dfb=" << b.getDf() << endl;
          b.setX(a.getX(0)+1.5*(b.getX(0)-a.getX(0)));
          //cout << "b=" << b.getX(0) << endl;
+         if (++count_newf > MAX_NUM_EVAL_FOR_BRACKET) _abortFindBracket();
          f1d->f(b.getX(),newf,dnewf);
          b.setF(newf,dnewf);
+         _writeabcInLog("findBracket init", a, b, b);
+         
+         if (b.getX(0) > HUGE)
+            break;
+      }
+      
+      if (b==a){  // could not find a b such that fb!=fa, now try looking in the other direction
+         b.setX(a.getX(0));
+         b.setF(a.getF(), a.getDf());         
+         a.setX(b.getX(0)-0.25);
+         f1d->f(a.getX(),newf,dnewf);
+         if (++count_newf > MAX_NUM_EVAL_FOR_BRACKET) _abortFindBracket();
+         a.setF(newf,dnewf);
+         _writeabcInLog("findBracket init", a, a, b);
+         
+         while(b==a){   // if fb==fa, increase b until when the two values are different
+            //cout << "WHILE 1    fa=" << a.getF() << "   fb=" << b.getF() << endl;
+            //cout << "dfa=" << a.getDf() << "   dfb=" << b.getDf() << endl;
+            a.setX(b.getX(0)-1.5*(b.getX(0)-a.getX(0)));
+            //cout << "b=" << b.getX(0) << endl;
+            if (++count_newf > MAX_NUM_EVAL_FOR_BRACKET) _abortFindBracket();
+            f1d->f(a.getX(), newf, dnewf);
+            a.setF(newf,dnewf);
+            _writeabcInLog("findBracket init", a, a, b);
+         
+            if (a.getX(0) < -HUGE)
+               throw std::runtime_error( "NoisyFunctionMin Error! Bracketing impossible. Cannot find a b such that fa!=fb" );
+         }
+         
       }
       
       if (b<a)
       {
-         fooa=a;
-         foob=b;
          //cout << "COND b<a" << endl;
-         c.setX(foob.getX(0)+(foob.getX(0)-fooa.getX(0)));
+         c.setX(b.getX(0)+(b.getX(0)-a.getX(0)));
          //cout << "c=" << c.getX(0) << endl;
+         if (++count_newf > MAX_NUM_EVAL_FOR_BRACKET) _abortFindBracket();
          f1d->f(c.getX(),newf,dnewf);
          c.setF(newf,dnewf);
+         
+         _writeabcInLog("findBracket", a, b, c);
+         
          while (!(c>b)){
-            if (c<foob)
+            if (c<b)
             {
                a=b;
                b=c;
             }
             //cout << "WHILE 2" << endl;
-            c.setX(foob.getX(0)+1.5*(c.getX(0)-foob.getX(0)));
+            c.setX(b.getX(0)+2.*(b.getX(0)-a.getX(0)));
             //cout << "c=" << c.getX(0) << endl;
-            f1d->f(c.getX(),newf,dnewf);
+            if (++count_newf > MAX_NUM_EVAL_FOR_BRACKET) _abortFindBracket();
+            f1d->f(c.getX(), newf, dnewf);
             c.setF(newf,dnewf);
+            
+            _writeabcInLog("findBracket", a, b, c);
          }
       } else
       {
-         fooa=a;
-         foob=b;
+         c=b;
+         b=a;
          //cout << "COND b>a" << endl;
-         c.setX(fooa.getX(0)-(foob.getX(0)-fooa.getX(0)));
+         a.setX(b.getX(0)-(c.getX(0)-b.getX(0)));
          //cout << "c=" << c.getX(0) << endl;
-         f1d->f(c.getX(),newf,dnewf);
-         c.setF(newf,dnewf);
-         while (!(c>a))
+         if (++count_newf > MAX_NUM_EVAL_FOR_BRACKET) _abortFindBracket();
+         f1d->f(a.getX(), newf, dnewf);
+         a.setF(newf, dnewf);
+         
+         _writeabcInLog("findBracket", a, b, c);
+         
+         while (!(a>b))
          {
-            if (c<fooa)
+            if (a<b)
             {
+               c=b;
                b=a;
-               a=c;
             }
             //cout << "WHILE 2" << endl;
-            c.setX(fooa.getX(0)+1.5*(c.getX(0)-fooa.getX(0)));
+            a.setX(b.getX(0)-2.*(c.getX(0)-b.getX(0)));
             //cout << "c=" << c.getX(0) << endl;
-            f1d->f(c.getX(),newf,dnewf);
-            c.setF(newf,dnewf);
+            if (++count_newf > MAX_NUM_EVAL_FOR_BRACKET) _abortFindBracket();
+            f1d->f(a.getX(), newf, dnewf);
+            a.setF(newf, dnewf);
+            
+            _writeabcInLog("findBracket", a, b, c);
          }
-         fooa=a; foob=b; fooc=c;
-         a=fooc;
-         b=fooa;
-         c=foob;
       }
-
+      
+      _writeabcInLog("findBracket", a, b, c);
    }
 
 
@@ -101,6 +150,8 @@ namespace nfm
 
       //cout << endl << endl << "a=" << a.getX(0) << "     b=" << b.getX(0) << "    c=" << c.getX(0) << endl;
       //cout << "fa=" << a.getF()  << "    fb=" << b.getF()  << "   fc=" << c.getF() << endl << endl;
+      
+      _writeabcInLog("parabgoldMinimization", a, b, c);
       
       while (present_eps>eps)
       {
@@ -208,6 +259,30 @@ namespace nfm
          if (cx>2) break;
       }
       //cout << "ParabGold Terminated. count=" << count << endl;
+      
+      _writeabcInLog("parabgoldMinimization", a, b, c);
+   }
+   
+   
+   
+   void _writeabcInLog(const std::string key, NoisyFunctionValue &a, NoisyFunctionValue &b, NoisyFunctionValue &c){
+      using namespace std;
+      
+      NFMLogManager * log_manager = new NFMLogManager();
+      
+      stringstream s;
+      s << key << ":    " << 
+         a.getX(0) << " -> " << a.getF() << "    " << 
+         b.getX(0) << " -> " << b.getF() << "    " << 
+         c.getX(0) << " -> " << c.getF();
+      s << flush;
+      log_manager->writeOnLog(s.str());
+   }
+   
+   
+   
+   void _abortFindBracket(){
+      throw std::runtime_error( "NoisyFunctionMin Error! Bracketing is taking way too long..." );
    }
 
 

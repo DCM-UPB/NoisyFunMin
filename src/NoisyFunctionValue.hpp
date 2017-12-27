@@ -22,6 +22,7 @@ class NoisyFunctionValue
       void setF(const double &f, const double &df);
 
       //Getters
+      int getNDim(){return _ndim;}
       double getX(const int &idx){return _x[idx];}
       double * getX(){return _x;}
       double getF(){return _f;}

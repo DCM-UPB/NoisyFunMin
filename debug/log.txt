@@ -1,0 +1,97 @@
+findBracket:    10.35    10.1    9.85
+findBracket:    10.1    9.85    9.725
+findBracket:    9.85    9.725    9.5375
+findBracket:    9.725    9.5375    9.25625
+findBracket:    9.5375    9.25625    8.83437
+findBracket:    9.25625    8.83437    8.20156
+findBracket:    8.83437    8.20156    7.25234
+findBracket:    8.20156    7.25234    5.82852
+findBracket:    7.25234    5.82852    3.69277
+findBracket:    5.82852    3.69277    0.48916
+findBracket:    3.69277    0.48916    -4.31626
+findBracket:    -4.31626    0.48916    3.69277
+
+
+=========================================================================
+
+
+parabgoldMinimization:    -4.31626    0.48916    3.69277
+parabgoldMinimization:    0.918349    0.989241    1.10714
+
+
+=========================================================================
+
+
+
+Begin ConjGrad::findMin() procedure
+
+
+x:
+-2    1    0    
+    ->    value = 0 +- 0
+
+
+direction (and error):
+108 (1e-06)    -62.5 (1e-06)    0.5 (1e-06)    
+
+findBracket:    0.25    0    -0.25
+findBracket:    -0.25    0    0.25
+parabgoldMinimization:    -0.25    0    0.25
+parabgoldMinimization:    0.0316977    0.0317583    0.0318446
+
+x:
+1.4299    -0.984895    0.0158792    
+    ->    value = 0.159488 +- 1e-05
+
+
+direction (and error):
+-0.313599 (1e-06)    -0.549131 (1e-06)    0.453879 (1e-06)    
+
+findBracket:    0    0.25    0.5
+findBracket:    0.25    0.5    0.625
+findBracket:    0.5    0.625    0.8125
+findBracket:    0.625    0.8125    1.09375
+findBracket:    0.8125    1.09375    1.51562
+findBracket:    0.8125    1.09375    1.51562
+parabgoldMinimization:    0.8125    1.09375    1.51562
+parabgoldMinimization:    0.993984    1.06786    1.17432
+
+x:
+1.09502    -1.57129    0.500558    
+    ->    value = 0.000107342 +- 1e-05
+
+
+direction (and error):
+-0.00343139 (1e-06)    0.00144916 (1e-06)    -2.48977e-10 (1e-06)    
+
+findBracket:    0    4.27148    8.54297
+findBracket:    0    4.27148    10.6787
+findBracket:    0    4.27148    13.8823
+findBracket:    4.27148    13.8823    18.6877
+findBracket:    13.8823    18.6877    25.8959
+findBracket:    18.6877    25.8959    36.7081
+findBracket:    25.8959    36.7081    52.9264
+findBracket:    25.8959    36.7081    52.9264
+parabgoldMinimization:    25.8959    36.7081    52.9264
+parabgoldMinimization:    25.8959    31.403    52.9264
+
+x:
+0.987263    -1.52578    0.500558    
+    ->    value = 4.68125e-07 +- 1e-05
+
+
+direction (and error):
+8.26615e-06 (1e-06)    6.85458e-05 (1e-06)    -6.94358e-10 (1e-06)    
+
+findBracket:    1870.46    0    -1870.46
+findBracket:    -1870.46    0    1870.46
+parabgoldMinimization:    -1870.46    0    1870.46
+parabgoldMinimization:    -1870.46    480.685    1870.46
+
+x:
+0.991236    -1.49283    0.500558    
+    ->    value = 8.53866e-09 +- 1e-05
+
+
+End ConjGrad::findMin() procedure
+
