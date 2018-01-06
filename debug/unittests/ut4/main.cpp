@@ -5,7 +5,6 @@
 #include "NoisyFunction.hpp"
 #include "NoisyFunctionValue.hpp"
 #include "1DTools.hpp"
-#include "ConjGrad.hpp"
 #include "DynamicDescent.hpp"
 #include "LogNFM.hpp"
 
@@ -37,7 +36,8 @@ int main(){
    using namespace std;
    
    NFMLogManager * log_manager = new NFMLogManager();
-
+   log_manager->setLoggingOn();
+   
    // define 3D function that I want to minimise
    F3D * f3d = new F3D();
    // introduce array with the initial position
@@ -46,17 +46,16 @@ int main(){
    
    
    // test DynamicDescent
-   DynamicDescent dyndesc(f3d);
+   DynamicDescent dyndesc = DynamicDescent(f3d);
    x[0] = -2.;   x[1] = 1.0;   x[2] = 0.0;
    dyndesc.setX(x);
    dyndesc.findMin();
+   
    assert(std::abs(dyndesc.getX(0)-1.0) < 0.1);
    assert(std::abs(dyndesc.getX(1)+1.5) < 0.1);
    assert(std::abs(dyndesc.getX(2)-0.5) < 0.1);
 
-
-
-
+   
    delete x;
    delete f3d;
    delete log_manager;

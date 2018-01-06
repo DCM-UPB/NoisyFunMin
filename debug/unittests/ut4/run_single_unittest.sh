@@ -30,5 +30,6 @@ case ${OS_NAME} in
 esac
 
 # Run the debugging executable
+#valgrind --track-origins=yes ./exe
 ./exe
 

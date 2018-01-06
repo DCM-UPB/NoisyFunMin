@@ -27,9 +27,10 @@ void ConjGrad::writeCurrentXInLog(){
       s << _x->getX(i) << "    ";
    }
    s << endl << "    ->    value = " << _x->getF() << " +- " << _x->getDf() << endl;
-   s << flush;
-      
+   s << flush; 
    log_manager->writeOnLog(s.str());
+   
+   delete log_manager;
 }
 
 
@@ -46,6 +47,8 @@ void ConjGrad::writeDirectionInLog(const double * direction, const double * dire
    s << endl;
    s << flush;
    log_manager->writeOnLog(s.str());
+   
+   delete log_manager;
 }
 
 
@@ -58,6 +61,8 @@ void ConjGrad::reportMeaninglessGradientInLog(){
    s << endl << "gradient seems to be meaningless, i.e. its error is too large" << endl;
    s << flush;
    log_manager->writeOnLog(s.str());   
+   
+   delete log_manager;
 }
 
 

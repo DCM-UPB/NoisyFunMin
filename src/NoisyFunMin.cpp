@@ -1,6 +1,7 @@
 #include "NoisyFunMin.hpp"
 
 #include <cmath>
+#include <iostream>
 
 
 

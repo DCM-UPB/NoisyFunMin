@@ -2,7 +2,6 @@
 
 #include "LogNFM.hpp"
 #include "FunProjection1D.hpp"
-#include "NoisyFunctionValue.hpp"
 #include "1DTools.hpp"
 
 #include "stdlib.h"
@@ -19,7 +18,7 @@
 void DynamicDescent::writeCurrentXInLog(){
    using namespace std;
    
-   NFMLogManager * log_manager = new NFMLogManager();
+   NFMLogManager log_manager = NFMLogManager();
       
    stringstream s;
    s << endl << "x:\n";
@@ -28,15 +27,14 @@ void DynamicDescent::writeCurrentXInLog(){
    }
    s << endl << "    ->    value = " << _x->getF() << " +- " << _x->getDf() << endl;
    s << flush;
-      
-   log_manager->writeOnLog(s.str());
+   log_manager.writeOnLog(s.str());   
 }
 
 
 void DynamicDescent::writeDirectionInLog(const double * direction, const double * directionerror){
    using namespace std;
    
-   NFMLogManager * log_manager = new NFMLogManager();
+   NFMLogManager log_manager = NFMLogManager();
       
    stringstream s;
    s << endl << "direction (and error):\n";
@@ -45,102 +43,114 @@ void DynamicDescent::writeDirectionInLog(const double * direction, const double 
    }
    s << endl;
    s << flush;
-   log_manager->writeOnLog(s.str());
+   log_manager.writeOnLog(s.str());
 }
 
 
 void DynamicDescent::writeInertiaInLog(){
    using namespace std;
    
-   NFMLogManager * log_manager = new NFMLogManager();
+   NFMLogManager log_manager = NFMLogManager();
       
    stringstream s;
    s << endl << "inertia: " << _inertia << endl;
    s << flush;
-   log_manager->writeOnLog(s.str());
+   log_manager.writeOnLog(s.str());
 }
 
 
 void DynamicDescent::reportMeaninglessGradientInLog(){
    using namespace std;
    
-   NFMLogManager * log_manager = new NFMLogManager();
+   NFMLogManager log_manager = NFMLogManager();
       
    stringstream s;
    s << endl << "gradient seems to be meaningless, i.e. its error is too large" << endl;
    s << flush;
-   log_manager->writeOnLog(s.str());   
+   log_manager.writeOnLog(s.str());
+}
+
+
+void DynamicDescent::writeOldValuesInLog(){
+   using namespace std;
+   
+   NFMLogManager log_manager = NFMLogManager();
+      
+   stringstream s;
+   s << endl << "last values:    ";
+   for (list<NoisyFunctionValue *>::iterator it=_old_values.begin(); it!=_old_values.end(); ++it){
+      s << (*it)->getF() << " +- " << (*it)->getDf() << "    ";
+   }
+   s << endl;
+   s << "equal to first element? ";
+   for (list<NoisyFunctionValue *>::iterator it=_old_values.begin(); it!=_old_values.end(); ++it){
+      if (it != _old_values.begin()){
+         s << ((**it) == (**_old_values.begin())) << "    ";
+      }
+      
+   }
+   s << endl;
+   log_manager.writeOnLog(s.str());
 }
 
 
 
 // --- Minimization
 
-void DynamicDescent::findMin()
-{
+void DynamicDescent::findMin(){
    using namespace std;
-   
+      
    NFMLogManager * log_manager = new NFMLogManager();
    log_manager->writeOnLog("\nBegin DynamicDescent::findMin() procedure\n");
-
-   //check if the gradient has been provided before starting the minimization
-   if ( !_flaggradtargetfun )
-   {
-      cout << "ERROR DynamicDescent.findMin() : The gradient is required for this method, but it was not provided" << endl << endl;
-      exit(-1);
-   }
-
+   
    //initialize the gradients
-   double * gradold = new double[_ndim];
-   double * gradnew = new double[_ndim];
+   double * grad = new double[_ndim];
    double * graderr = new double[_ndim];
    
-   this->_gradtargetfun->grad(_x->getX(), gradold, graderr);
+   // compute the current value
+   double newf, newdf;
+   this->_gradtargetfun->f(_x->getX(), newf, newdf);
+   _x->setF(newf, newdf);
+   
+   // compute the gradient
+   this->_gradtargetfun->grad(_x->getX(), grad, graderr);
    
    _inertia = 0.;
    for (int i=0; i<this->_ndim; ++i)
    {
-      _inertia+=gradold[i]*gradold[i];
+      _inertia+=grad[i]*grad[i];
    }
    _inertia = 1. / sqrt(_inertia);
    
    this->writeCurrentXInLog();
    
-   if (this->_meaningfulGradient(gradold, graderr))
+   //interested in following -gradient
+   for (int i=0; i<_ndim; ++i){ grad[i]=-grad[i]; }
+   this->writeDirectionInLog(grad, graderr);
+   //find new position
+   double deltatargetfun, deltax;
+   this->findNextX(grad, deltatargetfun, deltax);
+   this->writeCurrentXInLog();
+   
+   //begin the minimization loop
+   while ( shouldContinueDescent() )
    {
-      int i;
-      //interested in following -gradient
-      for (i=0; i<_ndim; ++i){ gradold[i]=-gradold[i]; }
-      this->writeDirectionInLog(gradold, graderr);
-      //find new position
-      double deltatargetfun, deltax;
-      this->findNextX(gradold, deltatargetfun, deltax);
+      //evaluate the new gradient
+      this->_gradtargetfun->grad(_x->getX(), grad, graderr);
+      for (int i=0; i<_ndim; ++i){ grad[i]=-grad[i]; }
+      
+      this->writeDirectionInLog(grad, graderr);
+      this->findNextX(grad, deltatargetfun, deltax);
       this->writeCurrentXInLog();
-      //begin the minimization loop
-      while ( ( deltatargetfun>=_epstargetfun ) && (deltax>=_epsx) )
-      {
-         //evaluate the new gradient
-         this->_gradtargetfun->grad(_x->getX(),gradnew,graderr);
-         for (i=0; i<_ndim; ++i){ gradnew[i]=-gradnew[i]; }
-         if (!this->_meaningfulGradient(gradnew, graderr))
-         {
-            this->reportMeaninglessGradientInLog();
-            break;
-         }
-         this->writeDirectionInLog(gradnew, graderr);
-         this->findNextX(gradnew,deltatargetfun,deltax);
-         this->writeCurrentXInLog();
-      }
    }
    
    log_manager->writeOnLog("\nEnd DynamicDescent::findMin() procedure\n"); 
-
+   
    //free memory
-   delete [] gradnew;
-   delete [] gradold;
+   delete [] grad;
    delete [] graderr;
    
-   delete log_manager;
+   //delete log_manager;
 }
 
 
@@ -195,6 +205,39 @@ void DynamicDescent::findNextX(const double * dir, double &deltatargetfun, doubl
    }
    
    delete[] norm_dir;
+}
+
+
+bool DynamicDescent::shouldContinueDescent(){
+   using namespace std;
+      
+   NoisyFunctionValue * v = new NoisyFunctionValue(_x->getNDim());
+   *v = *_x;
+   _old_values.push_front(v);
+      
+   if (_old_values.size() > N_CONSTANT_VALUES_CONDITION_FOR_STOP){
+      _old_values.pop_back();
+   }
+   
+   writeOldValuesInLog();
+   
+   if (_old_values.size() == N_CONSTANT_VALUES_CONDITION_FOR_STOP){
+      
+      for (list<NoisyFunctionValue *>::iterator it = _old_values.begin(); it != _old_values.end(); ++it){
+         if (it != _old_values.begin()){
+            if (! (**it == **_old_values.begin()) ){
+               return true;
+            }
+         }
+      }
+      
+      NFMLogManager log_manager = NFMLogManager();
+      log_manager.writeOnLog("\nValues have stabilised, interrupting minimisation procedure.\n");
+            
+      return false;
+   }
+      
+   return true;
 }
 
 
