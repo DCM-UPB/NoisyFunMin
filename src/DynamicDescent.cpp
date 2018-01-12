@@ -170,7 +170,7 @@ void DynamicDescent::findNextX(const double * grad)
    for (int i=0; i<_ndim; ++i){
       old_new_direction_dot_product += _old_norm_direction[i] * norm_grad[i];
    }
-   // update the inertia and write it in the log
+   // update the inertia and report it in the log
    _inertia = _inertia + 0.5 * _inertia * old_new_direction_dot_product;
    this->writeInertiaInLog();
    

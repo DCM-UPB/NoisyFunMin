@@ -11,6 +11,33 @@
 \usepackage{natbib}
 \usepackage{lipsum}
 
+% C++ formatting
+\usepackage{listings}  % for code formatting
+\usepackage{color}
+\definecolor{listinggray}{gray}{0.9}
+\definecolor{lbcolor}{rgb}{0.9,0.9,0.9}
+\lstset{
+    backgroundcolor=\color{lbcolor},
+    tabsize=4,
+  language=C++,
+  captionpos=b,
+  tabsize=3,
+  frame=lines,
+  numbers=left,
+  numberstyle=\tiny,
+  numbersep=5pt,
+  breaklines=true,
+  showstringspaces=false,
+  basicstyle=\footnotesize,
+  identifierstyle=\color{magenta},
+  keywordstyle=\color[rgb]{0,0,1},
+  commentstyle=\color{OliveGreen},
+  stringstyle=\color{red}
+  }
+
+
+
+
 \title{The NoisyFunOpt C++ Library}
 \author{Francesco Calcavecchia}
 
@@ -22,8 +49,7 @@
 \begin{document}
 \maketitle
 
-NoisyFunOpt is a C++ library that contains simple tools for optimising (minimize) a noisy function, e.g. an integral computed with the Monte Carlo technique.
-It currently supports only the Conjugate Gradient algorithm, with some minor modifications made to handle the noise.
+NoisyFunOpt is a C++ library that contains simple tools to optimise (minimize) a noisy function, e.g. an integral computed with the Monte Carlo technique.
 More specifically, two function values \verb+a+ and \verb+b+ with associated standard deviations \verb+da+ and \verb+db+ are considered to be:
 \begin{itemize}
    \item $\verb+a+ > \verb+b+ \quad $ iff $ \quad \verb+a+ - 2 \verb+da+ > \verb+b+ + 2 \verb+db+$;
@@ -41,7 +67,7 @@ The comment \verb+TO DO+ indicates that the method needs to be implemented (as i
 \section{NoisyFunction}
 \label{sec:NoisyFunction}
 
-\begin{verbatim}
+\begin{lstlisting}
 \\ #include "NoisyFunction.hpp"
 class NoisyFunction
 {
@@ -52,7 +78,7 @@ class NoisyFunction
    
    virtual void f(const double *, double &, double &) = 0;  \\ TO DO
 };
-\end{verbatim}
+\end{lstlisting}
 
 A \verb+NoisyFunction+ implements a function $f:\mathbb{R}^{n} \rightarrow \mathbb{R} \times \mathbb{R}$ which takes a multidimensional vector as input, and returns a scalar value with an associated error bar. 
 
@@ -70,7 +96,7 @@ A \verb+NoisyFunction+ implements a function $f:\mathbb{R}^{n} \rightarrow \math
 \section{NoisyFunctionWithGradient} % (fold)
 \label{sec:NoisyFunctionWithGradient}
 
-\begin{verbatim}
+\begin{lstlisting}
 \\ #include "NoisyFunction.hpp"
 class NoisyFunctionWithGradient: public NoisyFunction
 {
@@ -79,9 +105,9 @@ class NoisyFunctionWithGradient: public NoisyFunction
    
    virtual void grad(const double *, double *, double *) = 0; // TO DO
 };
-\end{verbatim}
+\end{lstlisting}
 
-\verb+NoisyFunctionWithGradient+ is a child class of \verb+NoisyFunction+ (therefore the implementation of the method \verb+f+ is required), and its aim is to generalize the class to the case in which the gradient of $f$ is known.
+\verb+NoisyFunctionWithGradient+ is a child class of \verb+NoisyFunction+ (therefore the implementation of the method \verb+f+ is required), and it aims to cover the cases in which the gradient of $f$ is known.
 
 \begin{itemize}
    \item \verb+NoisyFunctionWithGradient(int ndim)+: The constructor. As in \verb+NoisyFunction+;
@@ -96,7 +122,7 @@ class NoisyFunctionWithGradient: public NoisyFunction
 \section{NFM} % (fold)
 \label{sec:nfm}
 
-\begin{verbatim}
+\begin{lstlisting}
 // #include "NoisyFunMin.hpp"
 class NFM{
    NFM(NoisyFunction *);                                       
@@ -119,19 +145,19 @@ class NFM{
    virtual void findMin() = 0; // TO DO
 };
   
-\end{verbatim}
+\end{lstlisting}
 
 \verb+NFM+ is an interface for a generic minimisation method.
 Any actual implementation of this interface will have to specify the \verb+findMin+ method.
 
 The minimisation process will start from a point \verb+x+, set with the method \verb+setX+, and wil continue until the minimum has been found.
-At the end of this process, \verb+x+ will have to be in this minimum.
+At the end of this process, \verb+x+ will have to be in this minimum and will be accessible with the method \verb+getX+.
 
 \begin{itemize}
    \item \verb+NFM(NoisyFunction *f)+: The constructor. It takes as input a target function \verb+f+;
    \item \verb+~NFM()+: The destructor. It does nothing;
    \item \verb+setX(const double *x)+: Set the starting point of the minimisator. By default it is set equal to $0$;
-   \item \verb+setGradientTargetFun(NoisyFunctionWithGradient * grad)+: Set a target function with gradient;
+   \item \verb+setGradientTargetFun(NoisyFunctionWithGradient * grad)+: Set a target function with gradient, in case it is available and/or the actual implementation of NFM requires it;
    \item \verb+setEpsTargetFun(double &eps)+: Set the value of the minimum change in the target function value that will make continue the minimisation process. This parameter might be irrelevant, depending on the actual implementation of the minimisation algorithm;
    \item \verb+setEpsX(double &eps)+: Set the value of the minimum change in the minimum point that will make continue the minimisation process. This parameter might be irrelevant, depending on the actual implementation of the minimisation algorithm;
    \item \verb+getNDim()+: It returns the number of dimensions of the space in which the function is minimised;
@@ -148,26 +174,97 @@ At the end of this process, \verb+x+ will have to be in this minimum.
 
 
 
+
+\section{Log report} % (fold)
+\label{sec:log_output}
+
+It is possible to activate the log report for following the algorithm internal dynamic.
+To do so, simply use the following commands:
+
+\begin{lstlisting}
+\\ #include "LogNFM.hpp"
+
+NFMLogManager log;
+log.setLoggingOn();
+\end{lstlisting}
+
+This will automatically output the log messages on the stdout (i.e. print on screen).
+It is possible to make it write it on a file instead.
+To do so:
+
+\begin{lstlisting}
+log.setLoggingPathFile("NFM.log");
+\end{lstlisting}
+
+Finally, it is possible to interrupt the log output in any moment using the command 
+\begin{lstlisting}
+log.setLoggingOff();
+\end{lstlisting}
+and to explicitly write a message in the log report
+\begin{lstlisting}
+log.writeOnLog("message to write on the log");
+\end{lstlisting}
+
+% section log_output (end)
+
+
+
 \section{ConjGrad} % (fold)
 \label{sec:conjgrad}
 
-\begin{verbatim}
+\begin{lstlisting}
 \\ #include "ConjGrad.hpp"
 class ConjGrad: public NFM
 {
    ConjGrad(NoisyFunctionWithGradient *);
-   ~ConjGrad();   
+   ~ConjGrad();
+   
+   void configureToFollowSimpleGradient()
 };
-\end{verbatim}
+\end{lstlisting}
 
 Implementation of the Conjugate Gradient algorithm, using the \emph{Para-Gold Search} method for the one-dimensional minimisation (see https://publications.ub.uni-mainz.de/theses/volltexte/2014/3805/pdf/3805.pdf, page 61).
 
+It requires a \verb+NoisyFunctionWithGradient+ for running.
+
 \begin{itemize}
-   \item \verb+ConjGrad(NoisyFunctionWithGradient *f)+: The constructor. It takes as input the target function \verb+f+;
+   \item \verb+ConjGrad(NoisyFunctionWithGradient *f)+: The constructor. It requires an input target function with gradient \verb+f+;
    \item \verb+~ConjGrad()+: The destructor. It does nothing;
+   \item \verb+configureToFollowSimpleGradient()+: It asks the algorithm to ignore computing the conjugate gradient, but rather use the simple gradient. Needless to say, this method should be called before the subroutine \verb+findMin+;
 \end{itemize}
 
 % section conjgrad (end)
+
+
+
+
+\section{DynamicDescent} % (fold)
+\label{sec:dynamicdescent}
+
+\begin{lstlisting}
+\\ #include "DynamicDescent.hpp"
+class DynamicDescent: public NFM
+{
+   DynamicDescent(NoisyFunctionWithGradient *);
+   ~DynamicDescent();   
+};
+\end{lstlisting}
+
+This implementation is extremely simple, however it can be useful in certain circumstances. To minimise the function it uses the gradient (actually $-\nabla$) of the function as direction for moving. For deciding "how much" to move in that direction, it multiplies the gradient with a scalar value $\lambda$ (named \verb+_inertia+ in the code) set in the following way:
+\begin{enumerate}
+\item $\lambda_0 \equiv \frac{Ndim}{\left| \nabla_0 \right|}$ at the first step;
+\item $\lambda_{i+1} = \lambda_i + \frac{1}{2} \lambda_i <\nabla_{i+1}, \nabla_i>$ ($< \dots >$ symbolises a scalar product) at any other step;
+\end{enumerate}
+This iterative procedure should ensure that when we are far from the minimum and we keep moving in the same direction, $lambda$ grows, whereas when we are close to the minimum, and the direction keeps changing, $lambda$ is quickly reduced to almost zero.
+
+The aforementioned iterative procedure stops when the last \verb+N_CONSTANT_VALUES_CONDITION_FOR_STOP+ (currently set to $20$) points found are equal, meaning that the procedure has stabilised around a minimum.
+
+\begin{itemize}
+   \item \verb+DynamicDescent(NoisyFunctionWithGradient *f)+: The constructor. It requires an input target function with gradient \verb+f+;
+   \item \verb+~DynamicDescent()+: The destructor. It does nothing;
+\end{itemize}
+
+% section dynamicdescent (end)
 
 
 
