@@ -15,7 +15,7 @@ private:
    double _inertia;
    double * _old_norm_direction;
    std::list<NoisyFunctionValue *> _old_values;
-   const unsigned int N_CONSTANT_VALUES_CONDITION_FOR_STOP = 5;
+   const unsigned int N_CONSTANT_VALUES_CONDITION_FOR_STOP = 20;
    
    void writeCurrentXInLog();
    void writeDirectionInLog(const double * direction, const double * directionerror);
@@ -26,7 +26,7 @@ private:
 protected:
 
    // --- Internal methods
-   void findNextX(const double * dir, double &deltatargetfun, double &deltax);
+   void findNextX(const double * dir);
    bool shouldContinueDescent();
 
 public:
