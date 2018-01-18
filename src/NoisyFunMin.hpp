@@ -30,6 +30,7 @@ class NFM
 
       // --- Setters
       void setX(const double * x);
+      void setX(const int &i, const double &x);
       void setGradientTargetFun(NoisyFunctionWithGradient * grad);
       //void setDomain(nfm::DomainFun domain);
       void setEpsTargetFun(double &epstargetfun){_epstargetfun=epstargetfun;}

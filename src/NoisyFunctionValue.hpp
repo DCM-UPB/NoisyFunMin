@@ -18,7 +18,7 @@ class NoisyFunctionValue
       //Setters
       void setX(const double &x){_x[0]=x;}
       void setX(const double * x);
-      void setX(const int i, const double &x){_x[i]=x;}
+      void setX(const int &i, const double &x){_x[i]=x;}
       void setF(const double &f, const double &df);
 
       //Getters
