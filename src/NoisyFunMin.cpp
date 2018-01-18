@@ -44,6 +44,12 @@ void NFM::setX(const double * x)
 }
 
 
+void NFM::setX(const int &i, const double &x)
+{
+   _x->setX(i, x);
+}
+
+
 // --- Constructor and destructor
 
 NFM::NFM(NoisyFunction * targetfun)
