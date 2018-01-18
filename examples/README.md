@@ -11,3 +11,8 @@
 
 `ex2/`: as example 1, but using the Deepest Descent method instead.
 
+
+## Example 3
+
+`ex3/`: use conjgrad for training a NN.
+

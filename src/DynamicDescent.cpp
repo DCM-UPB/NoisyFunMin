@@ -181,7 +181,9 @@ void DynamicDescent::findNextX(const double * grad)
    
    // compute the new value of the target function
    double newf, newdf;
+   cout << "A" << endl;
    _gradtargetfun->f(_x->getX(), newf, newdf);
+   cout << "B" << endl;
 
    // store the new function value in _x
    _x->setF(newf, newdf);
