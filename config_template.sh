@@ -21,12 +21,6 @@ IMCI="-I${MCI_FOLDER}/src/"
 LMCI="-L${MCI_FOLDER}"
 LIBMCI="-lmci"
 
-#NoisyFunctionMinimization Library
-NFM_FOLDER="/...../NoisyFunMin"
-INFM="-I${NFM_FOLDER}/src/"
-LNFM="-L${NFM_FOLDER}"
-LIBNFM="-lnfm"
-
 #FFNN Library (used in ex3)
 FFNN_FOLDER="/...../FeedForwardNeuralNetwork"
 IFFNN="-I${FFNN_FOLDER}/src/"
