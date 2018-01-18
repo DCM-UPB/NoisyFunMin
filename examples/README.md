@@ -11,3 +11,8 @@
 
 `ex2/`: as `ex1`, but using the DynamicDescent method.
 
+
+## Example 3
+
+`ex3/`: use conjgrad for training a NN.
+
