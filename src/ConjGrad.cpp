@@ -83,16 +83,6 @@ void ConjGrad::findMin()
       exit(-1);
    }
 
-   ////check if the starting X is inside the domain
-   //if ( _flagindomain )
-   //{
-   //   if ( !_indomain(_ndim,_x) )
-   //   {
-   //      cout << "ERROR ConjGrad.findMin() : Starting X out of the domain" << std::endl << std::endl;
-   //      exit(-2);
-   //   }
-   //}
-
    //initialize the gradients
    double * gradold = new double[_ndim];
    double * gradnew = new double[_ndim];
@@ -122,7 +112,8 @@ void ConjGrad::findMin()
       double scalprodold, scalprodnew, ratio;
       //cout << "deltatargetfunction = " << deltatargetfun << "   " << _epstargetfun << endl;
       //cout << "deltax = " << deltax << "   " << _epsx << endl << endl;
-      while ( ( deltatargetfun>=_epstargetfun ) && (deltax>=_epsx) )
+      int cont = 0;
+      while (cont < 5) //( ( deltatargetfun>=_epstargetfun ) && (deltax>=_epsx) )
       {
          //cout << "x is in " << getX(0) << "   " << getX(1) << "   " << getX(2) << endl << endl;
          //evaluate the new gradient
@@ -134,8 +125,8 @@ void ConjGrad::findMin()
             break;
          }
          // compute the direction to follow for finding the next x
-         // if _use_conjgrad == true -> Conjugate Gradient
-         // else -> Steepest Descent
+         //    if _use_conjgrad == true   ->   Conjugate Gradient
+         //    else   ->   Steepest Descent
          if (_use_conjgrad){
             //determine the new conjugate vector
             scalprodnew=0.;
@@ -155,6 +146,8 @@ void ConjGrad::findMin()
          //cout << "deltax = " << deltax << "   " << _epsx << endl << endl;
          
          this->writeCurrentXInLog();
+         
+         cont++;
       }
    }
    

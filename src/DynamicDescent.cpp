@@ -16,81 +16,81 @@
 // --- Log
 
 void DynamicDescent::writeCurrentXInLog(){
-   //using namespace std;
-   //
-   //NFMLogManager log_manager = NFMLogManager();
-   //   
-   //stringstream s;
-   //s << endl << "x:\n";
-   //for (int i=0; i<_x->getNDim(); ++i){
-   //   s << _x->getX(i) << "    ";
-   //}
-   //s << endl << "    ->    value = " << _x->getF() << " +- " << _x->getDf() << endl;
-   //s << flush;
-   //log_manager.writeOnLog(s.str());   
+   using namespace std;
+   
+   NFMLogManager log_manager = NFMLogManager();
+      
+   stringstream s;
+   s << endl << "x:\n";
+   for (int i=0; i<_x->getNDim(); ++i){
+      s << _x->getX(i) << "    ";
+   }
+   s << endl << "    ->    value = " << _x->getF() << " +- " << _x->getDf() << endl;
+   s << flush;
+   log_manager.writeOnLog(s.str());   
 }
 
 
 void DynamicDescent::writeDirectionInLog(const double * grad, const double * graderror){
-   //using namespace std;
-   //
-   //NFMLogManager log_manager = NFMLogManager();
-   //   
-   //stringstream s;
-   //s << endl << "direction to follow (and error):\n";
-   //for (int i=0; i<_x->getNDim(); ++i){
-   //   s << -grad[i] << " (" << graderror[i] << ")    ";
-   //}
-   //s << endl;
-   //s << flush;
-   //log_manager.writeOnLog(s.str());
+   using namespace std;
+   
+   NFMLogManager log_manager = NFMLogManager();
+      
+   stringstream s;
+   s << endl << "direction to follow (and error):\n";
+   for (int i=0; i<_x->getNDim(); ++i){
+      s << -grad[i] << " (" << graderror[i] << ")    ";
+   }
+   s << endl;
+   s << flush;
+   log_manager.writeOnLog(s.str());
 }
 
 
 void DynamicDescent::writeInertiaInLog(){
-   //using namespace std;
-   //
-   //NFMLogManager log_manager = NFMLogManager();
-   //   
-   //stringstream s;
-   //s << endl << "inertia: " << _inertia << endl;
-   //s << flush;
-   //log_manager.writeOnLog(s.str());
+   using namespace std;
+   
+   NFMLogManager log_manager = NFMLogManager();
+      
+   stringstream s;
+   s << endl << "inertia: " << _inertia << endl;
+   s << flush;
+   log_manager.writeOnLog(s.str());
 }
 
 
 void DynamicDescent::reportMeaninglessGradientInLog(){
-   //using namespace std;
-   //
-   //NFMLogManager log_manager = NFMLogManager();
-   //   
-   //stringstream s;
-   //s << endl << "gradient seems to be meaningless, i.e. its error is too large" << endl;
-   //s << flush;
-   //log_manager.writeOnLog(s.str());
+   using namespace std;
+   
+   NFMLogManager log_manager = NFMLogManager();
+      
+   stringstream s;
+   s << endl << "gradient seems to be meaningless, i.e. its error is too large" << endl;
+   s << flush;
+   log_manager.writeOnLog(s.str());
 }
 
 
 void DynamicDescent::writeOldValuesInLog(){
-   //using namespace std;
-   //
-   //NFMLogManager log_manager = NFMLogManager();
-   //   
-   //stringstream s;
-   //s << endl << "last values:    ";
-   //for (list<NoisyFunctionValue *>::iterator it=_old_values.begin(); it!=_old_values.end(); ++it){
-   //   s << (*it)->getF() << " +- " << (*it)->getDf() << "    ";
-   //}
-   //s << endl;
-   //s << "equal to first element? ";
-   //for (list<NoisyFunctionValue *>::iterator it=_old_values.begin(); it!=_old_values.end(); ++it){
-   //   if (it != _old_values.begin()){
-   //      s << ((**it) == (**_old_values.begin())) << "    ";
-   //   }
-   //   
-   //}
-   //s << endl;
-   //log_manager.writeOnLog(s.str());
+   using namespace std;
+   
+   NFMLogManager log_manager = NFMLogManager();
+      
+   stringstream s;
+   s << endl << "last values:    ";
+   for (list<NoisyFunctionValue *>::iterator it=_old_values.begin(); it!=_old_values.end(); ++it){
+      s << (*it)->getF() << " +- " << (*it)->getDf() << "    ";
+   }
+   s << endl;
+   s << "equal to first element? ";
+   for (list<NoisyFunctionValue *>::iterator it=_old_values.begin(); it!=_old_values.end(); ++it){
+      if (it != _old_values.begin()){
+         s << ((**it) == (**_old_values.begin())) << "    ";
+      }
+      
+   }
+   s << endl;
+   log_manager.writeOnLog(s.str());
 }
 
 
