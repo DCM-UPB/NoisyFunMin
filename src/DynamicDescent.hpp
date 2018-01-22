@@ -41,6 +41,8 @@ public:
       setGradientTargetFun(targetfun);
    }
    ~DynamicDescent(){
+      for (NoisyFunctionValue * v : _old_values)
+         delete v;
       _old_values.clear();
       delete[] _old_norm_direction;
    }

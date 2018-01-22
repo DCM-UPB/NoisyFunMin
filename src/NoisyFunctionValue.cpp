@@ -73,7 +73,7 @@ NoisyFunctionValue::NoisyFunctionValue(int ndim)
 
 NoisyFunctionValue::~NoisyFunctionValue()
 {
-   delete [] _x;
+   delete[] _x;
    _ndim = 0;
 }
 
