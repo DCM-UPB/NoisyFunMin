@@ -1,8 +1,6 @@
 #include <iostream>
 #include <cmath>
 #include <math.h>
-#include <fstream>
-#include <random>
 
 #include "NoisyFunction.hpp"
 #include "ConjGrad.hpp"
@@ -39,7 +37,24 @@ public:
   }
 };
 
-// Quadratic distance between NN and 1D target function
+// Sampling function from Function1D
+class SamplingFunction1D: public MCISamplingFunctionInterface{
+private:
+  Function1D * _f1d;
+public:
+  SamplingFunction1D(Function1D * f1d): MCISamplingFunctionInterface(1, 1) {_f1d=f1d;}
+
+  void samplingFunction(const double * in, double * protovalue){
+    protovalue[0] = 1;
+  }
+
+  double getAcceptance(){
+    return this->getProtoNew(0) / this->getProtoOld(0);
+  }
+};
+
+
+// Quadratic distance between NN and 1D target function, divided by the target function log
 class NNFitDistance1D: public MCIObservableFunctionInterface{
 private:
   FeedForwardNeuralNetwork * _ffnn;
@@ -49,14 +64,15 @@ public:
 protected:
     void observableFunction(const double * in, double * out){
 
-      _ffnn->setInput(1, &in[0]);
+      _ffnn->setInput(1, in);
       _ffnn->FFPropagate();
-      out[0] = pow(_ffnn->getOutput(1) - _ftarget->f(in[0]), 2);
+      double fx = _ftarget->f(in[0]);
+      out[0] = pow(_ffnn->getOutput(1) - fx, 2);
 
     }
 };
 
-// Gradient of Quadratic distance between NN and 1D target function
+// Gradient of Quadratic distance between NN and 1D target function, divided by the target function log
 class NNFitGradient1D: public MCIObservableFunctionInterface{
 private:
   FeedForwardNeuralNetwork * _ffnn;
@@ -66,15 +82,15 @@ public:
 protected:
   void observableFunction(const double * in, double * out){
 
-    _ffnn->setInput(1, &in[0]);
+    _ffnn->setInput(1, in);
     _ffnn->FFPropagate();
 
     double nnout = _ffnn->getOutput(1);
     double fx = _ftarget->f(in[0]);
 
     for(int i=0; i<_nobs; ++i){
-        out[i] = 2.*(nnout - fx)*_ffnn->getVariationalFirstDerivative(1, i);
-      }
+      out[i] = 2.*(nnout - fx)*_ffnn->getVariationalFirstDerivative(1, i);
+    }
   }
 };
 
@@ -94,13 +110,17 @@ public:
     _nmc = nmc;
 
     _x0 = 0.5*(irange[0] + irange[1]);
-    _step0 = 0.1*(irange[1] - irange[0]);
+    _step0 = 0.05*(irange[1] - irange[0]);
 
     _mcif = new MCI(1);
     _mcig = new MCI(1);
 
     MCIObservableFunctionInterface * fobs = new NNFitDistance1D(_ffnn, _ftarget);
     MCIObservableFunctionInterface * gobs = new NNFitGradient1D(_ffnn, _ftarget);
+    //MCISamplingFunctionInterface * fts = new SamplingFunction1D(_ftarget);
+
+    //_mcif->addSamplingFunction(fts);
+    //_mcig->addSamplingFunction(fts);
 
     _mcif->addObservable(fobs);
     _mcig->addObservable(gobs);
@@ -228,7 +248,7 @@ int main() {
   cin.ignore();
 
   // NON I/O CODE
-  Gaussian * gauss = new Gaussian(0.1,0.);
+  Gaussian * gauss = new Gaussian(0.5,0.);
   FitNN1D * fitnn = new FitNN1D(ffnn, gauss, nmc, irange);
   ConjGrad * conj = new ConjGrad(fitnn);
   //
