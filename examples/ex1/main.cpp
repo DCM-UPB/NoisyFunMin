@@ -81,9 +81,7 @@ int main() {
     initpos[0] = -1.;
     initpos[1] = -1.;
     cg->setX(initpos);
-    
-    cg->setGradientTargetFun(nlp);
-    
+        
     cg->findMin();
     
     cout << "The found minimum is: ";
@@ -96,10 +94,10 @@ int main() {
     
     Noisy2DParabola * np = new Noisy2DParabola();
     
+    delete cg;
+    cg = new ConjGrad(np);
     cg->setX(initpos);
-    
-    cg->setGradientTargetFun(np);
-    
+        
     cg->findMin();
     
     cout << "The found minimum is: ";

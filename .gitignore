@@ -66,6 +66,8 @@ config.sh
 src/*.o
 
 debug/*.o
+debug/unittests/*/*.o
+debug/log.txt
 
 examples/*/a.out
 examples/*/*.o

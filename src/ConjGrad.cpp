@@ -18,27 +18,27 @@
 
 void ConjGrad::writeCurrentXInLog(){
    using namespace std;
-   
+
    NFMLogManager * log_manager = new NFMLogManager();
-      
+
    stringstream s;
    s << endl << "x:\n";
    for (int i=0; i<_x->getNDim(); ++i){
       s << _x->getX(i) << "    ";
    }
    s << endl << "    ->    value = " << _x->getF() << " +- " << _x->getDf() << endl;
-   s << flush; 
+   s << flush;
    log_manager->writeOnLog(s.str());
-   
+
    delete log_manager;
 }
 
 
 void ConjGrad::writeDirectionInLog(const double * direction, const double * directionerror){
    using namespace std;
-   
+
    NFMLogManager * log_manager = new NFMLogManager();
-      
+
    stringstream s;
    s << endl << "direction (and error):\n";
    for (int i=0; i<_x->getNDim(); ++i){
@@ -47,21 +47,21 @@ void ConjGrad::writeDirectionInLog(const double * direction, const double * dire
    s << endl;
    s << flush;
    log_manager->writeOnLog(s.str());
-   
+
    delete log_manager;
 }
 
 
 void ConjGrad::reportMeaninglessGradientInLog(){
    using namespace std;
-   
+
    NFMLogManager * log_manager = new NFMLogManager();
-      
+
    stringstream s;
    s << endl << "gradient seems to be meaningless, i.e. its error is too large" << endl;
    s << flush;
-   log_manager->writeOnLog(s.str());   
-   
+   log_manager->writeOnLog(s.str());
+
    delete log_manager;
 }
 
@@ -72,7 +72,7 @@ void ConjGrad::reportMeaninglessGradientInLog(){
 void ConjGrad::findMin()
 {
    using namespace std;
-   
+
    NFMLogManager * log_manager = new NFMLogManager();
    log_manager->writeOnLog("\nBegin ConjGrad::findMin() procedure\n");
 
@@ -83,27 +83,17 @@ void ConjGrad::findMin()
       exit(-1);
    }
 
-   ////check if the starting X is inside the domain
-   //if ( _flagindomain )
-   //{
-   //   if ( !_indomain(_ndim,_x) )
-   //   {
-   //      cout << "ERROR ConjGrad.findMin() : Starting X out of the domain" << std::endl << std::endl;
-   //      exit(-2);
-   //   }
-   //}
-
    //initialize the gradients
    double * gradold = new double[_ndim];
    double * gradnew = new double[_ndim];
    double * graderr = new double[_ndim];
    double * conjvold = new double[_ndim];
    double * conjvnew = new double[_ndim];
-   
+
    this->_gradtargetfun->grad(_x->getX(), gradold, graderr);
-   
+
    this->writeCurrentXInLog();
-   
+
    if (this->_meaningfulGradient(gradold, graderr))
    {
       int i;
@@ -115,13 +105,14 @@ void ConjGrad::findMin()
       //find new position
       double deltatargetfun, deltax;
       this->findNextX(conjvold,deltatargetfun,deltax);
-      
+
       this->writeCurrentXInLog();
 
       //begin the minimization loop
       double scalprodold, scalprodnew, ratio;
       //cout << "deltatargetfunction = " << deltatargetfun << "   " << _epstargetfun << endl;
       //cout << "deltax = " << deltax << "   " << _epsx << endl << endl;
+      int cont = 0;
       while ( ( deltatargetfun>=_epstargetfun ) && (deltax>=_epsx) )
       {
          //cout << "x is in " << getX(0) << "   " << getX(1) << "   " << getX(2) << endl << endl;
@@ -134,8 +125,8 @@ void ConjGrad::findMin()
             break;
          }
          // compute the direction to follow for finding the next x
-         // if _use_conjgrad == true -> Conjugate Gradient
-         // else -> Steepest Descent
+         //    if _use_conjgrad == true   ->   Conjugate Gradient
+         //    else   ->   Steepest Descent
          if (_use_conjgrad){
             //determine the new conjugate vector
             scalprodnew=0.;
@@ -153,12 +144,14 @@ void ConjGrad::findMin()
          this->findNextX(conjvnew,deltatargetfun,deltax);
          //cout << "deltatargetfunction = " << deltatargetfun << "   " << _epstargetfun << endl;
          //cout << "deltax = " << deltax << "   " << _epsx << endl << endl;
-         
+
          this->writeCurrentXInLog();
+
+         cont++;
       }
    }
-   
-   log_manager->writeOnLog("\nEnd ConjGrad::findMin() procedure\n"); 
+
+   log_manager->writeOnLog("\nEnd ConjGrad::findMin() procedure\n");
 
    //free memory
    delete [] conjvnew;
@@ -166,7 +159,7 @@ void ConjGrad::findMin()
    delete [] gradnew;
    delete [] gradold;
    delete [] graderr;
-   
+
    delete log_manager;
 }
 
@@ -176,7 +169,7 @@ void ConjGrad::findMin()
 void ConjGrad::findNextX(const double * dir, double &deltatargetfun, double &deltax)
 {
    using namespace std;
-   
+
    //project the original multidimensional wave function into a one-dimensional function
    FunProjection1D * proj1d = new FunProjection1D(this->_ndim, this->_x->getX(), dir, this->_targetfun);
    //determine the initial bracket
@@ -202,5 +195,3 @@ void ConjGrad::findNextX(const double * dir, double &deltatargetfun, double &del
    //cout << "x is in " << this->getX(0) << "   " << this->getX(1) << "   " << this->getX(2) << endl;
    delete proj1d;
 }
-
-

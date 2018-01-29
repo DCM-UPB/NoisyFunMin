@@ -5,7 +5,8 @@
 #include <random>
 
 #include "NoisyFunction.hpp"
-#include "ConjGrad.hpp"
+#include "DynamicDescent.hpp"
+#include "LogNFM.hpp"
 
 
 
@@ -15,14 +16,14 @@ public:
    
    void f(const double * in, double &f, double &df){
       f = pow(in[0]-1., 2) + pow(in[1]+2., 2);   // minimum in (1, -2)
-      df = 0.;
+      df = 0.0;
    }
    
    void grad(const double * in, double * g, double * dg){
       g[0] = 2. * (in[0] - 1.);
       g[1] = 2. * (in[1] + 2.);
-      dg[0] = 0.;
-      dg[1] = 0.;
+      dg[0] = 0.0;
+      dg[1] = 0.0;
    }
 };
 
@@ -30,7 +31,7 @@ public:
 
 class Noisy2DParabola: public NoisyFunctionWithGradient{
 private:
-   const double _sigma = 0.5;
+   const double _sigma = 0.15;
    std::random_device _rdev;
    std::mt19937_64 _rgen;
    std::uniform_real_distribution<double> _rd;  //after initialization (done in the constructor) can be used with _rd(_rgen)
@@ -68,30 +69,25 @@ int main() {
     cout << "    (x-1)^2 + (y+2)^2" << endl;
     cout << "whose min is in (1, -2)." << endl << endl << endl;
     
-    
+    NFMLogManager * log = new NFMLogManager();
+    //log->setLoggingOn();
     
     
     cout << "we first minimize it, supposing to have no noise at all" << endl;
     
     Noiseless2DParabola * nlp = new Noiseless2DParabola();
     
-    ConjGrad * cg = new ConjGrad(nlp);
-    
-    // IMPORTANT: we switch from the Conjugate Gradient to the Steepest Descent
-    cg->configureToFollowSimpleGradient();
-    //
+    DynamicDescent * dd = new DynamicDescent(nlp);
     
     double * initpos = new double[2];
     initpos[0] = -1.;
     initpos[1] = -1.;
-    cg->setX(initpos);
-    
-    cg->setGradientTargetFun(nlp);
-    
-    cg->findMin();
+    dd->setX(initpos);
+        
+    dd->findMin();
     
     cout << "The found minimum is: ";
-    cout << cg->getX(0) << "    " << cg->getX(1) << endl << endl << endl;
+    cout << dd->getX(0) << "    " << dd->getX(1) << endl << endl << endl;
     
     
     
@@ -100,19 +96,21 @@ int main() {
     
     Noisy2DParabola * np = new Noisy2DParabola();
     
-    cg->setX(initpos);
-    
-    cg->setGradientTargetFun(np);
-    
-    cg->findMin();
+    delete dd;
+    dd = new DynamicDescent(np);
+    dd->setX(initpos);
+        
+    dd->findMin();
     
     cout << "The found minimum is: ";
-    cout << cg->getX(0) << "    " << cg->getX(1) << endl << endl;
+    cout << dd->getX(0) << "    " << dd->getX(1) << endl << endl;
     
+    
+    delete log;
     
     delete np;
     delete[] initpos;
-    delete cg;
+    delete dd;
     delete nlp;
     
 

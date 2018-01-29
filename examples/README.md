@@ -9,5 +9,5 @@
 
 ## Example 2
 
-`ex2/`: as example 1, but using the Deepest Descent method instead.
+`ex2/`: as `ex1`, but using the DynamicDescent method.
 

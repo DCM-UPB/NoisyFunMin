@@ -281,6 +281,8 @@ namespace nfm
          c.getX(0) << " -> " << c.getF();
       s << flush;
       log_manager->writeOnLog(s.str());
+      
+      delete log_manager;
    }
    
    

@@ -37,7 +37,7 @@ void DynamicDescent::writeDirectionInLog(const double * grad, const double * gra
    NFMLogManager log_manager = NFMLogManager();
       
    stringstream s;
-   s << endl << "grad (and error):\n";
+   s << endl << "direction to follow (and error):\n";
    for (int i=0; i<_x->getNDim(); ++i){
       s << -grad[i] << " (" << graderror[i] << ")    ";
    }
@@ -142,10 +142,10 @@ void DynamicDescent::findMin(){
    log_manager->writeOnLog("\nEnd DynamicDescent::findMin() procedure\n"); 
    
    //free memory
-   delete [] grad;
-   delete [] graderr;
+   delete[] grad;
+   delete[] graderr;
    
-   //delete log_manager;
+   delete log_manager;
 }
 
 
@@ -163,7 +163,10 @@ void DynamicDescent::findNextX(const double * grad)
    }
    sum = sqrt(sum);
    for (int i=0; i<_ndim; ++i){
-      norm_grad[i] = grad[i]/sum;
+      if (sum!=0.)
+         norm_grad[i] = grad[i]/sum;
+      else
+         norm_grad[i] = 0.;
    }
    // compute the dot product between the normalized gradection and the old normalized gradection
    double old_new_direction_dot_product = 0;
@@ -203,6 +206,7 @@ bool DynamicDescent::shouldContinueDescent(){
    _old_values.push_front(v);
       
    if (_old_values.size() > N_CONSTANT_VALUES_CONDITION_FOR_STOP){
+      delete _old_values.back();
       _old_values.pop_back();
    }
    
@@ -217,14 +221,17 @@ bool DynamicDescent::shouldContinueDescent(){
             }
          }
       }
+      if (_old_values.size() < 5)
+         return true;
       
-      NFMLogManager log_manager = NFMLogManager();
-      log_manager.writeOnLog("\nValues have stabilised, interrupting minimisation procedure.\n");
+      NFMLogManager * log_manager = new NFMLogManager();
+      log_manager->writeOnLog("\nValues have stabilised, interrupting minimisation procedure.\n");
+      delete log_manager;
             
       return false;
    }
       
-   return true;
+   return true;   
 }
 
 
