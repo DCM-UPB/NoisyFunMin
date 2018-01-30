@@ -16,8 +16,6 @@ case ${OS_NAME} in
    "Darwin")
       echo "$CC $FLAGS $OPTFLAGS -I$(pwd)/../../src -L$(pwd)/../.. -Wl,-rpath,${RPATH} -o exe *.o -l${LIBNAME}"
       $CC $FLAGS $OPTFLAGS -I$(pwd)/../../src -L$(pwd)/../.. -Wl,-rpath,${RPATH} -o exe *.o -l${LIBNAME}
-      echo "install_name_tool -change lib{LIBNAME}.so ${RPATH}/lib{LIBNAME}.so exe"
-      install_name_tool -change lib{LIBNAME}.so ${RPATH}/lib{LIBNAME}.so exe
       ;;
    "Linux")
       echo "$CC $FLAGS $OPTFLAGS -L$(pwd)/../.. -Wl,-rpath=${RPATH} -o exe *.o -l${LIBNAME}"

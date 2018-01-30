@@ -22,7 +22,6 @@ case ${OS_NAME} in
          ;;
       "Darwin")
          $CC $FLAGS $DEBUGFLAGS -L${ROOT_FOLDER} -o exe *.o -l${LIBNAME}
-         install_name_tool -change lib${LIBNAME}.so ${ROOT_FOLDER}/lib${LIBNAME}.so exe
          ;;
       *)
          echo "The detected operating system is not between the known ones (Linux and Darwin)"
@@ -31,4 +30,3 @@ esac
 
 # Run the debugging executable
 ./exe
-
