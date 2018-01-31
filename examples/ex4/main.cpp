@@ -1,12 +1,16 @@
 #include <iostream>
 #include <cmath>
 #include <math.h>
+#include <pthread.h>
 
 #include "NoisyFunction.hpp"
 #include "ConjGrad.hpp"
 #include "MCIntegrator.hpp"
 #include "FeedForwardNeuralNetwork.hpp"
 #include "PrintUtilities.hpp"
+// thread0.c
+#include <pthread.h>
+
 
 
 //1D Target Function
@@ -37,7 +41,8 @@ public:
   }
 };
 
-// Sampling function from Function1D
+// Sampling function 1D depending on Function1D object, here uniform placeholder
+// It's not necessary to define unifrom distributions explicitly, but done here for demonstration purposes
 class SamplingFunction1D: public MCISamplingFunctionInterface{
 private:
   Function1D * _f1d;
@@ -45,7 +50,7 @@ public:
   SamplingFunction1D(Function1D * f1d): MCISamplingFunctionInterface(1, 1) {_f1d=f1d;}
 
   void samplingFunction(const double * in, double * protovalue){
-    protovalue[0] = 1;
+    protovalue[0] = 1.; // set something reasonable here
   }
 
   double getAcceptance(){
@@ -54,7 +59,7 @@ public:
 };
 
 
-// Quadratic distance between NN and 1D target function, divided by the target function log
+// Quadratic distance between NN and 1D target function
 class NNFitDistance1D: public MCIObservableFunctionInterface{
 private:
   FeedForwardNeuralNetwork * _ffnn;
@@ -72,7 +77,7 @@ protected:
     }
 };
 
-// Gradient of Quadratic distance between NN and 1D target function, divided by the target function log
+// Gradient of Quadratic distance between NN and 1D target function
 class NNFitGradient1D: public MCIObservableFunctionInterface{
 private:
   FeedForwardNeuralNetwork * _ffnn;
@@ -109,18 +114,20 @@ public:
     _ftarget = ftarget;
     _nmc = nmc;
 
+    //initial walker position and step size
     _x0 = 0.5*(irange[0] + irange[1]);
     _step0 = 0.05*(irange[1] - irange[0]);
 
+    //setup MCIs for distance function and gradient
     _mcif = new MCI(1);
     _mcig = new MCI(1);
 
     MCIObservableFunctionInterface * fobs = new NNFitDistance1D(_ffnn, _ftarget);
     MCIObservableFunctionInterface * gobs = new NNFitGradient1D(_ffnn, _ftarget);
-    //MCISamplingFunctionInterface * fts = new SamplingFunction1D(_ftarget);
+    MCISamplingFunctionInterface * fts = new SamplingFunction1D(_ftarget);
 
-    //_mcif->addSamplingFunction(fts);
-    //_mcig->addSamplingFunction(fts);
+    _mcif->addSamplingFunction(fts);
+    _mcig->addSamplingFunction(fts);
 
     _mcif->addObservable(fobs);
     _mcig->addObservable(gobs);
@@ -184,14 +191,71 @@ public:
 
 };
 
+// creates and holds the necessary data copies for multiple fit threads in parallel
+class NNFitter1D{
+private:
+  int _nhlayer;
+  int * _nhunits;
+  long _nmc;
+  double * _irange;
+
+  Function1D * _ftarget;
+  FeedForwardNeuralNetwork * _ffnn;
+  FitNN1D * _fitnn;
+  ConjGrad * _conj;
+
+public:
+  NNFitter1D(Function1D * ftarget, int &nhlayer, int * nhunits, long &nmc, double * irange){
+    _ftarget = ftarget;
+    _nhlayer = nhlayer;
+    _nhunits = nhunits;
+    _nmc = nmc;
+    _irange = irange;
+  }
+
+  void init() { // capsule this away for threading
+    _ffnn = new FeedForwardNeuralNetwork(2, _nhunits[0], 2);
+    for (int i = 1; i<_nhlayer; ++i) _ffnn->pushHiddenLayer(_nhunits[i]);
+    _ffnn->connectFFNN();
+    _ffnn->addVariationalFirstDerivativeSubstrate();
+
+    _fitnn = new FitNN1D(_ffnn, _ftarget, _nmc, _irange);
+
+    _conj = new ConjGrad(_fitnn);
+    for(int i = 0; i<_ffnn->getNBeta(); ++i) _conj->setX(i, _ffnn->getBeta(i));
+  }
+
+  void findFit() {
+    _conj->findMin();
+  }
+
+  double getFitDistance(){
+    return 0.;
+  }
+
+  FeedForwardNeuralNetwork * getFFNN() {return _ffnn;}
+  FitNN1D * getFitNN() {return _fitnn;}
+  ConjGrad * getConj() {return _conj;}
+};
+
+// code which runs in parallel
+void *findFit_thread(void * voidPtr) {
+  NNFitter1D * fitter = static_cast<NNFitter1D*>(voidPtr);
+  printf("This is findFit_thread()\n");
+  fitter->init();
+  fitter->findFit();
+  printf("Still here\n");
+  pthread_exit(NULL);
+}
+
 
 int main() {
   using namespace std;
 
-  int nl, nh1, nh2;
+  int nl, nhl, nhu[2];
   long nmc = 40000l;
   //double epsx = 0.01;
-  double * irange = new double[2];
+  double irange[2];
   irange[0] = -10.;
   irange[1] = 10.;
 
@@ -200,17 +264,19 @@ int main() {
   cin.ignore();
 
   cout << "How many units should the first hidden layer(s) have? ";
-  cin >> nh1;
+  cin >> nhu[0];
   cout << "How many units should the second hidden layer(s) have? (<=1 for no second hidden layer)";
-  cin >> nh2;
+  cin >> nhu[1];
 
-  nl = (nh2>1)? 4:3; 
-  cout << "We generate a FFANN with " << nl << " layers and 2, " << nh1;
-  if (nh2>1) { cout << ", " << nh2;}
+  nl = (nhu[1]>1)? 4:3;
+  nhl = nl-2;
+  cout << "We generate a FFANN with " << nl << " layers and 2, " << nhu[0];
+  if (nhu[1]>1) { cout << ", " << nhu[1];}
   cout << ", 2 units respectively" << endl;
   cout << "========================================================================" << endl << endl;
   cin.ignore();
 
+  /*
   // NON I/O CODE
   FeedForwardNeuralNetwork * ffnn = new FeedForwardNeuralNetwork(2, nh1, 2);
   if (nh2>1) ffnn->pushHiddenLayer(nh2);
@@ -246,33 +312,48 @@ int main() {
   cout << "Now we set up the Noisy Function Minimization via Conjugate Gradient." << endl;
   cout << "This means creating the target function, the quadratic distance NoisyFunction to optimize and the Conjugate Gradient object." << endl << endl;
   cin.ignore();
+  */
 
   // NON I/O CODE
+  int nthread = 4;
+  pthread_t * my_threads = new pthread_t[nthread];
+  int ret[nthread];
+
   Gaussian * gauss = new Gaussian(0.5,0.);
-  FitNN1D * fitnn = new FitNN1D(ffnn, gauss, nmc, irange);
-  ConjGrad * conj = new ConjGrad(fitnn);
+  NNFitter1D * fit_list[nthread];
   //
 
-  cout << "First copy the initial betas from the NN to CG and set epsx." << endl << endl;
+  cout << "Now let CG find the optimal betas..." << endl << endl;
   cin.ignore();
 
   // NON I/O CODE
-  for(int i = 0; i<ffnn->getNBeta(); ++i) conj->setX(i, ffnn->getBeta(i));
-  //  conj->setEpsX(epsx);
-  //
-
-  cout << "Let CG find the optimal betas..." << endl << endl;
-  cin.ignore();
-
-  // NON I/O CODE
-  conj->findMin();
+  // Preparing list of FitStructs for threads
+  for (int i=0; i<nthread; ++i){
+    fit_list[i] = new NNFitter1D(gauss, nhl, nhu, nmc, irange);
+  }
+  printf("In main: creating threads\n");
+  for (int i=0; i<nthread; ++i){
+    ret[i] =  pthread_create(&my_threads[i], NULL, &findFit_thread, fit_list[i]);
+    if(ret[i] != 0) {
+      printf("Error: pthread_create() failed\n");
+      exit(EXIT_FAILURE);
+    }
+  }
+  for (int i=0; i<nthread; ++i) pthread_join(my_threads[i], (void **) &ret[i]);
+  printf("Threads joined\n");
   //
 
   cout << "Done." << endl;
-  cout << "Now copy over the optimal betas from CG to the NN." << endl << endl;
+  cout << "Now copy over the optimal betas from CG to the NN and evaluate distance." << endl << endl;
   cin.ignore();
 
-  for(int i = 0; i<ffnn->getNBeta(); ++i) ffnn->setBeta(i, conj->getX(i));
+  // NON I/O CODE
+  for (int i=0; i<nthread; ++i) {
+    for(int j = 0; j<fit_list[i]->getFFNN()->getNBeta(); ++j) {
+      fit_list[i]->getFFNN()->setBeta(j, fit_list[i]->getConj()->getX(j));
+    }
+  }
+  //
 
   cout << "Finally the NN is fitted!" << endl << endl;
   cin.ignore();
@@ -282,18 +363,22 @@ int main() {
 
   double x=-10., dx=1.;
   for(int i=0; i<21; ++i) {
-    ffnn->setInput(1, &x);
-    ffnn->FFPropagate();
-    cout << "x: " << x << " f(x): " << gauss->f(x) << " nn(x): " << ffnn->getOutput(1) << endl;
+    fit_list[0]->getFFNN()->setInput(1, &x);
+    fit_list[0]->getFFNN()->FFPropagate();
+    cout << "x: " << x << " f(x): " << gauss->f(x) << " nn(x): " << fit_list[0]->getFFNN()->getOutput(1) << endl;
     x+=dx;
   }
   cout << endl;
-
-
-  delete conj;
-  delete fitnn;
-  delete gauss;
-  delete ffnn;
+  /*
+  for (int i=0; i<nthread; ++i) {
+    delete conj_list[i];
+    delete fitnn_list[i];
+    delete ffnn_list[i];
+    }*/
+  //delete conj_list;
+  //delete fitnn;
+  //delete gauss;
+  //delete ffnn;
 
   // end
   return 0;
