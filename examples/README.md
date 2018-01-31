@@ -12,7 +12,7 @@
 `ex2/`: as `ex1`, but using the DynamicDescent method.
 
 
-## Example 3
+## Example 4
 
-`ex3/`: use conjgrad for training a NN.
+`ex4/`: use conjgrad for fitting a NN to target function.
 
