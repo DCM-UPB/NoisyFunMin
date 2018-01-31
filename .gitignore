@@ -71,6 +71,7 @@ debug/log.txt
 
 examples/*/a.out
 examples/*/*.o
+examples/*/*.txt
 
 doc/*.aux
 doc/*.dvi

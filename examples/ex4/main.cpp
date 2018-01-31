@@ -278,6 +278,12 @@ public:
     cout << endl;
   }
 
+  // print fitted NN to file
+  void printFit(int input_i, int output_i, double min, double max, int npoints) {
+    double * base_input = new double[_ffnn->getNInput()];
+    writePlotFile(_ffnn, base_input, input_i, output_i, min, max, npoints, "getOutput", "v.txt");
+  }
+
   FeedForwardNeuralNetwork * getFFNN() {return _ffnn;}
   FitNN1D * getFitNN() {return _fitnn;}
   ConjGrad * getConj() {return _conj;}
@@ -384,6 +390,13 @@ int main() {
   fit_list[bfi]->compareFit(-10., 1., 21);
   //
 
-// end
+  cout << endl;
+  cout << "And print the NN to a file. The end." << endl;
+
+  // NON I/O CODE
+  fit_list[bfi]->printFit(0, 1, -10, 10, 200);
+  //
+
+  // end
   return 0;
 }
