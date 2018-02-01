@@ -226,8 +226,8 @@ public:
     cout << endl;
   }
 
-  // print fitted NN to file
-  void printFit(int input_i, int output_i, const double &min, const double &max, const int &npoints) {
+  // print output of fitted NN to file
+  void printFitOutput(int input_i, int output_i, const double &min, const double &max, const int &npoints) {
     double * base_input = new double[_ffnn->getNInput()];
     writePlotFile(_ffnn, base_input, input_i, output_i, min, max, npoints, "getOutput", "v.txt");
   }
@@ -339,10 +339,10 @@ int main() {
   //
 
   cout << endl;
-  cout << "And print the NN to a file. The end." << endl;
+  cout << "And print the output to a file. The end." << endl;
 
   // NON I/O CODE
-  fit_list[bfi]->printFit(0, 1, -10, 10, 200);
+  fit_list[bfi]->printFitOutput(0, 1, -10, 10, 200);
   //
 
   // cleanup

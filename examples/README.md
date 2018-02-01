@@ -14,4 +14,4 @@
 
 ## Example 3
 
-`ex3/`: use conjgrad for fitting a NN to target function.
+`ex3/`: use ConjugateGradient for fitting a NN to target function.
