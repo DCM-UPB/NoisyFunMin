@@ -232,6 +232,9 @@ public:
     writePlotFile(_ffnn, base_input, input_i, output_i, min, max, npoints, "getOutput", "v.txt");
   }
 
+  // store fitted NN in file
+  void printFitNN() {_ffnn->storeOnFile("nn.txt");}
+
   FeedForwardNeuralNetwork * getFFNN() {return _ffnn;}
   FitNN1D * getFitNN() {return _fitnn;}
   ConjGrad * getConj() {return _conj;}
@@ -339,10 +342,11 @@ int main() {
   //
 
   cout << endl;
-  cout << "And print the output to a file. The end." << endl;
+  cout << "And print the output/NN to a file. The end." << endl;
 
   // NON I/O CODE
   fit_list[bfi]->printFitOutput(0, 1, -10, 10, 200);
+  fit_list[bfi]->printFitNN();
   //
 
   // cleanup
