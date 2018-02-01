@@ -32,10 +32,7 @@ case ${OS_NAME} in
       ;;
 esac
 
-echo "Rebuilt the executable file"
 echo ""
-echo ""
-
 # Run the debugging executable
 echo "Ready to run!"
 echo ""

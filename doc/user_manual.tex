@@ -129,6 +129,7 @@ class NFM{
    virtual ~NFM();
    
    void setX(const double *);
+   void setX(const int &, const double &);
    void setGradientTargetFun(NoisyFunctionWithGradient *);          
    void setEpsTargetFun(double &); 
    void setEpsX(double &);                          
@@ -157,6 +158,7 @@ At the end of this process, \verb+x+ will have to be in this minimum and will be
    \item \verb+NFM(NoisyFunction *f)+: The constructor. It takes as input a target function \verb+f+;
    \item \verb+~NFM()+: The destructor. It does nothing;
    \item \verb+setX(const double *x)+: Set the starting point of the minimisator. By default it is set equal to $0$;
+   \item \verb+setX(const int &, const double &)+: Like above, but set only one \verb+x+ according to index.
    \item \verb+setGradientTargetFun(NoisyFunctionWithGradient * grad)+: Set a target function with gradient, in case it is available and/or the actual implementation of NFM requires it;
    \item \verb+setEpsTargetFun(double &eps)+: Set the value of the minimum change in the target function value that will make continue the minimisation process. This parameter might be irrelevant, depending on the actual implementation of the minimisation algorithm;
    \item \verb+setEpsX(double &eps)+: Set the value of the minimum change in the minimum point that will make continue the minimisation process. This parameter might be irrelevant, depending on the actual implementation of the minimisation algorithm;
