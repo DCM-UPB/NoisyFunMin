@@ -230,6 +230,7 @@ public:
   void printFitOutput(int input_i, int output_i, const double &min, const double &max, const int &npoints) {
     double * base_input = new double[_ffnn->getNInput()];
     writePlotFile(_ffnn, base_input, input_i, output_i, min, max, npoints, "getOutput", "v.txt");
+    delete [] base_input;
   }
 
   // store fitted NN in file
@@ -257,6 +258,7 @@ void *findFit_thread(void * voidPtr) {
   findFit(voidPtr);
   pthread_exit(NULL);
 }
+
 
 int main() {
   using namespace std;
@@ -300,8 +302,8 @@ int main() {
   int ret[nthread];
 
   Gaussian * gauss = new Gaussian(0.5,0.);
-  NNFitter1D * fit_list[nthread];
 
+  NNFitter1D * fit_list[nthread];
   for (int i=0; i<nthread; ++i){
     fit_list[i] = new NNFitter1D(gauss, nhl, nhu, nmc, irange);
   }
@@ -358,3 +360,33 @@ int main() {
   // end
   return 0;
 }
+
+/* no-thread main for debug
+int main() {
+  using namespace std;
+
+  int nl, nhl, nhu[2];
+  nhu[0] = 15;
+  nhu[1] = 0;
+  nl = (nhu[1]>1)? 4:3;
+  nhl = nl-2;
+
+
+  const long nmc = 1000l;
+  double irange[2];
+  irange[0] = -10.;
+  irange[1] = 10.;
+
+  Gaussian * gauss = new Gaussian(0.5,0.);
+
+  NNFitter1D * fitter = new NNFitter1D(gauss, nhl, nhu, nmc, irange);
+  fitter->init();
+  fitter->findFit();
+  fitter->printFitOutput(0, 1, -10, 10, 200);
+
+
+
+  delete gauss;
+  delete fitter;
+};
+*/
