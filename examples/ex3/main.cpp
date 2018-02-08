@@ -59,9 +59,9 @@ public:
 protected:
     void observableFunction(const double * in, double * out){
 
-      _ffnn->setInput(1, in);
+      _ffnn->setInput(in);
       _ffnn->FFPropagate();
-      out[0] = pow(_ffnn->getOutput(1) - _ftarget->f(in[0]), 2);
+      out[0] = pow(_ffnn->getOutput(0) - _ftarget->f(in[0]), 2);
 
     }
 };
@@ -76,14 +76,14 @@ public:
 protected:
   void observableFunction(const double * in, double * out){
 
-    _ffnn->setInput(1, in);
+    _ffnn->setInput(in);
     _ffnn->FFPropagate();
 
-    double nnout = _ffnn->getOutput(1);
+    double nnout = _ffnn->getOutput(0);
     double fx = _ftarget->f(in[0]);
 
     for(int i=0; i<_nobs; ++i){
-      out[i] = 2.*(nnout - fx)*_ffnn->getVariationalFirstDerivative(1, i);
+      out[i] = 2.*(nnout - fx)*_ffnn->getVariationalFirstDerivative(0, i);
     }
   }
 };
@@ -218,9 +218,9 @@ public:
     using namespace std;
     double x=x0;
     for(int i=0; i<nx; ++i) {
-      _ffnn->setInput(1, &x);
+      _ffnn->setInput(&x);
       _ffnn->FFPropagate();
-      cout << "x: " << x << " f(x): " << _ftarget->f(x) << " nn(x): " << _ffnn->getOutput(1) << endl;
+      cout << "x: " << x << " f(x): " << _ftarget->f(x) << " nn(x): " << _ffnn->getOutput(0) << endl;
       x+=dx;
     }
     cout << endl;
@@ -347,7 +347,7 @@ int main() {
   cout << "And print the output/NN to a file. The end." << endl;
 
   // NON I/O CODE
-  fit_list[bfi]->printFitOutput(0, 1, -10, 10, 200);
+  fit_list[bfi]->printFitOutput(0, 0, -10, 10, 200);
   fit_list[bfi]->printFitNN();
   //
 
