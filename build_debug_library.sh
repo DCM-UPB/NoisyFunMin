@@ -10,14 +10,14 @@ $CC $FLAGS $DEBUGFLAGS -fpic -c *.cpp
 
 case ${OS_NAME} in
     "Darwin")
-    ROOT_FOLDER=$(dirname $(pwd))
-    echo "$CC $FLAGS $DEBUGFLAGS -shared -install_name ${ROOT_FOLDER}/lib${LIBNAME}.so  -o lib${LIBNAME}.so *.o"
-    $CC $FLAGS $DEBUGFLAGS -shared -install_name ${ROOT_FOLDER}/lib${LIBNAME}.so -o lib${LIBNAME}.so *.o
-    ;;
+        ROOT_FOLDER=$(dirname $(pwd))
+        echo "$CC $FLAGS $DEBUGFLAGS -shared -install_name ${ROOT_FOLDER}/lib${LIBNAME}.so  -o lib${LIBNAME}.so *.o"
+        $CC $FLAGS $DEBUGFLAGS -shared -install_name ${ROOT_FOLDER}/lib${LIBNAME}.so -o lib${LIBNAME}.so *.o
+        ;;
     "Linux")
-    echo "$CC $FLAGS $DEBUGFLAGS -shared -o lib${LIBNAME}.so *.o"
-    $CC $FLAGS $DEBUGFLAGS -shared -o lib${LIBNAME}.so *.o
-    ;;
+        echo "$CC $FLAGS $DEBUGFLAGS -shared -o lib${LIBNAME}.so *.o"
+        $CC $FLAGS $DEBUGFLAGS -shared -o lib${LIBNAME}.so *.o
+        ;;
 esac
 
 mv lib${LIBNAME}.so ../
@@ -28,14 +28,14 @@ echo "Library ready!"
 echo
 echo "Help, how can I use it?"
 case ${OS_NAME} in
-   "Linux")
-      echo "1)   $CC $FLAGS -I$(pwd)/src/ -c example.cpp"
-      echo "     $CC $FLAGS -L$(pwd) example.o -l${LIBNAME}"
-      echo "2)   $CC $FLAGS -I$(pwd)/src/ -L$(pwd) example.cpp -l${LIBNAME}"
-      ;;
-   "Darwin")
-      echo "1)   $CC $FLAGS -I$(pwd)/src/ -c example.cpp"
-      echo "     $CC $FLAGS -I$(pwd)/src/ -L$(pwd) example.o -l${LIBNAME}"
-      echo "2)   $CC $FLAGS -I$(pwd)/src/ -L$(pwd) example.cpp -l${LIBNAME}"
-      ;;
+    "Linux")
+        echo "1)   $CC $FLAGS -I$(pwd)/src/ -c example.cpp"
+        echo "     $CC $FLAGS -L$(pwd) example.o -l${LIBNAME}"
+        echo "2)   $CC $FLAGS -I$(pwd)/src/ -L$(pwd) example.cpp -l${LIBNAME}"
+        ;;
+    "Darwin")
+        echo "1)   $CC $FLAGS -I$(pwd)/src/ -c example.cpp"
+        echo "     $CC $FLAGS -I$(pwd)/src/ -L$(pwd) example.o -l${LIBNAME}"
+        echo "2)   $CC $FLAGS -I$(pwd)/src/ -L$(pwd) example.cpp -l${LIBNAME}"
+        ;;
 esac
