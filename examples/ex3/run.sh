@@ -19,17 +19,17 @@ $CC $FLAGS $OPTFLAGS -pthread -Wall $IMCI $INFM $IFFNN -I${ROOT_FOLDER}/src/ -I/
 
 # For Mac OS, the install name is wrong and must be corrected
 case ${OS_NAME} in
-   "Darwin")
-      echo "$CC $FLAGS $OPTFLAGS -pthread -L${ROOT_FOLDER} $LMCI $LNFM $LFFNN $LGSL -o exe *.o -l$LIBNAME $LIBMCI $LIBNFM $LIBFFNN $LIBGSL"
-      $CC $FLAGS $OPTFLAGS -pthread -L${ROOT_FOLDER} $LMCI $LNFM $LFFNN $LGSL -o exe *.o -l$LIBNAME $LIBMCI $LIBNFM $LIBFFNN $LIBGSL
-      
-      echo "install_name_tool -change lib${LIBNAME}.so ${ROOT_FOLDER}/lib${LIBNAME}.so exe"
-      install_name_tool -change lib${LIBNAME}.so ${ROOT_FOLDER}/lib${LIBNAME}.so exe
-      ;;
-   "Linux")
-      echo "$CC $FLAGS $OPTFLAGS -pthread $LMCI $LNFM $LFFNN -I${ROOT_FOLDER}/src -L$${ROOT_FOLDER} -Wl,-rpath=${RPATH} -o exe *.o -l${LIBNAME}" $LIBMCI $LIBNFM $LIBFFNN
-      $CC $FLAGS $OPTFLAGS -pthread $LMCI $LNFM $LFFNN -I${ROOT_FOLDER}/src/ -L${ROOT_FOLDER} -Wl,-rpath=${RPATH} -o exe *.o -l${LIBNAME} $LIBMCI $LIBNFM $LIBFFNN
-      ;;
+    "Darwin")
+        echo "$CC $FLAGS $OPTFLAGS -pthread -L${ROOT_FOLDER} $LMCI $LNFM $LFFNN $LGSL -o exe *.o -l$LIBNAME $LIBMCI $LIBNFM $LIBFFNN $LIBGSL"
+        $CC $FLAGS $OPTFLAGS -pthread -L${ROOT_FOLDER} $LMCI $LNFM $LFFNN $LGSL -o exe *.o -l$LIBNAME $LIBMCI $LIBNFM $LIBFFNN $LIBGSL
+
+        echo "install_name_tool -change lib${LIBNAME}.so ${ROOT_FOLDER}/lib${LIBNAME}.so exe"
+        install_name_tool -change lib${LIBNAME}.so ${ROOT_FOLDER}/lib${LIBNAME}.so exe
+        ;;
+    "Linux")
+        echo "$CC $FLAGS $OPTFLAGS -pthread $LMCI $LNFM $LFFNN -I${ROOT_FOLDER}/src -L$${ROOT_FOLDER} -Wl,-rpath=${RPATH} -o exe *.o -l${LIBNAME}" $LIBMCI $LIBNFM $LIBFFNN
+        $CC $FLAGS $OPTFLAGS -pthread $LMCI $LNFM $LFFNN -I${ROOT_FOLDER}/src/ -L${ROOT_FOLDER} -Wl,-rpath=${RPATH} -o exe *.o -l${LIBNAME} $LIBMCI $LIBNFM $LIBFFNN
+        ;;
 esac
 
 echo ""

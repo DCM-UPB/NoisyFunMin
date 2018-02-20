@@ -4,30 +4,30 @@
 
 class NoisyFunction
 {
-   protected:
-      int _ndim;
+protected:
+    int _ndim;
 
-   public:
-      NoisyFunction(int ndim){_ndim=ndim;}
-      virtual ~NoisyFunction(){}
+public:
+    NoisyFunction(int ndim){_ndim=ndim;}
+    virtual ~NoisyFunction(){}
 
-      int getNDim(){return _ndim;}
+    int getNDim(){return _ndim;}
 
-      // Noisy Function
-      virtual void f(const double *, double &, double &) = 0;
-      //             ^input(size=_ndim)     ^output   ^error on the output
+    // Noisy Function
+    virtual void f(const double *, double &, double &) = 0;
+    //             ^input(size=_ndim)     ^output   ^error on the output
 };
 
 
 class NoisyFunctionWithGradient: public NoisyFunction
 {
-   public:
-      NoisyFunctionWithGradient(int ndim): NoisyFunction(ndim){}
-      virtual ~NoisyFunctionWithGradient(){}
+public:
+    NoisyFunctionWithGradient(int ndim): NoisyFunction(ndim){}
+    virtual ~NoisyFunctionWithGradient(){}
 
-      // Gradient
-      virtual void grad(const double *, double *, double *) = 0;
-      //                ^input          ^output   ^error on the output
+    // Gradient
+    virtual void grad(const double *, double *, double *) = 0;
+    //                ^input          ^output   ^error on the output
 };
 
 
