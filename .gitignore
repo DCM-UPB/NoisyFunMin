@@ -61,16 +61,13 @@ DerivedData
 # -- project specific ignores --
 lib*
 config.sh
-*exe*
+**/exe
+*.o
 
-src/*.o
-
-debug/*.o
-debug/unittests/*/*.o
 debug/log.txt
+debug/unittests/*/run_single_unittest.sh
 
 examples/*/a.out
-examples/*/*.o
 examples/*/*.txt
 !examples/*/results/*.txt
 

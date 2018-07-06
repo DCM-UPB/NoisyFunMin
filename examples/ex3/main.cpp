@@ -72,7 +72,7 @@ private:
     FeedForwardNeuralNetwork * _ffnn;
     Function1D * _ftarget;
 public:
-    NNFitGradient1D(FeedForwardNeuralNetwork * ffnn, Function1D * ftarget): MCIObservableFunctionInterface(1, ffnn->getNBeta()) {_ffnn = ffnn; _ftarget = ftarget;}
+    NNFitGradient1D(FeedForwardNeuralNetwork * ffnn, Function1D * ftarget): MCIObservableFunctionInterface(1, ffnn->getNVariationalParameters()) {_ffnn = ffnn; _ftarget = ftarget;}
 protected:
     void observableFunction(const double * in, double * out){
 
@@ -101,7 +101,7 @@ private:
 
 
 public:
-    FitNN1D(FeedForwardNeuralNetwork * ffnn, Function1D * ftarget, const long &nmc, double * irange): NoisyFunctionWithGradient(ffnn->getNBeta()){
+    FitNN1D(FeedForwardNeuralNetwork * ffnn, Function1D * ftarget, const long &nmc, double * irange): NoisyFunctionWithGradient(ffnn->getNVariationalParameters()){
         _ffnn = ffnn;
         _ftarget = ftarget;
         _nmc = nmc;
@@ -135,8 +135,8 @@ public:
     void f(const double * in, double &f, double &df){
 
         //set new NN betas
-        for (int i=0; i<_ffnn->getNBeta(); ++i){
-            _ffnn->setBeta(i, in[i]);
+        for (int i=0; i<_ffnn->getNVariationalParameters(); ++i){
+            _ffnn->setVariationalParameter(i, in[i]);
         }
 
         // integrate
@@ -144,11 +144,11 @@ public:
     }
 
     void grad(const double * in, double * g, double * dg){
-        int i, nbeta = _ffnn->getNBeta();
+        int i, nbeta = _ffnn->getNVariationalParameters();
 
         //set new NN betas
         for (i=0; i<nbeta; ++i){
-            _ffnn->setBeta(i, in[i]);
+            _ffnn->setVariationalParameter(i, in[i]);
         }
 
         // integrate
@@ -189,12 +189,13 @@ public:
         _ffnn = new FeedForwardNeuralNetwork(2, _nhunits[0], 2);
         for (int i = 1; i<_nhlayer; ++i) _ffnn->pushHiddenLayer(_nhunits[i]);
         _ffnn->connectFFNN();
+        _ffnn->assignVariationalParameters();
         _ffnn->addVariationalFirstDerivativeSubstrate();
 
         _fitnn = new FitNN1D(_ffnn, _ftarget, _nmc, _irange);
 
         _conj = new ConjGrad(_fitnn);
-        for(int i = 0; i<_ffnn->getNBeta(); ++i) _conj->setX(i, _ffnn->getBeta(i));
+        for(int i = 0; i<_ffnn->getNVariationalParameters(); ++i) _conj->setX(i, _ffnn->getVariationalParameter(i));
     }
 
     void findFit() {
@@ -203,10 +204,10 @@ public:
 
     // compute fit distance for CG's best betas
     double getFitDistance() {
-        double betas[_ffnn->getNBeta()];
+        double betas[_ffnn->getNVariationalParameters()];
         double f,df;
 
-        for (int i=0; i<_ffnn->getNBeta(); ++i) {
+        for (int i=0; i<_ffnn->getNVariationalParameters(); ++i) {
             betas[i] = _conj->getX(i);
         }
         _fitnn->f(betas, f, df);
@@ -242,20 +243,15 @@ public:
 };
 
 // code which runs in parallel
-void findFit(void * voidPtr) {
+void findFit_ptr(void * voidPtr) {
     using namespace std;
     NNFitter1D * fitter = static_cast<NNFitter1D*>(voidPtr);
     fitter->init();
-    try {
-        fitter->findFit();
-    }
-    catch (runtime_error e) {
-        cout << "Warning: Fit thread aborted because of too long bracketing." << endl;
-    }
+    fitter->findFit();
 }
 
 void *findFit_thread(void * voidPtr) {
-    findFit(voidPtr);
+    findFit_ptr(voidPtr);
     pthread_exit(NULL);
 }
 
