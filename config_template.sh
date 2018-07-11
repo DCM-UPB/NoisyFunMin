@@ -24,8 +24,8 @@ LMCI="-L${MCI_FOLDER}"
 LIBMCI="-lmci"
 
 #FFNN Library (used in ex3)
-FFNN_FOLDER="/...../FeedForwardNeuralNetwork"
-IFFNN="-I${FFNN_FOLDER}/include/"
+FFNN_FOLDER="/...../FeedForwardNeuralNetwork/lib/.libs"
+IFFNN="-I${FFNN_FOLDER}/../../include/"
 LFFNN="-L${FFNN_FOLDER}"
 LIBNAMEFFNN="ffnn"
 LIBFFNN="-lffnn"
