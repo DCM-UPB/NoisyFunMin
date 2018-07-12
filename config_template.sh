@@ -16,16 +16,3 @@ OPTFLAGS="-O3 -flto"
 
 # Debugging flags
 DEBUGFLAGS="-g -O0"
-
-# MCIntegrator++ Library
-MCI_FOLDER="/...../MCIntegratorPlusPlus"
-IMCI="-I${MCI_FOLDER}/src/"
-LMCI="-L${MCI_FOLDER}"
-LIBMCI="-lmci"
-
-#FFNN Library (used in ex3)
-FFNN_FOLDER="/...../FeedForwardNeuralNetwork/lib/.libs"
-IFFNN="-I${FFNN_FOLDER}/../../include/"
-LFFNN="-L${FFNN_FOLDER}"
-LIBNAMEFFNN="ffnn"
-LIBFFNN="-lffnn"

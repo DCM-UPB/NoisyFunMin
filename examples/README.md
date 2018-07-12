@@ -10,8 +10,3 @@
 ## Example 2
 
 `ex2/`: as `ex1`, but using the DynamicDescent method.
-
-
-## Example 3
-
-`ex3/`: use ConjugateGradient for fitting a NN to target function.
