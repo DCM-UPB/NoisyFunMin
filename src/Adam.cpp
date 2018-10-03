@@ -32,9 +32,9 @@ void Adam::writeDirectionInLog(const double * grad){
     NFMLogManager log_manager = NFMLogManager();
 
     stringstream s;
-    s << endl << "direction to follow (and error):\n";
+    s << endl << "direction to follow:\n";
     for (int i=0; i<_x->getNDim(); ++i){
-        s << -grad[i];
+        s << -grad[i] << "    ";
     }
     s << endl;
     s << flush;
@@ -57,7 +57,6 @@ void Adam::reportMeaninglessGradientInLog(){
 // --- Minimization
 
 void Adam::findMin(){
-
     //initialize the gradient & moments
     double grad[_ndim], graderr[_ndim]; // gradient and (unused) error
     double m[_ndim], v[_ndim]; // moment vectors
@@ -123,13 +122,12 @@ bool Adam::isNotConverged(){
     *v = *_x;
     _old_values.push_front(v);
 
-    if (_old_values.size() > N_CONSTANT_VALUES_CONDITION_FOR_STOP){
+    if (_old_values.size() > N_CONSTANT_VALUES_CONDITION_FOR_STOP) {
         delete _old_values.back();
         _old_values.pop_back();
     }
 
-    if (_old_values.size() == N_CONSTANT_VALUES_CONDITION_FOR_STOP){
-
+    if (_old_values.size() == N_CONSTANT_VALUES_CONDITION_FOR_STOP) {
         for (list<NoisyFunctionValue *>::iterator it = _old_values.begin(); it != _old_values.end(); ++it){
             if (it != _old_values.begin()){
                 if (! (**it == **_old_values.begin()) ){
@@ -137,9 +135,10 @@ bool Adam::isNotConverged(){
                 }
             }
         }
-        if (_old_values.size() < N_CONSTANT_VALUES_CONDITION_FOR_STOP)
+        if (_old_values.size() < N_CONSTANT_VALUES_CONDITION_FOR_STOP) {
             return true;
-
+        }
+        
         NFMLogManager * log_manager = new NFMLogManager();
         log_manager->writeOnLog("\nCost function has stabilised, interrupting minimisation procedure.\n");
         delete log_manager;

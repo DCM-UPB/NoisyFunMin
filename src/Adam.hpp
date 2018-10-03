@@ -38,7 +38,6 @@ public:
 
     // --- Minimization
     void findMin();
-
 };
 
 

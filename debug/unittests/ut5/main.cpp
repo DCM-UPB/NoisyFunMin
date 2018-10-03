@@ -27,7 +27,6 @@ public:
         g[2]=4.*pow( in[2]-0.5, 3);
         dg[0]=0.000001; dg[1]=0.000001; dg[2]=0.000001;
     }
-
 };
 
 
@@ -41,7 +40,6 @@ int main(){
     F3D * f3d = new F3D();
     // introduce array with the initial position
     double * x = new double[3];
-
 
 
     // test Adam
