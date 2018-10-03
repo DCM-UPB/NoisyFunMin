@@ -269,6 +269,21 @@ The aforementioned iterative procedure stops when the last \verb+N_CONSTANT_VALU
 % section dynamicdescent (end)
 
 
+\section{Adam} % (fold)
+\label{sec:adam}
+
+\begin{lstlisting}
+\\ #include "Adam.hpp"
+class Adam: public NFM
+{
+   Adam(NoisyFunctionWithGradient * targetfun, double &alpha = 0.001, double &beta1 = 0.9, double &beta2 = 0.999, double &epsilon = 10e-8);
+};
+\end{lstlisting}
+
+This is an implementation of the popular Adam minimization algorithm (https://arxiv.org/pdf/1412.6980.pdf). The article provides reference for algorithm and parameters above, which have the same names as in the paper.
+\\\\The optimizer requires a gradient, but no error terms on that. The procedure stops when the last \verb+N_CONSTANT_VALUES_CONDITION_FOR_STOP+ (currently set to $20$) points found are equal, meaning that the procedure has stabilised around a minimum. For this stopping criterion the provided errors on the cost function will be considered.
+
+% section adam (end)
 
 \printindex
 
