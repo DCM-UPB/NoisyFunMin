@@ -17,10 +17,6 @@ protected:
     std::list<NoisyFunctionValue *> _old_values;
     const unsigned int N_CONSTANT_VALUES_CONDITION_FOR_STOP = 20;
 
-    void writeCurrentXInLog();
-    void writeDirectionInLog(const double * direction);
-    void reportMeaninglessGradientInLog();
-
     // --- Internal methods
     bool isNotConverged();
 

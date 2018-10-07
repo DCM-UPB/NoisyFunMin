@@ -8,52 +8,6 @@
 
 
 
-// --- Log
-
-void Adam::writeCurrentXInLog(){
-    using namespace std;
-
-    NFMLogManager log_manager = NFMLogManager();
-
-    stringstream s;
-    s << endl << "x:\n";
-    for (int i=0; i<_x->getNDim(); ++i){
-        s << _x->getX(i) << "    ";
-    }
-    s << endl << "    ->    value = " << _x->getF() << " +- " << _x->getDf() << endl;
-    s << flush;
-    log_manager.writeOnLog(s.str());
-}
-
-
-void Adam::writeDirectionInLog(const double * grad){
-    using namespace std;
-
-    NFMLogManager log_manager = NFMLogManager();
-
-    stringstream s;
-    s << endl << "direction to follow:\n";
-    for (int i=0; i<_x->getNDim(); ++i){
-        s << -grad[i] << "    ";
-    }
-    s << endl;
-    s << flush;
-    log_manager.writeOnLog(s.str());
-}
-
-
-void Adam::reportMeaninglessGradientInLog(){
-    using namespace std;
-
-    NFMLogManager log_manager = NFMLogManager();
-
-    stringstream s;
-    s << endl << "gradient seems to be meaningless, i.e. its error is too large" << endl;
-    s << flush;
-    log_manager.writeOnLog(s.str());
-}
-
-
 // --- Minimization
 
 void Adam::findMin(){
@@ -77,7 +31,7 @@ void Adam::findMin(){
     double newf, newdf;
     this->_gradtargetfun->f(_x->getX(), newf, newdf);
     _x->setF(newf, newdf);
-    this->writeCurrentXInLog();
+    log_manager->writeNoisyValueInLog(_x);
 
     //begin the minimization loop
     int step = 0;
@@ -85,7 +39,7 @@ void Adam::findMin(){
         {
             // compute the gradient
             this->_gradtargetfun->grad(_x->getX(), grad, graderr);
-            this->writeDirectionInLog(grad);
+            log_manager->writeDirectionInLog(grad, _ndim, graderr);
 
             // compute the update
             for (int i=0; i<_ndim; ++i) {
@@ -100,7 +54,7 @@ void Adam::findMin(){
             _gradtargetfun->f(_x->getX(), newf, newdf);
             _x->setF(newf, newdf);
 
-            this->writeCurrentXInLog();
+            log_manager->writeNoisyValueInLog(_x);
 
             step++;
         }
@@ -138,7 +92,7 @@ bool Adam::isNotConverged(){
         if (_old_values.size() < N_CONSTANT_VALUES_CONDITION_FOR_STOP) {
             return true;
         }
-        
+
         NFMLogManager * log_manager = new NFMLogManager();
         log_manager->writeOnLog("\nCost function has stabilised, interrupting minimisation procedure.\n");
         delete log_manager;
