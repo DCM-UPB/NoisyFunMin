@@ -26,20 +26,19 @@ void Adam::findMin(){
     NFMLogManager log_manager = NFMLogManager();
     log_manager.writeOnLog("\nBegin Adam::findMin() procedure\n");
 
-    // compute the current value
-    double newf, newdf;
-    this->_gradtargetfun->f(_x->getX(), newf, newdf);
-    _x->setF(newf, newdf);
-    _writeCurrentXInLog();
-
     //begin the minimization loop
     int step = 0;
-    while ( _isNotConverged() )
+    while ( true )
         {
-            log_manager.writeOnLog("\n\nAdam::findMin() Step " + std::to_string(step+1) + "\n");
+            // compute current gradient and target value
+            double newf, newdf;
+            this->_gradtargetfun->fgrad(_x->getX(), newf, newdf, grad, graderr);
+            _x->setF(newf, newdf);
 
-            // compute the gradient
-            this->_gradtargetfun->grad(_x->getX(), grad, graderr);
+            if(!_isNotConverged()) break;
+
+            log_manager.writeOnLog("\n\nAdam::findMin() Step " + std::to_string(step+1) + "\n");
+            _writeCurrentXInLog();
             _writeGradientInLog(grad, graderr);
 
             // compute the update
@@ -53,15 +52,9 @@ void Adam::findMin(){
 
             _writeXUpdateInLog(dx);
 
-            // compute the new value of the target function
-            double newf, newdf;
-            _gradtargetfun->f(_x->getX(), newf, newdf);
-            _x->setF(newf, newdf);
-
-            _writeCurrentXInLog();
-
             step++;
         }
 
+    log_manager.writeNoisyValueInLog(_x, "Final position and target value");
     log_manager.writeOnLog("\nEnd Adam::findMin() procedure\n");
 }

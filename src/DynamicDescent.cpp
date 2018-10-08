@@ -32,25 +32,24 @@ void DynamicDescent::findMin(){
     NFMLogManager log_manager = NFMLogManager();
     log_manager.writeOnLog("\nBegin DynamicDescent::findMin() procedure\n");
 
-    //initialize the gradients
+    //arrays to hold the gradients
     double grad[_ndim];
     double graderr[_ndim];
 
-    // compute the current value
-    double newf, newdf;
-    this->_gradtargetfun->f(_x->getX(), newf, newdf);
-    _x->setF(newf, newdf);
-    this->_writeCurrentXInLog();
-
-
     //begin the minimization loop
     int cont = 0;
-    while ( this->_isNotConverged() )
+    while ( true )
         {
-            log_manager.writeOnLog("\n\nDynamicDescent::findMin() Step " + std::to_string(cont+1) + "\n");
 
-            // compute the gradient
-            this->_gradtargetfun->grad(_x->getX(), grad, graderr);
+            // compute the gradient and current target
+            double newf, newdf;
+            this->_gradtargetfun->fgrad(_x->getX(), newf, newdf, grad, graderr);
+            _x->setF(newf, newdf);
+            
+            if (!this->_isNotConverged()) break;
+
+            log_manager.writeOnLog("\n\nDynamicDescent::findMin() Step " + std::to_string(cont+1) + "\n");
+            this->_writeCurrentXInLog();
             this->_writeGradientInLog(grad, graderr);
 
             // if it is the first iteration, initialise the inertia
@@ -65,11 +64,11 @@ void DynamicDescent::findMin(){
 
             // find the next position
             this->findNextX(grad);
-            this->_writeCurrentXInLog();
 
             cont ++;
         }
 
+    log_manager.writeNoisyValueInLog(_x, "Final position and target value");
     log_manager.writeOnLog("\nEnd DynamicDescent::findMin() procedure\n");
 }
 
@@ -109,13 +108,6 @@ void DynamicDescent::findNextX(const double * grad)
         _x->setX(i, _x->getX(i) + dx[i]);
     }
     this->_writeXUpdateInLog(dx);
-
-    // compute the new value of the target function
-    double newf, newdf;
-    _gradtargetfun->f(_x->getX(), newf, newdf);
-
-    // store the new function value in _x
-    _x->setF(newf, newdf);
 
     // store the grad for the next iteration
     for (int i=0; i<this->_ndim; ++i){
