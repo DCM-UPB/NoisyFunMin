@@ -9,14 +9,10 @@ class ConjGrad: public NFM{
 private:
     bool _use_conjgrad;
 
-    void writeCurrentXInLog();
-    void writeDirectionInLog(const double * direction, const double * directionerror);
-    void reportMeaninglessGradientInLog();
-
 protected:
-
     // --- Internal methods
     void findNextX(const double * dir, double &deltatargetfun, double &deltax);
+    void _writeCGDirectionInLog(const double * dir, const std::string &name);
 
 public:
     ConjGrad(NoisyFunctionWithGradient * targetfun):NFM(targetfun)
@@ -33,7 +29,6 @@ public:
 
     // --- Minimization
     void findMin();
-
 };
 
 

@@ -5,66 +5,19 @@
 #include "NoisyFunctionValue.hpp"
 #include "1DTools.hpp"
 
-#include "stdlib.h"
 #include <iostream>
 #include <sstream>
+#include <string>
 #include <cmath>
 #include <stdexcept>
 
+// --- Logging
 
-
-
-// --- Log
-
-void ConjGrad::writeCurrentXInLog(){
-    using namespace std;
-
-    NFMLogManager * log_manager = new NFMLogManager();
-
-    stringstream s;
-    s << endl << "x:\n";
-    for (int i=0; i<_x->getNDim(); ++i){
-        s << _x->getX(i) << "    ";
-    }
-    s << endl << "    ->    value = " << _x->getF() << " +- " << _x->getDf() << endl;
-    s << flush;
-    log_manager->writeOnLog(s.str());
-
-    delete log_manager;
+void ConjGrad::_writeCGDirectionInLog(const double * dir, const std::string &name)
+{
+    NFMLogManager log_manager = NFMLogManager();
+    log_manager.writeVectorInLog(dir, NULL, _ndim, name, "g");
 }
-
-
-void ConjGrad::writeDirectionInLog(const double * direction, const double * directionerror){
-    using namespace std;
-
-    NFMLogManager * log_manager = new NFMLogManager();
-
-    stringstream s;
-    s << endl << "direction (and error):\n";
-    for (int i=0; i<_x->getNDim(); ++i){
-        s << direction[i] << " (" << directionerror[i] << ")    ";
-    }
-    s << endl;
-    s << flush;
-    log_manager->writeOnLog(s.str());
-
-    delete log_manager;
-}
-
-
-void ConjGrad::reportMeaninglessGradientInLog(){
-    using namespace std;
-
-    NFMLogManager * log_manager = new NFMLogManager();
-
-    stringstream s;
-    s << endl << "gradient seems to be meaningless, i.e. its error is too large" << endl;
-    s << flush;
-    log_manager->writeOnLog(s.str());
-
-    delete log_manager;
-}
-
 
 
 // --- Minimization
@@ -73,8 +26,8 @@ void ConjGrad::findMin()
 {
     using namespace std;
 
-    NFMLogManager * log_manager = new NFMLogManager();
-    log_manager->writeOnLog("\nBegin ConjGrad::findMin() procedure\n");
+    NFMLogManager log_manager = NFMLogManager();
+    log_manager.writeOnLog("\nBegin ConjGrad::findMin() procedure\n");
 
     //check if the gradient has been provided before starting the minimization
     if ( !_flaggradtargetfun )
@@ -84,15 +37,16 @@ void ConjGrad::findMin()
         }
 
     //initialize the gradients
-    double * gradold = new double[_ndim];
-    double * gradnew = new double[_ndim];
-    double * graderr = new double[_ndim];
-    double * conjvold = new double[_ndim];
-    double * conjvnew = new double[_ndim];
+    double gradold[_ndim];
+    double gradnew[_ndim];
+    double graderr[_ndim];
+    double conjvold[_ndim];
+    double conjvnew[_ndim];
 
     this->_gradtargetfun->grad(_x->getX(), gradold, graderr);
 
-    this->writeCurrentXInLog();
+    this->_writeCurrentXInLog();
+    this->_writeGradientInLog(gradold, graderr);
 
     if (this->_meaningfulGradient(gradold, graderr))
         {
@@ -101,12 +55,12 @@ void ConjGrad::findMin()
             for (i=0; i<_ndim; ++i){ gradold[i]=-gradold[i]; }
             //inizialize the conjugate vectors
             for (i=0; i<_ndim; ++i){ conjvold[i]=gradold[i]; }
-            this->writeDirectionInLog(conjvold, graderr);
+            this->_writeCGDirectionInLog(conjvold, "Conjugated Vectors");
             //find new position
             double deltatargetfun, deltax;
             this->findNextX(conjvold,deltatargetfun,deltax);
 
-            this->writeCurrentXInLog();
+            this->_writeCurrentXInLog();
 
             //begin the minimization loop
             double scalprodold, scalprodnew, ratio;
@@ -118,10 +72,11 @@ void ConjGrad::findMin()
                     //cout << "x is in " << getX(0) << "   " << getX(1) << "   " << getX(2) << endl << endl;
                     //evaluate the new gradient
                     this->_gradtargetfun->grad(_x->getX(),gradnew,graderr);
+                    this->_writeGradientInLog(gradnew, graderr);
                     for (i=0; i<_ndim; ++i){ gradnew[i]=-gradnew[i]; }
                     if (!this->_meaningfulGradient(gradnew, graderr))
                         {
-                            this->reportMeaninglessGradientInLog();
+                            this->_reportMeaninglessGradientInLog();
                             break;
                         }
                     // compute the direction to follow for finding the next x
@@ -139,28 +94,19 @@ void ConjGrad::findMin()
                         // simply use as conjugate gradient the gradient (i.e. make a steepest descent!)
                         for (i=0; i<_ndim; ++i){ conjvnew[i]=gradnew[i]; }
                     }
-                    this->writeDirectionInLog(conjvnew, graderr);
+                    this->_writeCGDirectionInLog(conjvnew, "Conjugated vectors");
                     //find new position
                     this->findNextX(conjvnew,deltatargetfun,deltax);
                     //cout << "deltatargetfunction = " << deltatargetfun << "   " << _epstargetfun << endl;
                     //cout << "deltax = " << deltax << "   " << _epsx << endl << endl;
 
-                    this->writeCurrentXInLog();
+                    this->_writeCurrentXInLog();
 
                     cont++;
                 }
         }
 
-    log_manager->writeOnLog("\nEnd ConjGrad::findMin() procedure\n");
-
-    //free memory
-    delete [] conjvnew;
-    delete [] conjvold;
-    delete [] gradnew;
-    delete [] gradold;
-    delete [] graderr;
-
-    delete log_manager;
+    log_manager.writeOnLog("\nEnd ConjGrad::findMin() procedure\n");
 }
 
 
