@@ -8,6 +8,12 @@
 // --- Minimization
 
 void Adam::findMin(){
+    NFMLogManager log_manager = NFMLogManager();
+    log_manager.writeOnLog("\nBegin Adam::findMin() procedure\n");
+
+    // clear old values
+    _clearOldValues();
+
     //initialize the gradient & moments
     double grad[_ndim], graderr[_ndim]; // gradient and (unused) error
     double m[_ndim], v[_ndim]; // moment vectors
@@ -23,9 +29,6 @@ void Adam::findMin(){
 
     const double afac = _alpha * sqrt(1-_beta2)/(1-_beta1); // helping factor
 
-    NFMLogManager log_manager = NFMLogManager();
-    log_manager.writeOnLog("\nBegin Adam::findMin() procedure\n");
-
     //begin the minimization loop
     int step = 0;
     while ( true )
@@ -35,7 +38,7 @@ void Adam::findMin(){
             this->_gradtargetfun->fgrad(_x->getX(), newf, newdf, grad, graderr);
             _x->setF(newf, newdf);
 
-            if(!_isNotConverged()) break;
+            if (_shouldStop(grad, graderr)) break;
 
             log_manager.writeOnLog("\n\nAdam::findMin() Step " + std::to_string(step+1) + "\n");
             _writeCurrentXInLog();

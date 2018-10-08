@@ -7,8 +7,18 @@
 
 // --- Protected methods
 
-bool NFM::_isNotConverged(){
+void NFM::_clearOldValues()
+{
+    for (NoisyFunctionValue * v : _old_values) {
+        delete v;
+    }
+    _old_values.clear();
+}
+
+bool NFM::_isConverged(){
     using namespace std;
+
+    if (_max_n_const_values < 1) return false;
 
     NoisyFunctionValue * v = new NoisyFunctionValue(_x->getNDim());
     *v = *_x;
@@ -23,32 +33,40 @@ bool NFM::_isNotConverged(){
         for (list<NoisyFunctionValue *>::iterator it = _old_values.begin(); it != _old_values.end(); ++it){
             if (it != _old_values.begin()){
                 if (! (**it == **_old_values.begin()) ){
-                    return true;
+                    return false;
                 }
             }
         }
-        if (_old_values.size() < _max_n_const_values) {
-            return true;
-        }
 
-        NFMLogManager * log_manager = new NFMLogManager();
-        log_manager->writeOnLog("\nCost function has stabilised, interrupting minimisation procedure.\n");
-        delete log_manager;
+        NFMLogManager log_manager = NFMLogManager();
+        log_manager.writeOnLog("\nCost function has stabilised, interrupting minimization procedure.\n");
 
-        return false;
+        return true;
     }
 
-    return true;
+    return false;
 }
 
 
 bool NFM::_meaningfulGradient(const double * grad, const double * graderr)
 {
-    for (int i=0; i<_ndim; ++i)
-        {
+    if (_useGradientError) {
+        for (int i=0; i<_ndim; ++i) {
             if (std::abs(grad[i])>graderr[i]) return true;
         }
+    }
+    else {
+        return true;
+    }
+
+    NFMLogManager log_manager = NFMLogManager();
+    log_manager.writeOnLog("\nGradient seems to be meaningless, i.e. its error is too large.\n");
     return false;
+}
+
+bool NFM::_shouldStop(const double * grad, const double * graderr)
+{
+    return _isConverged() || !_meaningfulGradient(grad, graderr);
 }
 
 
@@ -63,25 +81,13 @@ void NFM::_writeCurrentXInLog()
 void NFM::_writeGradientInLog(const double * grad, const double * dgrad)
 {
     NFMLogManager log_manager = NFMLogManager();
-    log_manager.writeVectorInLog(grad, dgrad, _ndim, "Raw gradient", "g");
+    log_manager.writeVectorInLog(grad, _useGradientError ? dgrad : NULL, _ndim, "Raw gradient", "g");
 }
 
 void NFM::_writeXUpdateInLog(const double * xu)
 {
     NFMLogManager log_manager = NFMLogManager();
     log_manager.writeVectorInLog(xu, NULL, _ndim, "Position update", "u");
-}
-
-void NFM::_reportMeaninglessGradientInLog()
-{
-    using namespace std;
-
-    NFMLogManager log_manager = NFMLogManager();
-
-    stringstream s;
-    s << endl << "gradient seems to be meaningless, i.e. its error is too large" << endl;
-    s << flush;
-    log_manager.writeOnLog(s.str());
 }
 
 void NFM::_writeOldValuesInLog()
@@ -141,7 +147,8 @@ void NFM::setX(const int &i, const double &x)
 
 // --- Constructor and destructor
 
-NFM::NFM(NoisyFunction * targetfun)
+NFM::NFM(NoisyFunction * targetfun, const bool useGradientError, const size_t &max_n_const_values)
+    : _useGradientError(useGradientError), _max_n_const_values(max_n_const_values)
 {
     //set ndim and the target function
     _targetfun = targetfun;
@@ -166,8 +173,5 @@ NFM::~NFM()
     //deallocate x
     delete _x;
 
-    for (NoisyFunctionValue * v : _old_values) {
-        delete v;
-    }
-        _old_values.clear();
+    _clearOldValues();
 }

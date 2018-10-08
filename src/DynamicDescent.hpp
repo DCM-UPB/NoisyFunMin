@@ -22,7 +22,7 @@ protected:
     void findNextX(const double * dir);
 
 public:
-    DynamicDescent(NoisyFunctionWithGradient * targetfun): NFM(targetfun)
+    DynamicDescent(NoisyFunctionWithGradient * targetfun, const bool useGradientError = false, const size_t &max_n_const_values = 20): NFM(targetfun, useGradientError, max_n_const_values)
     {
         _inertia = 1.;
         _old_norm_direction = new double[targetfun->getNDim()];

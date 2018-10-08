@@ -12,7 +12,7 @@ protected:
     double _df;  //error associated to f
 
 public:
-    NoisyFunctionValue(int ndim);
+    explicit NoisyFunctionValue(int ndim);
     ~NoisyFunctionValue();
 
     //Setters

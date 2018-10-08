@@ -29,6 +29,9 @@ void ConjGrad::findMin()
     NFMLogManager log_manager = NFMLogManager();
     log_manager.writeOnLog("\nBegin ConjGrad::findMin() procedure\n");
 
+    // clear old values
+    this->_clearOldValues();
+
     //initialize the gradients
     double gradold[_ndim];
     double gradnew[_ndim];
@@ -68,11 +71,7 @@ void ConjGrad::findMin()
                     this->_gradtargetfun->grad(_x->getX(),gradnew,graderr);
                     this->_writeGradientInLog(gradnew, graderr);
                     for (i=0; i<_ndim; ++i){ gradnew[i]=-gradnew[i]; }
-                    if (!this->_meaningfulGradient(gradnew, graderr))
-                        {
-                            this->_reportMeaninglessGradientInLog();
-                            break;
-                        }
+                    if (!this->_meaningfulGradient(gradnew, graderr)) { break; }
                     // compute the direction to follow for finding the next x
                     //    if _use_conjgrad == true   ->   Conjugate Gradient
                     //    else   ->   Steepest Descent
@@ -96,6 +95,7 @@ void ConjGrad::findMin()
 
                     this->_writeCurrentXInLog();
 
+                    if (this->_isConverged()) break;
                     cont++;
                 }
         }

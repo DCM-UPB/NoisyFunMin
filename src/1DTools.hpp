@@ -22,7 +22,7 @@ namespace nfm
 
     // PRIVATE FUNCTIONS
 
-    void _writeabcInLog(const std::string key, NoisyFunctionValue &a, NoisyFunctionValue &b, NoisyFunctionValue &c);
+    void _writeabcInLog(const std::string &key, NoisyFunctionValue &a, NoisyFunctionValue &b, NoisyFunctionValue &c);
     // function used internally for writing on the log
 
     void _abortFindBracket();  // function called when the findBracket() routine is taking too many computations

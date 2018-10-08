@@ -39,7 +39,7 @@ int main(){
     // define 3D function that I want to minimise
     F3D * f3d = new F3D();
     // introduce array with the initial position
-    double * x = new double[3];
+    double x[3];
 
 
     // test Adam
@@ -53,7 +53,6 @@ int main(){
     assert(std::abs(adam.getX(2)-0.5) < 0.1);
 
 
-    delete x;
     delete f3d;
     //delete log_manager;
 

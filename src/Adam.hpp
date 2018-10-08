@@ -15,8 +15,8 @@ protected:
     double _epsilon; // offset to stabilize division in update, default 10e-8
 
 public:
-    Adam(NoisyFunctionWithGradient * targetfun, const double &alpha = 0.001, const double &beta1 = 0.9, const double &beta2 = 0.999, const double &epsilon = 10e-8)
-        : NFM(targetfun), _alpha(alpha), _beta1(beta1), _beta2(beta2), _epsilon(epsilon) { setGradientTargetFun(targetfun); }
+    Adam(NoisyFunctionWithGradient * targetfun, const bool useGradientError = false, const size_t &max_n_const_values = 20, const double &alpha = 0.001, const double &beta1 = 0.9, const double &beta2 = 0.999, const double &epsilon = 10e-8)
+        : NFM(targetfun, useGradientError, max_n_const_values), _alpha(alpha), _beta1(beta1), _beta2(beta2), _epsilon(epsilon) { setGradientTargetFun(targetfun); }
 
     // --- Minimization
     void findMin();

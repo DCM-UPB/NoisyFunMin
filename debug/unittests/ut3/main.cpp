@@ -41,8 +41,7 @@ int main(){
     // define 3D function that I want to minimise
     F3D * f3d = new F3D();
     // introduce array with the initial position
-    double * x = new double[3];
-
+    double x[3];
 
 
     // test ConjGrad
@@ -54,7 +53,6 @@ int main(){
     assert(std::abs(cjgrad.getX(1)+1.5) < 0.1);
     assert(std::abs(cjgrad.getX(2)-0.5) < 0.1);
 
-    delete x;
     delete f3d;
     delete log_manager;
 

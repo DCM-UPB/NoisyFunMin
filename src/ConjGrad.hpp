@@ -15,7 +15,7 @@ protected:
     void _writeCGDirectionInLog(const double * dir, const std::string &name);
 
 public:
-    ConjGrad(NoisyFunctionWithGradient * targetfun): NFM(targetfun)
+    ConjGrad(NoisyFunctionWithGradient * targetfun, const bool useGradientError = true, const size_t &max_n_const_values = 20): NFM(targetfun, useGradientError, max_n_const_values)
     {
         setGradientTargetFun(targetfun);
         _use_conjgrad = true;

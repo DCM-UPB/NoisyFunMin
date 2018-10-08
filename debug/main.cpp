@@ -88,14 +88,13 @@ int main(){
     cout << " - - - Check ConjGrad" << endl;
     F3D * f3d = new F3D();
     ConjGrad cjgrad(f3d);
-    double * x = new double[3];
+    double x[3];
     x[0] = -2.;   x[1] = 1.0;   x[2] = 0.0;
     cjgrad.setX(x);
     cjgrad.findMin();
     cout << "Minimum of f3d is in " << cjgrad.getX(0) << "   " << cjgrad.getX(1) << "   " << cjgrad.getX(2) << endl;
     cout << "Value of the minimum is " << cjgrad.getF() << " +- " << cjgrad.getDf() << endl << endl;
 
-    delete x;
     delete f3d;
     delete f1d;
     delete log_manager;

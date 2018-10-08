@@ -32,6 +32,9 @@ void DynamicDescent::findMin(){
     NFMLogManager log_manager = NFMLogManager();
     log_manager.writeOnLog("\nBegin DynamicDescent::findMin() procedure\n");
 
+    // clear old values
+    this->_clearOldValues();
+
     //arrays to hold the gradients
     double grad[_ndim];
     double graderr[_ndim];
@@ -46,7 +49,7 @@ void DynamicDescent::findMin(){
             this->_gradtargetfun->fgrad(_x->getX(), newf, newdf, grad, graderr);
             _x->setF(newf, newdf);
             
-            if (!this->_isNotConverged()) break;
+            if (this->_shouldStop(grad, graderr)) break;
 
             log_manager.writeOnLog("\n\nDynamicDescent::findMin() Step " + std::to_string(cont+1) + "\n");
             this->_writeCurrentXInLog();

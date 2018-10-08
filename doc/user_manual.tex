@@ -247,7 +247,7 @@ It requires a \verb+NoisyFunctionWithGradient+ for running.
 \\ #include "DynamicDescent.hpp"
 class DynamicDescent: public NFM
 {
-   DynamicDescent(NoisyFunctionWithGradient *);
+   DynamicDescent(NoisyFunctionWithGradient * targetfun, bool useGradientError = false, size_t &max_n_const_values = 20);
    ~DynamicDescent();
 };
 \end{lstlisting}
@@ -259,7 +259,7 @@ This implementation is extremely simple, however it can be useful in certain cir
 \end{enumerate}
 This iterative procedure should ensure that when we are far from the minimum and we keep moving in the same direction, $lambda$ grows, whereas when we are close to the minimum, and the direction keeps changing, $lambda$ is quickly reduced to almost zero.
 
-The aforementioned iterative procedure stops when the last \verb+N_CONSTANT_VALUES_CONDITION_FOR_STOP+ (currently set to $20$) points found are equal, meaning that the procedure has stabilised around a minimum.
+The aforementioned iterative procedure stops when the last \verb+max_n_const_values+ (default to $20$) points found are equal, meaning that the procedure has stabilised around a minimum. If \verb+useGradientError+ is \verb+true+, the optimization will also terminate when all gradient elements are smaller than their respective errors.
 
 \begin{itemize}
 \item \verb+DynamicDescent(NoisyFunctionWithGradient *f)+: The constructor. It requires an input target function with gradient \verb+f+;
@@ -276,12 +276,12 @@ The aforementioned iterative procedure stops when the last \verb+N_CONSTANT_VALU
 \\ #include "Adam.hpp"
 class Adam: public NFM
 {
-   Adam(NoisyFunctionWithGradient * targetfun, double &alpha = 0.001, double &beta1 = 0.9, double &beta2 = 0.999, double &epsilon = 10e-8);
+   Adam(NoisyFunctionWithGradient * targetfun, bool useGradientError = false, size_t &max_n_const_values = 20, double &alpha = 0.001, double &beta1 = 0.9, double &beta2 = 0.999, double &epsilon = 10e-8);
 };
 \end{lstlisting}
 
 This is an implementation of the popular Adam minimization algorithm (https://arxiv.org/pdf/1412.6980.pdf). The article provides reference for algorithm and parameters above, which have the same names as in the paper.
-\\\\The optimizer requires a gradient, but no error terms on that. The procedure stops when the last \verb+N_CONSTANT_VALUES_CONDITION_FOR_STOP+ (currently set to $20$) points found are equal, meaning that the procedure has stabilised around a minimum. For this stopping criterion the provided errors on the cost function will be considered.
+\\\\The optimizer requires a gradient, but no error terms on that. The procedure stops on convergence, handled in the same way as in DynamicDescent. 
 
 % section adam (end)
 
