@@ -101,7 +101,6 @@ void NFM::_writeOldValuesInLog()
         if (it != _old_values.begin()){
             s << ((**it) == (**_old_values.begin())) << "    ";
         }
-
     }
     s << endl;
     log_manager.writeOnLog(s.str());
