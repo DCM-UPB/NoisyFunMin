@@ -22,4 +22,9 @@
 
 ## Unit Test 4
 
-`ut3/`: check the minimisation method DynamicDescent
+`ut4/`: check the minimisation method DynamicDescent
+
+
+## Unit Test 5
+
+`ut5/`: check the minimisation method Adam

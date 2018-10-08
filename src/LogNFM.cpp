@@ -69,7 +69,7 @@ void NFMLogManager::writeNoisyValueInLog(NoisyFunctionValue * x, const std::stri
     NFMLogManager log_manager = NFMLogManager();
 
     stringstream s;
-    s << endl << name << ":\n";
+    s << name << ":\n";
     for (int i=0; i<x->getNDim(); ++i){
         s << xlabel << i << " = " << x->getX(i) << "    ";
     }
@@ -79,33 +79,20 @@ void NFMLogManager::writeNoisyValueInLog(NoisyFunctionValue * x, const std::stri
 }
 
 
-void NFMLogManager::writeDirectionInLog(const double * grad, const int ndim, const double * dgrad, const std::string &name, const std::string &glabel)
+void NFMLogManager::writeVectorInLog(const double * vec, const double * dvec, const int ndim, const std::string &name, const std::string &vlabel)
 {
     using namespace std;
 
     NFMLogManager log_manager = NFMLogManager();
 
     stringstream s;
-    s << endl << name << ":\n";
+    s << name << ":\n";
     for (int i=0; i<ndim; ++i){
-        s << glabel << i << " = " << grad[i];
-        if (dgrad!=NULL) s << " +- " << dgrad[i];
+        s << vlabel << i << " = " << vec[i];
+        if (dvec!=NULL) s << " +- " << dvec[i];
         s << "    ";
     }
     s << endl;
-    s << flush;
-    log_manager.writeOnLog(s.str());
-}
-
-
-void NFMLogManager::reportMeaninglessGradientInLog()
-{
-    using namespace std;
-
-    NFMLogManager log_manager = NFMLogManager();
-
-    stringstream s;
-    s << endl << "gradient seems to be meaningless, i.e. its error is too large" << endl;
     s << flush;
     log_manager.writeOnLog(s.str());
 }

@@ -23,13 +23,9 @@ public:
 
     void writeOnLog(std::string s);
 
-    // --- Common logging routines
-
-    void writeNoisyValueInLog(NoisyFunctionValue * x, const std::string &name = "Current position and target value", const std::string &xlabel = "x", const std::string &flabel = "f");
-
-    void writeDirectionInLog(const double * grad, const int ndim, const double * dgrad = NULL /* optional errors */, const std::string &name = "Raw negative gradient", const std::string &glabel = "g");
-
-    void reportMeaninglessGradientInLog();
+    // --- Advanced log helpers
+    void writeNoisyValueInLog(NoisyFunctionValue * x, const std::string &name, const std::string &xlabel = "x", const std::string &flabel = "f");
+    void writeVectorInLog(const double * vec, const double * dvec /* optional error vector */, const int ndim, const std::string &name, const std::string &vlabel = "v");
 };
 
 

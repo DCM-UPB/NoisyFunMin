@@ -1,6 +1,9 @@
 #ifndef NOISY_FUN_MIN
 #define NOISY_FUN_MIN
 
+#include <list>
+#include <string>
+
 #include "NoisyFunction.hpp"
 #include "NoisyFunctionValue.hpp"
 
@@ -22,7 +25,21 @@ protected:
     double _epstargetfun; //changes in the function smaller than this value will stop the minimization
     double _epsx; //changes in the position x smaller than this value will stop the minimization
 
+    const size_t _max_n_const_values = 20; //stop after this number of target values have been constant within error bounds
+    std::list<NoisyFunctionValue *> _old_values; // list of previous target values
+
+    bool _isNotConverged(); // check if the target function has stabilized
     bool _meaningfulGradient(const double * grad, const double * graderr); //check if the gradient is meaningful. i.e. if its values are greater than the statistical errors
+
+    // "Mandatory" logging routines
+    // CurrentX and XUpdate should be logged by all optimizers and also GradientInLog if a gradient is used
+    void _writeCurrentXInLog();
+    void _writeGradientInLog(const double * grad, const double * dgrad = NULL);
+    void _writeXUpdateInLog(const double * xu);
+
+    // Stopping criteria loggers
+    void _writeOldValuesInLog();
+    void _reportMeaninglessGradientInLog();
 
 public:
     NFM(NoisyFunction * targetfun);
