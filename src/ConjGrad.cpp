@@ -29,13 +29,6 @@ void ConjGrad::findMin()
     NFMLogManager log_manager = NFMLogManager();
     log_manager.writeOnLog("\nBegin ConjGrad::findMin() procedure\n");
 
-    //check if the gradient has been provided before starting the minimization
-    if ( !_flaggradtargetfun )
-        {
-            cout << "ERROR ConjGrad.findMin() : The gradient is required for this method, but it was not provided" << endl << endl;
-            exit(-1);
-        }
-
     //initialize the gradients
     double gradold[_ndim];
     double gradnew[_ndim];
@@ -69,6 +62,7 @@ void ConjGrad::findMin()
             int cont = 0;
             while ( ( deltatargetfun>=_epstargetfun ) && (deltax>=_epsx) )
                 {
+                    log_manager.writeOnLog("\n\nConjGrad::findMin() Step " + std::to_string(cont+1) + "\n");
                     //cout << "x is in " << getX(0) << "   " << getX(1) << "   " << getX(2) << endl << endl;
                     //evaluate the new gradient
                     this->_gradtargetfun->grad(_x->getX(),gradnew,graderr);

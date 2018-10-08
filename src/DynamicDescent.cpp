@@ -18,7 +18,7 @@ void DynamicDescent::_writeInertiaInLog(){
     NFMLogManager log_manager = NFMLogManager();
 
     stringstream s;
-    s << endl << "inertia: " << _inertia << endl;
+    s << "inertia: " << _inertia << endl;
     s << flush;
     log_manager.writeOnLog(s.str());
 }
@@ -47,6 +47,8 @@ void DynamicDescent::findMin(){
     int cont = 0;
     while ( this->_isNotConverged() )
         {
+            log_manager.writeOnLog("\n\nDynamicDescent::findMin() Step " + std::to_string(cont+1) + "\n");
+
             // compute the gradient
             this->_gradtargetfun->grad(_x->getX(), grad, graderr);
             this->_writeGradientInLog(grad, graderr);

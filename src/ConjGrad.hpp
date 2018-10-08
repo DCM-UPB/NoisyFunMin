@@ -15,7 +15,7 @@ protected:
     void _writeCGDirectionInLog(const double * dir, const std::string &name);
 
 public:
-    ConjGrad(NoisyFunctionWithGradient * targetfun):NFM(targetfun)
+    ConjGrad(NoisyFunctionWithGradient * targetfun): NFM(targetfun)
     {
         setGradientTargetFun(targetfun);
         _use_conjgrad = true;
@@ -25,7 +25,6 @@ public:
 
     // Configuration
     void configureToFollowSimpleGradient(){_use_conjgrad = false;};  // make ConjGrad a Steepest Descent
-
 
     // --- Minimization
     void findMin();
