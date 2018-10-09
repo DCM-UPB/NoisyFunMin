@@ -69,9 +69,11 @@ void NFMLogManager::writeNoisyValueInLog(NoisyFunctionValue * x, const std::stri
     stringstream s;
     s << name << ":\n";
     for (int i=0; i<x->getNDim(); ++i){
-        s << xlabel << i << " = " << x->getX(i) << "    ";
+        s << xlabel << i << " = " << x->getX(i);
+        if (i==x->getNDim()-1) s << endl;
+        else s << "    ";
     }
-    s << endl << flabel << " = " << x->getF() << " +- " << x->getDf() << endl;
+    s << flabel << " = " << x->getF() << " +- " << x->getDf() << endl;
     s << flush;
     this->writeOnLog(s.str());
 }
@@ -86,9 +88,9 @@ void NFMLogManager::writeVectorInLog(const double * vec, const double * dvec, co
     for (int i=0; i<ndim; ++i){
         s << vlabel << i << " = " << vec[i];
         if (dvec!=NULL) s << " +- " << dvec[i];
-        s << "    ";
+        if (i==ndim-1 ) s << endl;
+        else s << "    ";
     }
-    s << endl;
     s << flush;
     this->writeOnLog(s.str());
 }

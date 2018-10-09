@@ -36,8 +36,6 @@ void ConjGrad::findMin()
     double gradold[_ndim];
     double gradnew[_ndim];
     double graderr[_ndim];
-    double conjvold[_ndim];
-    double conjvnew[_ndim];
 
     this->_gradtargetfun->grad(_x->getX(), gradold, graderr);
 
@@ -47,14 +45,15 @@ void ConjGrad::findMin()
     if (this->_meaningfulGradient(gradold, graderr))
         {
             int i;
+            double conjv[_ndim];
             //interested in following -gradient
             for (i=0; i<_ndim; ++i){ gradold[i]=-gradold[i]; }
             //inizialize the conjugate vectors
-            for (i=0; i<_ndim; ++i){ conjvold[i]=gradold[i]; }
-            this->_writeCGDirectionInLog(conjvold, "Conjugated Vectors");
+            for (i=0; i<_ndim; ++i){ conjv[i]=gradold[i]; }
+            this->_writeCGDirectionInLog(conjv, "Conjugated Vectors");
             //find new position
             double deltatargetfun, deltax;
-            this->findNextX(conjvold,deltatargetfun,deltax);
+            this->findNextX(conjv,deltatargetfun,deltax);
 
             this->_writeCurrentXInLog();
 
@@ -82,14 +81,14 @@ void ConjGrad::findMin()
                         scalprodold=0.;
                         for (i=0; i<_ndim; ++i){ scalprodold+=gradold[i]*gradold[i]; }
                         ratio=scalprodnew/scalprodold;
-                        for (i=0; i<_ndim; ++i){ conjvnew[i]=gradnew[i]+conjvold[i]*ratio; }
+                        for (i=0; i<_ndim; ++i){ conjv[i]=gradnew[i]+conjv[i]*ratio; }
                     } else {
                         // simply use as conjugate gradient the gradient (i.e. make a steepest descent!)
-                        for (i=0; i<_ndim; ++i){ conjvnew[i]=gradnew[i]; }
+                        for (i=0; i<_ndim; ++i){ conjv[i]=gradnew[i]; }
                     }
-                    this->_writeCGDirectionInLog(conjvnew, "Conjugated vectors");
+                    this->_writeCGDirectionInLog(conjv, "Conjugated vectors");
                     //find new position
-                    this->findNextX(conjvnew,deltatargetfun,deltax);
+                    this->findNextX(conjv,deltatargetfun,deltax);
                     //cout << "deltatargetfunction = " << deltatargetfun << "   " << _epstargetfun << endl;
                     //cout << "deltax = " << deltax << "   " << _epsx << endl << endl;
 
