@@ -3,6 +3,8 @@
 
 #include <string>
 
+#include "NoisyFunctionValue.hpp"
+
 
 class NFMLogManager{
 private:
@@ -17,10 +19,13 @@ public:
     void setLoggingOff();
     bool isLoggingOn();
 
-    void setLoggingPathFile(std::string path);
+    void setLoggingPathFile(const std::string &path);
 
     void writeOnLog(std::string s);
 
+    // --- Advanced log helpers
+    void writeNoisyValueInLog(NoisyFunctionValue * x, const std::string &name, const std::string &xlabel = "x", const std::string &flabel = "f");
+    void writeVectorInLog(const double * vec, const double * dvec /* optional error vector */, const int ndim, const std::string &name, const std::string &vlabel = "v");
 };
 
 

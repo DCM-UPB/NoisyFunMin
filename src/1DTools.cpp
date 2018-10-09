@@ -269,7 +269,7 @@ namespace nfm
 
 
 
-    void _writeabcInLog(const std::string key, NoisyFunctionValue &a, NoisyFunctionValue &b, NoisyFunctionValue &c){
+    void _writeabcInLog(const std::string &key, NoisyFunctionValue &a, NoisyFunctionValue &b, NoisyFunctionValue &c){
         using namespace std;
 
         NFMLogManager * log_manager = new NFMLogManager();

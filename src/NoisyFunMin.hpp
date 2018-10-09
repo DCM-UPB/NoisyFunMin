@@ -1,6 +1,9 @@
 #ifndef NOISY_FUN_MIN
 #define NOISY_FUN_MIN
 
+#include <list>
+#include <string>
+
 #include "NoisyFunction.hpp"
 #include "NoisyFunctionValue.hpp"
 
@@ -15,6 +18,7 @@ protected:
 
     NoisyFunctionWithGradient * _gradtargetfun;  //gradient of the target function
     bool _flaggradtargetfun;  //has the gradient been provided?
+    const bool _useGradientError; // use a provided gradient error for printout / stopping criteria
 
     //nfm::DomainFun _indomain; //function that determines if a point is inside the domain of optimization or not
     //bool _flagindomain; //has the domain been provided?
@@ -22,10 +26,25 @@ protected:
     double _epstargetfun; //changes in the function smaller than this value will stop the minimization
     double _epsx; //changes in the position x smaller than this value will stop the minimization
 
+    const size_t _max_n_const_values; //stop after this number of target values have been constant within error bounds
+    std::list<NoisyFunctionValue *> _old_values; // list of previous target values
+
+    void _clearOldValues(); // reset old values list
+    bool _isConverged(); // check if the target function has stabilized
     bool _meaningfulGradient(const double * grad, const double * graderr); //check if the gradient is meaningful. i.e. if its values are greater than the statistical errors
+    bool _shouldStop(const double * grad, const double * graderr); // check for all stopping criteria
+
+    // "Mandatory" logging routines
+    // CurrentX and XUpdate should be logged by all optimizers and also GradientInLog if a gradient is used
+    void _writeCurrentXInLog();
+    void _writeGradientInLog(const double * grad, const double * dgrad);
+    void _writeXUpdateInLog(const double * xu);
+
+    // Stopping criterium debug logger
+    void _writeOldValuesInLog();
 
 public:
-    NFM(NoisyFunction * targetfun);
+    NFM(NoisyFunction * targetfun, const bool useGradientError = true, const size_t &max_n_const_values = 20);
     virtual ~NFM();
 
     // --- Setters

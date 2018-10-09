@@ -10,3 +10,8 @@
 ## Example 2
 
 `ex2/`: as `ex1`, but using the DynamicDescent method.
+
+
+## Example 3
+
+`ex3/`: as `ex1`, but using the Adam method.

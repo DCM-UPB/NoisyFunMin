@@ -14,42 +14,27 @@ class DynamicDescent: public NFM{
 private:
     double _inertia;
     double * _old_norm_direction;
-    std::list<NoisyFunctionValue *> _old_values;
-    const unsigned int N_CONSTANT_VALUES_CONDITION_FOR_STOP = 20;
 
-    void writeCurrentXInLog();
-    void writeDirectionInLog(const double * direction, const double * directionerror);
-    void reportMeaninglessGradientInLog();
-    void writeInertiaInLog();
-    void writeOldValuesInLog();
+    void _writeInertiaInLog();
 
 protected:
-
     // --- Internal methods
     void findNextX(const double * dir);
-    bool shouldContinueDescent();
 
 public:
-    DynamicDescent(NoisyFunctionWithGradient * targetfun):NFM(targetfun)
+    DynamicDescent(NoisyFunctionWithGradient * targetfun, const bool useGradientError = false, const size_t &max_n_const_values = 20): NFM(targetfun, useGradientError, max_n_const_values)
     {
         _inertia = 1.;
         _old_norm_direction = new double[targetfun->getNDim()];
         for (int i=0; i<targetfun->getNDim(); ++i){
             _old_norm_direction[i] = 0.;
         }
-        _old_values.clear();
         setGradientTargetFun(targetfun);
     }
-    ~DynamicDescent(){
-        for (NoisyFunctionValue * v : _old_values)
-            delete v;
-        _old_values.clear();
-        delete[] _old_norm_direction;
-    }
+    ~DynamicDescent(){ delete[] _old_norm_direction; }
 
     // --- Minimization
     void findMin();
-
 };
 
 

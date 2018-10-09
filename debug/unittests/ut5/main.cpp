@@ -4,9 +4,7 @@
 
 #include "NoisyFunction.hpp"
 #include "NoisyFunctionValue.hpp"
-#include "1DTools.hpp"
-#include "ConjGrad.hpp"
-#include "DynamicDescent.hpp"
+#include "Adam.hpp"
 #include "LogNFM.hpp"
 
 
@@ -29,14 +27,14 @@ public:
         g[2]=4.*pow( in[2]-0.5, 3);
         dg[0]=0.000001; dg[1]=0.000001; dg[2]=0.000001;
     }
-
 };
 
 
 int main(){
     using namespace std;
 
-    NFMLogManager * log_manager = new NFMLogManager();
+    //NFMLogManager * log_manager = new NFMLogManager();
+    //log_manager->setLoggingOn();
 
     // define 3D function that I want to minimise
     F3D * f3d = new F3D();
@@ -44,17 +42,19 @@ int main(){
     double x[3];
 
 
-    // test ConjGrad
-    ConjGrad cjgrad(f3d);
+    // test Adam
+    Adam adam = Adam(f3d, 0.1, 0.1, 0.1);
     x[0] = -2.;   x[1] = 1.0;   x[2] = 0.0;
-    cjgrad.setX(x);
-    cjgrad.findMin();
-    assert(std::abs(cjgrad.getX(0)-1.0) < 0.1);
-    assert(std::abs(cjgrad.getX(1)+1.5) < 0.1);
-    assert(std::abs(cjgrad.getX(2)-0.5) < 0.1);
+    adam.setX(x);
+    adam.findMin();
+
+    assert(std::abs(adam.getX(0)-1.0) < 0.1);
+    assert(std::abs(adam.getX(1)+1.5) < 0.1);
+    assert(std::abs(adam.getX(2)-0.5) < 0.1);
+
 
     delete f3d;
-    delete log_manager;
+    //delete log_manager;
 
     return 0;
 }

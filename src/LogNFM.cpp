@@ -2,36 +2,36 @@
 
 #include <iostream>
 #include <fstream>
+#include <sstream>
 #include <thread>
-
 
 
 bool NFMLogManager::_is_logging_on = false;
 std::string NFMLogManager::_log_file_path = "";
 
 
-
-void NFMLogManager::setLoggingOn(){
+void NFMLogManager::setLoggingOn()
+{
     _is_logging_on=true;
 }
 
-
-void NFMLogManager::setLoggingOff(){
+void NFMLogManager::setLoggingOff()
+{
     _is_logging_on=false;
 }
 
-
-bool NFMLogManager::isLoggingOn(){
+bool NFMLogManager::isLoggingOn()
+{
     return _is_logging_on;
 }
 
-
-void NFMLogManager::setLoggingPathFile(std::string path){
+void NFMLogManager::setLoggingPathFile(const std::string &path)
+{
     _log_file_path=path;
 }
 
-
-void NFMLogManager::writeOnLog(std::string s){
+void NFMLogManager::writeOnLog(std::string s)
+{
     using namespace std;
 
     if (this->isLoggingOn()){
@@ -58,4 +58,39 @@ void NFMLogManager::writeOnLog(std::string s){
 
         //this_thread::sleep_for (chrono::milliseconds(150));
     }
+}
+
+// --- Common logging routines
+
+void NFMLogManager::writeNoisyValueInLog(NoisyFunctionValue * x, const std::string &name, const std::string &xlabel, const std::string &flabel)
+{
+    using namespace std;
+
+    stringstream s;
+    s << name << ":\n";
+    for (int i=0; i<x->getNDim(); ++i){
+        s << xlabel << i << " = " << x->getX(i);
+        if (i==x->getNDim()-1) s << endl;
+        else s << "    ";
+    }
+    s << flabel << " = " << x->getF() << " +- " << x->getDf() << endl;
+    s << flush;
+    this->writeOnLog(s.str());
+}
+
+
+void NFMLogManager::writeVectorInLog(const double * vec, const double * dvec, const int ndim, const std::string &name, const std::string &vlabel)
+{
+    using namespace std;
+
+    stringstream s;
+    s << name << ":\n";
+    for (int i=0; i<ndim; ++i){
+        s << vlabel << i << " = " << vec[i];
+        if (dvec!=NULL) s << " +- " << dvec[i];
+        if (i==ndim-1 ) s << endl;
+        else s << "    ";
+    }
+    s << flush;
+    this->writeOnLog(s.str());
 }

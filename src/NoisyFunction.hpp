@@ -28,6 +28,14 @@ public:
     // Gradient
     virtual void grad(const double *, double *, double *) = 0;
     //                ^input          ^output   ^error on the output
+
+    // Combined Function & Gradient
+    // Overwrite it with a more efficient version, if possible
+    virtual void fgrad(const double * input, double &output, double &error, double * gradient, double * graderr)
+    {
+        f(input, output, error);
+        grad(input, gradient, graderr);
+    }
 };
 
 
