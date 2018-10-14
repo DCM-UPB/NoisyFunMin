@@ -31,7 +31,7 @@ void Adam::findMin(){
     }
 
     //begin the minimization loop
-    double newf, newdf;
+    double newf, newdf, afac;
     double beta1t = 1.; // stores beta1^t
     double beta2t = 1.; // stores beta2^t
     int step = 0;
@@ -49,29 +49,31 @@ void Adam::findMin(){
             _writeCurrentXInLog();
             _writeGradientInLog(grad, graderr);
 
+            beta1t = beta1t * _beta1; // update beta1 power
+            beta2t = beta2t * _beta2; // update beat2 power
+            afac = _alpha * sqrt(1.-beta2t) / (1.-beta1t);
+
             // compute the update
             for (int i=0; i<_ndim; ++i) {
                 m[i] = _beta1 * m[i] + (1.-_beta1) * grad[i]; // Update biased first moment
                 v[i] = _beta2 * v[i] + (1.-_beta2) * grad[i]*grad[i]; // Update biased second raw moment
 
-                beta1t = beta1t * _beta1; // update beta1 power
-                beta2t = beta2t * _beta2; // update beat2 power
-
-                dx[i] = - _alpha * sqrt(1.-beta2t) / (1.-beta1t) * m[i] / (sqrt(v[i]) + _epsilon); // calculate updates
+                dx[i] = - afac * m[i] / (sqrt(v[i]) + _epsilon); // calculate updates
                 _x->setX(i, _x->getX(i) + dx[i]); // update _x
 
                 if (_useAveraging) {
                     xavg[i] = _beta2 * xavg[i] + (1.-_beta2) * _x->getX(i);
-                    xavg[i] /= (1.-beta2t);
                 }
             }
             _writeXUpdateInLog(dx);
         }
 
     if (_useAveraging) { // we need to update _x to the averaged x
-        for (int i=0; i<_ndim; ++i) _x->setX(i, xavg[i]);
+        for (int i=0; i<_ndim; ++i) _x->setX(i, xavg[i] / (1.-beta2t)); // bias corrected average
         this->_gradtargetfun->fgrad(_x->getX(), newf, newdf, grad, graderr);
         _x->setF(newf, newdf);
+
+        delete [] xavg;
     }
 
     log_manager.writeNoisyValueInLog(_x, "Final position and target value");

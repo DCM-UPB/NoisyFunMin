@@ -98,7 +98,8 @@ int main() {
 
     delete adam;
     // in noisy-target low-dim cases like this we often need to change adam parameters from default (in brackets)
-    adam = new Adam(np, 0.5 /* step size factor (0.001) */, 0.5 /* beta1 (0.9) */, 0.999 /* beta2 (0.999) */);
+    adam = new Adam(np, true /* calculate/use gradient error for stopping */, 20 /* max n constant (within error) values before stopping */,
+                    true /* use averaging to calculate final parameters */, 1.0 /* step size factor (0.001) */);
     adam->setX(initpos);
 
     adam->findMin();
