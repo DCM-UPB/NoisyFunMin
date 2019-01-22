@@ -52,7 +52,7 @@ bool NFM::_meaningfulGradient(const double * grad, const double * graderr)
 {
     if (_useGradientError) {
         for (int i=0; i<_ndim; ++i) {
-            if (std::abs(grad[i])>graderr[i]) return true;
+            if (fabs(grad[i])>graderr[i]) return true;
         }
     }
     else {
