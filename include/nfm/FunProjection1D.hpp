@@ -1,7 +1,7 @@
 #ifndef FUN_PROJECTION_1D
 #define FUN_PROJECTION_1D
 
-#include "NoisyFunction.hpp"
+#include "nfm/NoisyFunction.hpp"
 
 
 class FunProjection1D: public NoisyFunction

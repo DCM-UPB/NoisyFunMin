@@ -4,9 +4,9 @@
 #include <fstream>
 #include <random>
 
-#include "NoisyFunction.hpp"
-#include "Adam.hpp"
-#include "LogNFM.hpp"
+#include "nfm/NoisyFunction.hpp"
+#include "nfm/Adam.hpp"
+#include "nfm/LogNFM.hpp"
 
 
 

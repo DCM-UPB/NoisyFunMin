@@ -1,6 +1,6 @@
-#include "Adam.hpp"
+#include "nfm/Adam.hpp"
 
-#include "LogNFM.hpp"
+#include "nfm/LogNFM.hpp"
 
 #include <cmath>
 

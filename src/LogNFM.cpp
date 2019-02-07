@@ -1,4 +1,4 @@
-#include "LogNFM.hpp"
+#include "nfm/LogNFM.hpp"
 
 #include <iostream>
 #include <fstream>

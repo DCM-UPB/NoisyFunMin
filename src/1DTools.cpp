@@ -1,6 +1,6 @@
-#include "1DTools.hpp"
+#include "nfm/1DTools.hpp"
 
-#include "LogNFM.hpp"
+#include "nfm/LogNFM.hpp"
 
 #include <iostream>
 #include <sstream>

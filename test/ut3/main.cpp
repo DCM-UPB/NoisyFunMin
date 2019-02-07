@@ -2,12 +2,12 @@
 #include <assert.h>
 #include <math.h>
 
-#include "NoisyFunction.hpp"
-#include "NoisyFunctionValue.hpp"
-#include "1DTools.hpp"
-#include "ConjGrad.hpp"
-#include "DynamicDescent.hpp"
-#include "LogNFM.hpp"
+#include "nfm/NoisyFunction.hpp"
+#include "nfm/NoisyFunctionValue.hpp"
+#include "nfm/1DTools.hpp"
+#include "nfm/ConjGrad.hpp"
+#include "nfm/DynamicDescent.hpp"
+#include "nfm/LogNFM.hpp"
 
 
 

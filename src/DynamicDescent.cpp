@@ -1,8 +1,8 @@
-#include "DynamicDescent.hpp"
+#include "nfm/DynamicDescent.hpp"
 
-#include "LogNFM.hpp"
-#include "FunProjection1D.hpp"
-#include "1DTools.hpp"
+#include "nfm/LogNFM.hpp"
+#include "nfm/FunProjection1D.hpp"
+#include "nfm/1DTools.hpp"
 
 #include <iostream>
 #include <sstream>

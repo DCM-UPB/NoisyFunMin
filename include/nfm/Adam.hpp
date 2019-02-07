@@ -1,9 +1,9 @@
 #ifndef ADAM
 #define ADAM
 
-#include "NoisyFunMin.hpp"
-#include "NoisyFunction.hpp"
-#include "NoisyFunctionValue.hpp"
+#include "nfm/NoisyFunMin.hpp"
+#include "nfm/NoisyFunction.hpp"
+#include "nfm/NoisyFunctionValue.hpp"
 
 #include <list>
 

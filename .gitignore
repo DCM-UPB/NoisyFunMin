@@ -64,13 +64,6 @@ config.sh
 **/exe
 *.o
 
-debug/log.txt
-debug/unittests/*/run_single_unittest.sh
-
-examples/*/a.out
-examples/*/*.txt
-!examples/*/results/*.txt
-
 doc/*.aux
 doc/*.dvi
 doc/*.idx

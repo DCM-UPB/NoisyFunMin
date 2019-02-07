@@ -1,9 +1,9 @@
-#include "ConjGrad.hpp"
+#include "nfm/ConjGrad.hpp"
 
-#include "LogNFM.hpp"
-#include "FunProjection1D.hpp"
-#include "NoisyFunctionValue.hpp"
-#include "1DTools.hpp"
+#include "nfm/LogNFM.hpp"
+#include "nfm/FunProjection1D.hpp"
+#include "nfm/NoisyFunctionValue.hpp"
+#include "nfm/1DTools.hpp"
 
 #include <iostream>
 #include <sstream>

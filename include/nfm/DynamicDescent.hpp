@@ -1,9 +1,9 @@
 #ifndef DYNAMIC_DESCENT
 #define DYNAMIC_DESCENT
 
-#include "NoisyFunMin.hpp"
-#include "NoisyFunction.hpp"
-#include "NoisyFunctionValue.hpp"
+#include "nfm/NoisyFunMin.hpp"
+#include "nfm/NoisyFunction.hpp"
+#include "nfm/NoisyFunctionValue.hpp"
 
 #include <list>
 #include <iostream>

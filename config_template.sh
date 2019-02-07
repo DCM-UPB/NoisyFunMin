@@ -1,18 +1,11 @@
 #!/bin/bash
 
-OS_NAME=$(uname)
+# C++ flags
+CXX_FLAGS="-O3 -flto -Wall"
 
-# Library name
-LIBNAME="nfm"
-
+# currently unused:
 # C++ compiler
-CC="g++"
+#CC="g++"
+# MPI compiler wrapper
+#MPICC="mpic++"
 
-# C++ flags (std=c++11 is necessary)
-FLAGS="-std=c++11 -Wall -Werror"
-
-# Optimization flags
-OPTFLAGS="-O3 -flto"
-
-# Debugging flags
-DEBUGFLAGS="-g -O0"

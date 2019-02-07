@@ -4,9 +4,9 @@
 #include <fstream>
 #include <random>
 
-#include "NoisyFunction.hpp"
-#include "ConjGrad.hpp"
-#include "LogNFM.hpp"
+#include "nfm/NoisyFunction.hpp"
+#include "nfm/ConjGrad.hpp"
+#include "nfm/LogNFM.hpp"
 
 
 class Noiseless2DParabola: public NoisyFunctionWithGradient{

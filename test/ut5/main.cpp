@@ -2,10 +2,10 @@
 #include <assert.h>
 #include <math.h>
 
-#include "NoisyFunction.hpp"
-#include "NoisyFunctionValue.hpp"
-#include "Adam.hpp"
-#include "LogNFM.hpp"
+#include "nfm/NoisyFunction.hpp"
+#include "nfm/NoisyFunctionValue.hpp"
+#include "nfm/Adam.hpp"
+#include "nfm/LogNFM.hpp"
 
 
 

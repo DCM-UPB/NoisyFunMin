@@ -4,9 +4,9 @@
 #include <fstream>
 #include <random>
 
-#include "NoisyFunction.hpp"
-#include "DynamicDescent.hpp"
-#include "LogNFM.hpp"
+#include "nfm/NoisyFunction.hpp"
+#include "nfm/DynamicDescent.hpp"
+#include "nfm/LogNFM.hpp"
 
 
 

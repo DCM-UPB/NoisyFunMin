@@ -1,5 +1,5 @@
-#include "NoisyFunMin.hpp"
-#include "LogNFM.hpp"
+#include "nfm/NoisyFunMin.hpp"
+#include "nfm/LogNFM.hpp"
 
 #include <cmath>
 #include <iostream>

@@ -1,8 +1,8 @@
 #ifndef CONJ_GRAD
 #define CONJ_GRAD
 
-#include "NoisyFunMin.hpp"
-#include "NoisyFunction.hpp"
+#include "nfm/NoisyFunMin.hpp"
+#include "nfm/NoisyFunction.hpp"
 
 class ConjGrad: public NFM{
 

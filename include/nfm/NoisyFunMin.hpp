@@ -4,8 +4,8 @@
 #include <list>
 #include <string>
 
-#include "NoisyFunction.hpp"
-#include "NoisyFunctionValue.hpp"
+#include "nfm/NoisyFunction.hpp"
+#include "nfm/NoisyFunctionValue.hpp"
 
 
 class NFM

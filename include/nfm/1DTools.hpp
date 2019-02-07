@@ -1,9 +1,9 @@
 #ifndef ONED_TOOLS
 #define ONED_TOOLS
 
-#include "NoisyFunctionValue.hpp"
-#include "Definitions.hpp"
-#include "FunProjection1D.hpp"
+#include "nfm/NoisyFunctionValue.hpp"
+#include "nfm/Definitions.hpp"
+#include "nfm/FunProjection1D.hpp"
 
 #include <string>
 

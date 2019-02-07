@@ -3,7 +3,7 @@
 
 #include <string>
 
-#include "NoisyFunctionValue.hpp"
+#include "nfm/NoisyFunctionValue.hpp"
 
 
 class NFMLogManager{
