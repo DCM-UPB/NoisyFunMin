@@ -123,6 +123,7 @@ int main(){
     assert(p1.getX(0) < -1.);
     assert(p3.getX(0) > 1.);
 
+    delete log_manager;
 
     return 0;
 }

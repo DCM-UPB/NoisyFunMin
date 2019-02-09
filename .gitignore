@@ -60,9 +60,8 @@ DerivedData
 
 # -- project specific ignores --
 lib*
+build
 config.sh
-**/exe
-*.o
 
 doc/*.aux
 doc/*.dvi
