@@ -69,7 +69,7 @@ int main() {
     cout << "    (x-1)^2 + (y+2)^2" << endl;
     cout << "whose min is in (1, -2)." << endl << endl << endl;
 
-    //NFMLogManager log;        
+    NFMLogManager log;        
     //log.setLoggingOn(); // use this to enable log printout
 
     cout << "we first minimize it, supposing to have no noise at all" << endl;

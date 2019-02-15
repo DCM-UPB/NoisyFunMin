@@ -35,8 +35,8 @@ public:
 int main(){
     using namespace std;
 
-    //NFMLogManager * log_manager = new NFMLogManager();
-    //log_manager->setLoggingOn();
+    NFMLogManager log_manager;
+    //log_manager.setLoggingOn();
 
     // define 3D function that I want to minimise
     F3D * f3d = new F3D();
@@ -56,7 +56,5 @@ int main(){
 
 
     delete f3d;
-    //delete log_manager;
-
     return 0;
 }

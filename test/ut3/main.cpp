@@ -6,7 +6,6 @@
 #include "nfm/NoisyFunctionValue.hpp"
 #include "nfm/1DTools.hpp"
 #include "nfm/ConjGrad.hpp"
-#include "nfm/DynamicDescent.hpp"
 #include "nfm/LogNFM.hpp"
 
 
@@ -36,7 +35,8 @@ public:
 int main(){
     using namespace std;
 
-    NFMLogManager * log_manager = new NFMLogManager();
+    NFMLogManager log_manager;
+    //log_manager.setLoggingOn();
 
     // define 3D function that I want to minimise
     F3D * f3d = new F3D();
@@ -54,7 +54,6 @@ int main(){
     assert(std::abs(cjgrad.getX(2)-0.5) < 0.1);
 
     delete f3d;
-    delete log_manager;
 
     return 0;
 }

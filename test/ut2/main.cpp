@@ -31,7 +31,8 @@ int main(){
 
     using namespace std;
 
-    //NFMLogManager * log_manager = new NFMLogManager();
+    NFMLogManager log_manager;
+    //log_manager.setLoggingOn();
 
     double f, df;
 

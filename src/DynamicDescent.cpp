@@ -16,11 +16,7 @@ void DynamicDescent::_writeInertiaInLog(){
     using namespace std;
 
     NFMLogManager log_manager = NFMLogManager();
-
-    stringstream s;
-    s << "inertia: " << _inertia << endl;
-    s << flush;
-    log_manager.writeOnLog(s.str());
+    log_manager.writeVectorInLog(_inertia, NULL, _ndim, 2, "Current inertia", "i");
 }
 
 
@@ -57,12 +53,9 @@ void DynamicDescent::findMin(){
 
             // if it is the first iteration, initialise the inertia
             if (cont == 0){
-                _inertia = 0.;
-                for (int i=0; i<this->_ndim; ++i)
-                    {
-                        _inertia+=grad[i]*grad[i];
-                    }
-                _inertia = _ndim / sqrt(_inertia);
+                for (int i=0; i<_ndim; ++i) {
+                    _inertia[i] = (grad[i]!=0) ? 1. / fabs(grad[i]) : 0.;
+                }
             }
 
             // find the next position
@@ -95,19 +88,17 @@ void DynamicDescent::findNextX(const double * grad)
         else
             norm_grad[i] = 0.;
     }
-    // compute the dot product between the normalized gradection and the old normalized gradection
-    double old_new_direction_dot_product = 0;
+    // update the inertia
     for (int i=0; i<_ndim; ++i){
-        old_new_direction_dot_product += _old_norm_direction[i] * norm_grad[i];
+        _inertia[i] += 0.5 * _inertia[i] * _old_norm_direction[i] * norm_grad[i];
     }
-    // update the inertia and report it in the log
-    _inertia = _inertia + 0.5 * _inertia * old_new_direction_dot_product;
+    // report it in the log
     this->_writeInertiaInLog();
 
     // update _x
     double dx[_ndim];
     for (int i=0; i<_ndim; ++i){
-        dx[i] = - _inertia * grad[i];
+        dx[i] = - _step_size*_inertia[i] * grad[i];
         _x->setX(i, _x->getX(i) + dx[i]);
     }
     this->_writeXUpdateInLog(dx);
