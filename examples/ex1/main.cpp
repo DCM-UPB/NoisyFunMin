@@ -68,16 +68,15 @@ int main() {
     cout << "    (x-1)^2 + (y+2)^2" << endl;
     cout << "whose min is in (1, -2)." << endl << endl << endl;
 
-    NFMLogManager * log = new NFMLogManager();
-    //log->setLoggingOn(); // to enable verbose logging
+    //NFMLogManager log;        
+    //log.setLoggingOn(); // use this to enable log printout
 
     cout << "we first minimize it, supposing to have no noise at all" << endl;
 
     Noiseless2DParabola * nlp = new Noiseless2DParabola();
-
     ConjGrad * cg = new ConjGrad(nlp);
 
-    double * initpos = new double[2];
+    double initpos[2];
     initpos[0] = -1.;
     initpos[1] = -1.;
     cg->setX(initpos);
@@ -92,10 +91,12 @@ int main() {
 
     cout << "Now we repeat the minimisation adding a noise to the function and its gradient." << endl;
 
-    Noisy2DParabola * np = new Noisy2DParabola();
-
     delete cg;
+    delete nlp;
+
+    Noisy2DParabola * np = new Noisy2DParabola();
     cg = new ConjGrad(np);
+
     cg->setX(initpos);
 
     cg->findMin();
@@ -103,13 +104,8 @@ int main() {
     cout << "The found minimum is: ";
     cout << cg->getX(0) << "    " << cg->getX(1) << endl << endl;
 
-    delete log;
-
-    delete np;
-    delete[] initpos;
     delete cg;
-    delete nlp;
-
+    delete np;
 
     // end
     return 0;

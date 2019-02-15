@@ -16,7 +16,7 @@
 void ConjGrad::_writeCGDirectionInLog(const double * dir, const std::string &name)
 {
     NFMLogManager log_manager = NFMLogManager();
-    log_manager.writeVectorInLog(dir, NULL, _ndim, name, "g");
+    log_manager.writeVectorInLog(dir, NULL, _ndim, 2, name, "g");
 }
 
 

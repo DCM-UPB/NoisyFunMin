@@ -69,9 +69,8 @@ int main() {
     cout << "    (x-1)^2 + (y+2)^2" << endl;
     cout << "whose min is in (1, -2)." << endl << endl << endl;
 
-    NFMLogManager * log = new NFMLogManager();
-    //log->setLoggingOn();
-
+    //NFMLogManager log;        
+    //log.setLoggingOn(); // use this to enable log printout
 
     cout << "we first minimize it, supposing to have no noise at all" << endl;
 
@@ -91,7 +90,6 @@ int main() {
 
 
 
-
     cout << "Now we repeat the minimisation adding a noise to the function and its gradient." << endl;
 
     Noisy2DParabola * np = new Noisy2DParabola();
@@ -107,8 +105,6 @@ int main() {
     cout << "The found minimum is: ";
     cout << adam->getX(0) << "    " << adam->getX(1) << endl << endl;
 
-
-    delete log;
 
     delete np;
     delete[] initpos;

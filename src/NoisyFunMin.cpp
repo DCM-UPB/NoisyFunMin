@@ -75,19 +75,20 @@ bool NFM::_shouldStop(const double * grad, const double * graderr)
 void NFM::_writeCurrentXInLog()
 {
     NFMLogManager log_manager = NFMLogManager();
-    log_manager.writeNoisyValueInLog(_x, "Current position and target value");
+    if (log_manager.isVerbose()) log_manager.writeNoisyValueInLog(_x, 2, "Current position and target value", "f", true, "x");
+    else log_manager.writeNoisyValueInLog(_x, 1, "Current target value", "f", false);
 }
 
 void NFM::_writeGradientInLog(const double * grad, const double * dgrad)
 {
     NFMLogManager log_manager = NFMLogManager();
-    log_manager.writeVectorInLog(grad, _useGradientError ? dgrad : NULL, _ndim, "Raw gradient", "g");
+    log_manager.writeVectorInLog(grad, _useGradientError ? dgrad : NULL, _ndim, 2, "Raw gradient", "g");
 }
 
 void NFM::_writeXUpdateInLog(const double * xu)
 {
     NFMLogManager log_manager = NFMLogManager();
-    log_manager.writeVectorInLog(xu, NULL, _ndim, "Position update", "u");
+    log_manager.writeVectorInLog(xu, NULL, _ndim, 2, "Position update", "u");
 }
 
 void NFM::_writeOldValuesInLog()

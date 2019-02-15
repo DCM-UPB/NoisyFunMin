@@ -76,6 +76,6 @@ void Adam::findMin(){
         delete [] xavg;
     }
 
-    log_manager.writeNoisyValueInLog(_x, "Final position and target value");
+    log_manager.writeNoisyValueInLog(_x, 1, "Final position and target value");
     log_manager.writeOnLog("\nEnd Adam::findMin() procedure\n");
 }

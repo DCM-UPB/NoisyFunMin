@@ -48,7 +48,7 @@ void DynamicDescent::findMin(){
             double newf, newdf;
             this->_gradtargetfun->fgrad(_x->getX(), newf, newdf, grad, graderr);
             _x->setF(newf, newdf);
-            
+
             if (this->_shouldStop(grad, graderr)) break;
 
             log_manager.writeOnLog("\n\nDynamicDescent::findMin() Step " + std::to_string(cont+1) + "\n");
@@ -71,7 +71,7 @@ void DynamicDescent::findMin(){
             cont ++;
         }
 
-    log_manager.writeNoisyValueInLog(_x, "Final position and target value");
+    log_manager.writeNoisyValueInLog(_x, 1, "Final position and target value");
     log_manager.writeOnLog("\nEnd DynamicDescent::findMin() procedure\n");
 }
 
