@@ -7,40 +7,7 @@
 #include "nfm/ConjGrad.hpp"
 #include "nfm/LogNFM.hpp"
 
-
-
-
-class Parabola: public NoisyFunction
-{
-public:
-    Parabola():NoisyFunction(1){}
-
-    void f(const double * in, double &f, double &df)
-    {
-        f=in[0]*in[0];
-        df=0.5;
-    }
-};
-
-
-
-class Well: public NoisyFunction
-{
-public:
-    Well():NoisyFunction(1){}
-
-    void f(const double * in, double &f, double &df)
-    {
-        if ((in[0] <= -1.) || (in[0] >= 1.)){
-            f = 1.;
-        } else {
-            f = -1.;
-        }
-        df=0.1;
-    }
-};
-
-
+#include "TestNFMFunctions.hpp"
 
 
 int main(){

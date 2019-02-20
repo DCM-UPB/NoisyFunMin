@@ -7,24 +7,7 @@
 #include "nfm/ConjGrad.hpp"
 #include "nfm/LogNFM.hpp"
 
-
-
-
-class PowerFour: public NoisyFunction
-{
-public:
-    PowerFour():NoisyFunction(1){}
-
-    void f(const double * in, double &f, double &df)
-    {
-        f=in[0]*in[0]*in[0]*in[0];
-        df=0.000000001;
-    }
-};
-
-
-
-
+#include "TestNFMFunctions.hpp"
 
 
 int main(){

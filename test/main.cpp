@@ -7,39 +7,7 @@
 #include "nfm/ConjGrad.hpp"
 #include "nfm/LogNFM.hpp"
 
-
-class F1D: public NoisyFunction
-{
-public:
-    F1D():NoisyFunction(1){}
-
-    void f(const double * in, double &f, double &df)
-    {
-        f=pow(*in-1.,4);
-        df=0.00001;
-    }
-};
-
-
-class F3D: public NoisyFunctionWithGradient
-{
-public:
-    F3D():NoisyFunctionWithGradient(3){}
-
-    void f(const double * in, double &f, double &df)
-    {
-        f=pow(in[0]-1.,4)+pow(in[1]+1.5,4)+pow(in[2]-0.5,4);
-        df=0.00001;
-    }
-
-    void grad(const double *in, double *g, double *dg)
-    {
-        g[0]=4.*pow(in[0]-1.,3);
-        g[1]=4.*pow(in[1]+1.5,3);
-        g[2]=4.*pow(in[2]-0.5,3);
-        dg[0]=0.000001; dg[1]=0.000001; dg[2]=0.000001;
-    }
-};
+#include "TestNFMFunctions.hpp"
 
 
 int main(){
