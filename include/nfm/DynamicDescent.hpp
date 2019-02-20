@@ -33,7 +33,10 @@ public:
         }
         setGradientTargetFun(targetfun);
     }
-    ~DynamicDescent(){ delete[] _old_norm_direction; }
+    ~DynamicDescent(){
+         delete[] _old_norm_direction;
+         delete[] _inertia;
+    }
 
     // --- Minimization
     void findMin();

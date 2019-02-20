@@ -45,7 +45,7 @@ int main(){
 
 
     // test DynamicDescent
-    DynamicDescent dyndesc = DynamicDescent(f3d);
+    DynamicDescent dyndesc(f3d);
     x[0] = -2.;   x[1] = 1.0;   x[2] = 0.0;
     dyndesc.setX(x);
     dyndesc.findMin();
