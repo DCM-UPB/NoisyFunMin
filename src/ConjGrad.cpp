@@ -15,7 +15,7 @@
 
 void ConjGrad::_writeCGDirectionInLog(const double * dir, const std::string &name)
 {
-    NFMLogManager log_manager = NFMLogManager();
+    NFMLogManager log_manager;
     log_manager.writeVectorInLog(dir, NULL, _ndim, 2, name, "g");
 }
 
@@ -37,7 +37,9 @@ void ConjGrad::findMin()
     double gradnew[_ndim];
     double graderr[_ndim];
 
-    this->_gradtargetfun->grad(_x->getX(), gradold, graderr);
+    double newf, newerr;
+    this->_gradtargetfun->fgrad(_x->getX(), newf, newerr, gradold, graderr);
+    _x->setF(newf, newerr);
 
     this->_writeCurrentXInLog();
     this->_writeGradientInLog(gradold, graderr);

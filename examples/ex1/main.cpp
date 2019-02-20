@@ -68,8 +68,9 @@ int main() {
     cout << "    (x-1)^2 + (y+2)^2" << endl;
     cout << "whose min is in (1, -2)." << endl << endl << endl;
 
-    //NFMLogManager log;        
+    NFMLogManager log;        
     //log.setLoggingOn(); // use this to enable log printout
+    //log.setLogLevel(2); // use this for verbose printout of the CG method
 
     cout << "we first minimize it, supposing to have no noise at all" << endl;
 
@@ -91,8 +92,8 @@ int main() {
 
     cout << "Now we repeat the minimisation adding a noise to the function and its gradient." << endl;
 
-    delete cg;
     delete nlp;
+    delete cg;
 
     Noisy2DParabola * np = new Noisy2DParabola();
     cg = new ConjGrad(np);

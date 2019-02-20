@@ -24,7 +24,7 @@ public:
 
 
     // Configuration
-    void configureToFollowSimpleGradient(){_use_conjgrad = false;};  // make ConjGrad a Steepest Descent
+    void useSimpleGradient(){_use_conjgrad = false;}  // make ConjGrad a Steepest Descent
 
     // --- Minimization
     void findMin();

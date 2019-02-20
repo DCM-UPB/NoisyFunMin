@@ -68,7 +68,6 @@ public:
 
     // --- Minimization
     virtual void findMin() = 0;
-
 };
 
 

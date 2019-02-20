@@ -71,6 +71,7 @@ int main() {
 
     NFMLogManager log;        
     //log.setLoggingOn(); // use this to enable log printout
+    //log.setLogLevel(2); // use this for verbose printout of the Adam method
 
     cout << "we first minimize it, supposing to have no noise at all" << endl;
 
@@ -78,7 +79,7 @@ int main() {
 
     Adam * adam = new Adam(nlp);
 
-    double * initpos = new double[2];
+    double initpos[2];
     initpos[0] = -1.;
     initpos[1] = -1.;
     adam->setX(initpos);
@@ -92,9 +93,11 @@ int main() {
 
     cout << "Now we repeat the minimisation adding a noise to the function and its gradient." << endl;
 
+    delete adam;
+    delete nlp;
+
     Noisy2DParabola * np = new Noisy2DParabola();
 
-    delete adam;
     // in noisy-target low-dim cases like this we often need to change adam parameters from default (in brackets)
     adam = new Adam(np, true /* calculate/use gradient error for stopping */, 20 /* max n constant (within error) values before stopping */,
                     true /* use averaging to calculate final parameters */, 1.0 /* step size factor (0.001) */);
@@ -107,9 +110,7 @@ int main() {
 
 
     delete np;
-    delete[] initpos;
     delete adam;
-    delete nlp;
 
 
     // end

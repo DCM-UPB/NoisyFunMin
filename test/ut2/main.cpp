@@ -28,7 +28,6 @@ public:
 
 
 int main(){
-
     using namespace std;
 
     NFMLogManager log_manager;
