@@ -28,7 +28,6 @@ public:
         g[2]=4.*pow( in[2]-0.5, 3);
         dg[0]=0.000001; dg[1]=0.000001; dg[2]=0.000001;
     }
-
 };
 
 
@@ -49,9 +48,9 @@ int main(){
     x[0] = -2.;   x[1] = 1.0;   x[2] = 0.0;
     cjgrad.setX(x);
     cjgrad.findMin();
-    assert(std::abs(cjgrad.getX(0)-1.0) < 0.1);
-    assert(std::abs(cjgrad.getX(1)+1.5) < 0.1);
-    assert(std::abs(cjgrad.getX(2)-0.5) < 0.1);
+    assert(fabs(cjgrad.getX(0)-1.0) < 0.1);
+    assert(fabs(cjgrad.getX(1)+1.5) < 0.1);
+    assert(fabs(cjgrad.getX(2)-0.5) < 0.1);
 
     delete f3d;
 

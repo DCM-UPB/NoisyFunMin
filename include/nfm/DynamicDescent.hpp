@@ -9,8 +9,8 @@
 #include <iostream>
 
 
-class DynamicDescent: public NFM{
-
+class DynamicDescent: public NFM
+{
 private:
     double _step_size; // an overall step size scaling factor
     double * _inertia; // inertia per parameter

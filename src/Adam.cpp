@@ -31,7 +31,7 @@ void Adam::findMin(){
     }
 
     //begin the minimization loop
-    double newf, newdf, afac;
+    double newf, newdf;
     double beta1t = 1.; // stores beta1^t
     double beta2t = 1.; // stores beta2^t
     int step = 0;
@@ -51,7 +51,7 @@ void Adam::findMin(){
 
             beta1t = beta1t * _beta1; // update beta1 power
             beta2t = beta2t * _beta2; // update beat2 power
-            afac = _alpha * sqrt(1.-beta2t) / (1.-beta1t);
+            double afac = _alpha * sqrt(1.-beta2t) / (1.-beta1t);
 
             // compute the update
             for (int i=0; i<_ndim; ++i) {

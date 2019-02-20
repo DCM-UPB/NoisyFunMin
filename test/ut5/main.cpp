@@ -56,9 +56,9 @@ int main(){
             adam.setX(x);
             adam.findMin();
 
-            assert(std::abs(adam.getX(0)-1.0) < 0.1);
-            assert(std::abs(adam.getX(1)+1.5) < 0.1);
-            assert(std::abs(adam.getX(2)-0.5) < 0.1);
+            assert(fabs(adam.getX(0)-1.0) < 0.1);
+            assert(fabs(adam.getX(1)+1.5) < 0.1);
+            assert(fabs(adam.getX(2)-0.5) < 0.1);
         }
     }
 

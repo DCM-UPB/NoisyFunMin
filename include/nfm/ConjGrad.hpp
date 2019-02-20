@@ -4,8 +4,8 @@
 #include "nfm/NoisyFunMin.hpp"
 #include "nfm/NoisyFunction.hpp"
 
-class ConjGrad: public NFM{
-
+class ConjGrad: public NFM
+{
 private:
     bool _use_conjgrad;
 

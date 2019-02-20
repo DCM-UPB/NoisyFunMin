@@ -44,7 +44,6 @@ public:
 
 
 int main(){
-
     using namespace std;
 
     NFMLogManager log_manager;
@@ -56,7 +55,6 @@ int main(){
     NoisyFunctionValue p1(1);
     NoisyFunctionValue p2(1);
     NoisyFunctionValue p3(1);
-
 
 
     // check parabola   x^2   ...
@@ -87,7 +85,6 @@ int main(){
     nfm::findBracket(&parabola, p1, p2, p3);
     assert(p1.getX(0) < 0.);
     assert(p3.getX(0) > 0.);
-
 
 
     // check well function   -1 if (-1 < x < 1) else +1   ...

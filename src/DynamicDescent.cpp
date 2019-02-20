@@ -39,7 +39,6 @@ void DynamicDescent::findMin(){
     int cont = 0;
     while ( true )
         {
-
             // compute the gradient and current target
             double newf, newdf;
             this->_gradtargetfun->fgrad(_x->getX(), newf, newdf, grad, graderr);

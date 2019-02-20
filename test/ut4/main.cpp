@@ -28,7 +28,6 @@ public:
         g[2]=4.*pow( in[2]-0.5, 3);
         dg[0]=0.000001; dg[1]=0.000001; dg[2]=0.000001;
     }
-
 };
 
 
@@ -50,9 +49,9 @@ int main(){
     dyndesc.setX(x);
     dyndesc.findMin();
 
-    assert(std::abs(dyndesc.getX(0)-1.0) < 0.1);
-    assert(std::abs(dyndesc.getX(1)+1.5) < 0.1);
-    assert(std::abs(dyndesc.getX(2)-0.5) < 0.1);
+    assert(fabs(dyndesc.getX(0)-1.0) < 0.1);
+    assert(fabs(dyndesc.getX(1)+1.5) < 0.1);
+    assert(fabs(dyndesc.getX(2)-0.5) < 0.1);
 
 
     delete f3d;

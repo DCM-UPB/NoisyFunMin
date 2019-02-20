@@ -66,7 +66,6 @@ namespace nfm
                 if (a.getX(0) < -HUGE)
                     throw std::runtime_error( "NoisyFunctionMin Error! Bracketing impossible. Cannot find a b such that fa!=fb" );
             }
-
         }
 
         if (b<a)
@@ -229,8 +228,8 @@ namespace nfm
                                         b=x;
                                     }
                             }
-
-                    } else
+                    }
+                else
                     {
                         lh=0; rh++;
                         if (x>b)

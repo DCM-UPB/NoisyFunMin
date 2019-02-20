@@ -35,7 +35,6 @@ public:
     void f(const double *x, double &f, double &df);  //projected one-dimensional function
 
     void getVecFromX(const double &x, double *vec);
-
 };
 
 #endif
