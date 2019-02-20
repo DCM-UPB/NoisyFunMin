@@ -4,9 +4,9 @@
 #include <fstream>
 #include <random>
 
-#include "NoisyFunction.hpp"
-#include "DynamicDescent.hpp"
-#include "LogNFM.hpp"
+#include "nfm/NoisyFunction.hpp"
+#include "nfm/DynamicDescent.hpp"
+#include "nfm/LogNFM.hpp"
 
 
 
@@ -69,9 +69,9 @@ int main() {
     cout << "    (x-1)^2 + (y+2)^2" << endl;
     cout << "whose min is in (1, -2)." << endl << endl << endl;
 
-    NFMLogManager * log = new NFMLogManager();
-    //log->setLoggingOn();
-
+    NFMLogManager log;
+    //log.setLoggingOn(); // use this to enable log printout
+    //log.setLogLevel(2); // use this for verbose printout of the DD method
 
     cout << "we first minimize it, supposing to have no noise at all" << endl;
 
@@ -79,7 +79,7 @@ int main() {
 
     DynamicDescent * dd = new DynamicDescent(nlp);
 
-    double * initpos = new double[2];
+    double initpos[2];
     initpos[0] = -1.;
     initpos[1] = -1.;
     dd->setX(initpos);
@@ -94,10 +94,12 @@ int main() {
 
     cout << "Now we repeat the minimisation adding a noise to the function and its gradient." << endl;
 
-    Noisy2DParabola * np = new Noisy2DParabola();
-
     delete dd;
+    delete nlp;
+
+    Noisy2DParabola * np = new Noisy2DParabola();
     dd = new DynamicDescent(np);
+
     dd->setX(initpos);
 
     dd->findMin();
@@ -106,12 +108,8 @@ int main() {
     cout << dd->getX(0) << "    " << dd->getX(1) << endl << endl;
 
 
-    delete log;
-
     delete np;
-    delete[] initpos;
     delete dd;
-    delete nlp;
 
 
     // end

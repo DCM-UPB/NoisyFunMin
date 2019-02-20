@@ -1,37 +1,20 @@
 #include <iostream>
 #include <assert.h>
 
-#include "NoisyFunction.hpp"
-#include "NoisyFunctionValue.hpp"
-#include "1DTools.hpp"
-#include "ConjGrad.hpp"
-#include "LogNFM.hpp"
+#include "nfm/NoisyFunction.hpp"
+#include "nfm/NoisyFunctionValue.hpp"
+#include "nfm/1DTools.hpp"
+#include "nfm/ConjGrad.hpp"
+#include "nfm/LogNFM.hpp"
 
-
-
-
-class PowerFour: public NoisyFunction
-{
-public:
-    PowerFour():NoisyFunction(1){}
-
-    void f(const double * in, double &f, double &df)
-    {
-        f=in[0]*in[0]*in[0]*in[0];
-        df=0.000000001;
-    }
-};
-
-
-
-
+#include "TestNFMFunctions.hpp"
 
 
 int main(){
-
     using namespace std;
 
-    //NFMLogManager * log_manager = new NFMLogManager();
+    NFMLogManager log_manager;
+    //log_manager.setLoggingOn();
 
     double f, df;
 

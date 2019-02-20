@@ -1,11 +1,11 @@
 #ifndef CONJ_GRAD
 #define CONJ_GRAD
 
-#include "NoisyFunMin.hpp"
-#include "NoisyFunction.hpp"
+#include "nfm/NoisyFunMin.hpp"
+#include "nfm/NoisyFunction.hpp"
 
-class ConjGrad: public NFM{
-
+class ConjGrad: public NFM
+{
 private:
     bool _use_conjgrad;
 
@@ -24,7 +24,7 @@ public:
 
 
     // Configuration
-    void configureToFollowSimpleGradient(){_use_conjgrad = false;};  // make ConjGrad a Steepest Descent
+    void useSimpleGradient(){_use_conjgrad = false;}  // make ConjGrad a Steepest Descent
 
     // --- Minimization
     void findMin();

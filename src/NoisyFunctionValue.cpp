@@ -1,4 +1,4 @@
-#include "NoisyFunctionValue.hpp"
+#include "nfm/NoisyFunctionValue.hpp"
 
 
 

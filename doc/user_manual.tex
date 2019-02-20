@@ -221,7 +221,7 @@ class ConjGrad: public NFM
    ConjGrad(NoisyFunctionWithGradient *);
    ~ConjGrad();
 
-   void configureToFollowSimpleGradient()
+   void useSimpleGradient()
 };
 \end{lstlisting}
 
@@ -232,7 +232,7 @@ It requires a \verb+NoisyFunctionWithGradient+ for running.
 \begin{itemize}
 \item \verb+ConjGrad(NoisyFunctionWithGradient *f)+: The constructor. It requires an input target function with gradient \verb+f+;
 \item \verb+~ConjGrad()+: The destructor. It does nothing;
-\item \verb+configureToFollowSimpleGradient()+: It asks the algorithm to ignore computing the conjugate gradient, but rather use the simple gradient. Needless to say, this method should be called before the subroutine \verb+findMin+;
+\item \verb+useSimpleGradient()+: It asks the algorithm to ignore computing the conjugate gradient, but rather use the simple gradient. Needless to say, this method should be called before the subroutine \verb+findMin+;
 \end{itemize}
 
 % section conjgrad (end)

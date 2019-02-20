@@ -1,9 +1,9 @@
-#include "ConjGrad.hpp"
+#include "nfm/ConjGrad.hpp"
 
-#include "LogNFM.hpp"
-#include "FunProjection1D.hpp"
-#include "NoisyFunctionValue.hpp"
-#include "1DTools.hpp"
+#include "nfm/LogNFM.hpp"
+#include "nfm/FunProjection1D.hpp"
+#include "nfm/NoisyFunctionValue.hpp"
+#include "nfm/1DTools.hpp"
 
 #include <iostream>
 #include <sstream>
@@ -15,8 +15,8 @@
 
 void ConjGrad::_writeCGDirectionInLog(const double * dir, const std::string &name)
 {
-    NFMLogManager log_manager = NFMLogManager();
-    log_manager.writeVectorInLog(dir, NULL, _ndim, name, "g");
+    NFMLogManager log_manager;
+    log_manager.writeVectorInLog(dir, NULL, _ndim, 2, name, "g");
 }
 
 
@@ -37,7 +37,9 @@ void ConjGrad::findMin()
     double gradnew[_ndim];
     double graderr[_ndim];
 
-    this->_gradtargetfun->grad(_x->getX(), gradold, graderr);
+    double newf, newerr;
+    this->_gradtargetfun->fgrad(_x->getX(), newf, newerr, gradold, graderr);
+    _x->setF(newf, newerr);
 
     this->_writeCurrentXInLog();
     this->_writeGradientInLog(gradold, graderr);
@@ -124,13 +126,13 @@ void ConjGrad::findNextX(const double * dir, double &deltatargetfun, double &del
     proj1d->getVecFromX(b.getX(0),_x->getX());
     _x->setF(b.getF(), b.getDf());
     //compute the two deltas
-    deltatargetfun=std::abs(b.getF()-newf)-dnewf-b.getDf();
+    deltatargetfun=fabs(b.getF()-newf)-dnewf-b.getDf();
     deltax=0.;
     for (int i=0; i<this->_ndim; ++i)
         {
             deltax+=dir[i]*dir[i];
         }
-    deltax=std::abs(b.getX(0)*sqrt(deltax)); //*NORMA VETTORE dir
+    deltax=fabs(b.getX(0)*sqrt(deltax)); //*NORMA VETTORE dir
     //cout << "x is in " << this->getX(0) << "   " << this->getX(1) << "   " << this->getX(2) << endl;
     delete proj1d;
 }

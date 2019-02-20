@@ -1,18 +1,10 @@
-#!/bin/bash
+#!/bin/sh
 
-OS_NAME=$(uname)
+#C++ compiler
+CXX_COMPILER="g++"
 
-# Library name
-LIBNAME="nfm"
+# C++ flags
+CXX_FLAGS="-O3 -flto -Wall -Wno-unused-function"
 
-# C++ compiler
-CC="g++"
-
-# C++ flags (std=c++11 is necessary)
-FLAGS="-std=c++11 -Wall -Werror"
-
-# Optimization flags
-OPTFLAGS="-O3 -flto"
-
-# Debugging flags
-DEBUGFLAGS="-g -O0"
+# add coverage flags
+USE_COVERAGE=0

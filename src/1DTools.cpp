@@ -1,10 +1,10 @@
-#include "1DTools.hpp"
+#include "nfm/1DTools.hpp"
 
-#include "LogNFM.hpp"
+#include "nfm/LogNFM.hpp"
 
 #include <iostream>
 #include <sstream>
-
+#include <stdexcept>
 
 
 namespace nfm
@@ -66,7 +66,6 @@ namespace nfm
                 if (a.getX(0) < -HUGE)
                     throw std::runtime_error( "NoisyFunctionMin Error! Bracketing impossible. Cannot find a b such that fa!=fb" );
             }
-
         }
 
         if (b<a)
@@ -229,8 +228,8 @@ namespace nfm
                                         b=x;
                                     }
                             }
-
-                    } else
+                    }
+                else
                     {
                         lh=0; rh++;
                         if (x>b)
@@ -272,7 +271,7 @@ namespace nfm
     void _writeabcInLog(const std::string &key, NoisyFunctionValue &a, NoisyFunctionValue &b, NoisyFunctionValue &c){
         using namespace std;
 
-        NFMLogManager * log_manager = new NFMLogManager();
+        NFMLogManager log_manager;
 
         stringstream s;
         s << key << ":    " <<
@@ -280,9 +279,7 @@ namespace nfm
             b.getX(0) << " -> " << b.getF() << "    " <<
             c.getX(0) << " -> " << c.getF();
         s << flush;
-        log_manager->writeOnLog(s.str());
-
-        delete log_manager;
+        log_manager.writeOnLog(s.str(), 2);
     }
 
 
