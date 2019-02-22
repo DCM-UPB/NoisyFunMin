@@ -1,5 +1,7 @@
 # LEGEND OF THE UNIT TESTS
 
+Use `./run.sh` inside the test directory to run the check program and unit tests
+with valgrind or use `make test` inside the build directory, to run unit tests without valgrind.
 
 
 ## Unit Test 1
@@ -23,6 +25,7 @@
 ## Unit Test 4
 
 `ut4/`: check the minimisation method DynamicDescent
+
 
 
 ## Unit Test 5
