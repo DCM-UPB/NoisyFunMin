@@ -6,31 +6,19 @@
 
 bool NoisyFunctionValue::operator<(const NoisyFunctionValue &val)
 {
-    if ( _f + 2.0*_df < val._f - 2.0*val._df )
-        {
-            return true;
-        }
-    return false;
+    return _f + 2.0*_df < val._f - 2.0*val._df;
 }
 
 
 bool NoisyFunctionValue::operator>(const NoisyFunctionValue &val)
 {
-    if ( _f - 2.0*_df > val._f + 2.0*val._df )
-        {
-            return true;
-        }
-    return false;
+    return _f - 2.0*_df > val._f + 2.0*val._df;
 }
 
 
 bool NoisyFunctionValue::operator==(const NoisyFunctionValue &val)
 {
-    if ( ( (*this)<val ) || ( (*this)>val ) )
-        {
-            return false;
-        }
-    return true;
+    return !(( (*this)<val ) || ( (*this)>val ));
 }
 
 

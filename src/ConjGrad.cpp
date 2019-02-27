@@ -1,22 +1,22 @@
 #include "nfm/ConjGrad.hpp"
 
-#include "nfm/LogNFM.hpp"
-#include "nfm/FunProjection1D.hpp"
-#include "nfm/NoisyFunctionValue.hpp"
 #include "nfm/1DTools.hpp"
+#include "nfm/FunProjection1D.hpp"
+#include "nfm/LogNFM.hpp"
+#include "nfm/NoisyFunctionValue.hpp"
 
+#include <cmath>
 #include <iostream>
 #include <sstream>
-#include <string>
-#include <cmath>
 #include <stdexcept>
+#include <string>
 
 // --- Logging
 
 void ConjGrad::_writeCGDirectionInLog(const double * dir, const std::string &name)
 {
     NFMLogManager log_manager;
-    log_manager.writeVectorInLog(dir, NULL, _ndim, 2, name, "g");
+    log_manager.writeVectorInLog(dir, nullptr, _ndim, 2, name, "g");
 }
 
 
@@ -96,7 +96,7 @@ void ConjGrad::findMin()
 
                     this->_writeCurrentXInLog();
 
-                    if (this->_isConverged()) break;
+                    if (this->_isConverged()) { break; }
                     cont++;
                 }
         }
@@ -112,7 +112,7 @@ void ConjGrad::findNextX(const double * dir, double &deltatargetfun, double &del
     using namespace std;
 
     //project the original multidimensional wave function into a one-dimensional function
-    FunProjection1D * proj1d = new FunProjection1D(this->_ndim, this->_x->getX(), dir, this->_targetfun);
+    auto * proj1d = new FunProjection1D(this->_ndim, this->_x->getX(), dir, this->_targetfun);
     //determine the initial bracket
     NoisyFunctionValue a(1), b(1), c(1);
     a.setX(0.);

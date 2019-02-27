@@ -1,12 +1,12 @@
-#include <iostream>
 #include <cmath>
-#include <math.h>
+#include <cmath>
 #include <fstream>
+#include <iostream>
 #include <random>
 
-#include "nfm/NoisyFunction.hpp"
 #include "nfm/Adam.hpp"
 #include "nfm/LogNFM.hpp"
+#include "nfm/NoisyFunction.hpp"
 
 
 
@@ -14,12 +14,12 @@ class Noiseless2DParabola: public NoisyFunctionWithGradient{
 public:
     Noiseless2DParabola(): NoisyFunctionWithGradient(2){}
 
-    void f(const double * in, double &f, double &df){
+    void f(const double * in, double &f, double &df) override{
         f = pow(in[0]-1., 2) + pow(in[1]+2., 2);   // minimum in (1, -2)
         df = 0.0;
     }
 
-    void grad(const double * in, double * g, double * dg){
+    void grad(const double * in, double * g, double * dg) override{
         g[0] = 2. * (in[0] - 1.);
         g[1] = 2. * (in[1] + 2.);
         dg[0] = 0.0;
@@ -43,13 +43,13 @@ public:
         _rd = std::uniform_real_distribution<double>(-_sigma, _sigma);
     }
 
-    void f(const double * in, double &f, double &df){
+    void f(const double * in, double &f, double &df) override{
         f = pow(in[0]-1., 2) + pow(in[1]+2., 2);   // minimum in (1, -2)
         df = _sigma;
         f += _rd(_rgen);
     }
 
-    void grad(const double * in, double * g, double * dg){
+    void grad(const double * in, double * g, double * dg) override{
         g[0] = 2. * (in[0] - 1.);
         g[1] = 2. * (in[1] + 2.);
         dg[0] = 2.*_sigma;
@@ -75,7 +75,7 @@ int main() {
 
     cout << "we first minimize it, supposing to have no noise at all" << endl;
 
-    Noiseless2DParabola * nlp = new Noiseless2DParabola();
+    auto * nlp = new Noiseless2DParabola();
 
     Adam * adam = new Adam(nlp);
 
@@ -96,7 +96,7 @@ int main() {
     delete adam;
     delete nlp;
 
-    Noisy2DParabola * np = new Noisy2DParabola();
+    auto * np = new Noisy2DParabola();
 
     // in noisy-target low-dim cases like this we often need to change adam parameters from default (in brackets)
     adam = new Adam(np, true /* calculate/use gradient error for stopping */, 20 /* max n constant (within error) values before stopping */,

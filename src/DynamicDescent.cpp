@@ -1,12 +1,12 @@
 #include "nfm/DynamicDescent.hpp"
 
-#include "nfm/LogNFM.hpp"
-#include "nfm/FunProjection1D.hpp"
 #include "nfm/1DTools.hpp"
+#include "nfm/FunProjection1D.hpp"
+#include "nfm/LogNFM.hpp"
 
+#include <cmath>
 #include <iostream>
 #include <sstream>
-#include <cmath>
 #include <stdexcept>
 
 
@@ -16,7 +16,7 @@ void DynamicDescent::_writeInertiaInLog(){
     using namespace std;
 
     NFMLogManager log_manager = NFMLogManager();
-    log_manager.writeVectorInLog(_inertia, NULL, _ndim, 2, "Current inertia", "i");
+    log_manager.writeVectorInLog(_inertia, nullptr, _ndim, 2, "Current inertia", "i");
 }
 
 
@@ -44,7 +44,7 @@ void DynamicDescent::findMin(){
             this->_gradtargetfun->fgrad(_x->getX(), newf, newdf, grad, graderr);
             _x->setF(newf, newdf);
 
-            if (this->_shouldStop(grad, graderr)) break;
+            if (this->_shouldStop(grad, graderr)) { break; }
 
             log_manager.writeOnLog("\n\nDynamicDescent::findMin() Step " + std::to_string(cont+1) + "\n");
             this->_writeCurrentXInLog();
@@ -82,10 +82,11 @@ void DynamicDescent::findNextX(const double * grad)
     }
     sum = sqrt(sum);
     for (int i=0; i<_ndim; ++i){
-        if (sum!=0.)
+        if (sum!=0.) {
             norm_grad[i] = grad[i]/sum;
-        else
+        } else {
             norm_grad[i] = 0.;
+        }
     }
     // update the inertia
     for (int i=0; i<_ndim; ++i){

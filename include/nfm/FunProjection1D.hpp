@@ -1,5 +1,5 @@
-#ifndef FUN_PROJECTION_1D
-#define FUN_PROJECTION_1D
+#ifndef NFM_FUNPROJECTION1D_HPP
+#define NFM_FUNPROJECTION1D_HPP
 
 #include "nfm/NoisyFunction.hpp"
 
@@ -30,9 +30,9 @@ public:
         _vec=new double[_originalndim];
         _mdf=mdf;
     }
-    ~FunProjection1D();
+    ~FunProjection1D() override;
 
-    void f(const double *x, double &f, double &df);  //projected one-dimensional function
+    void f(const double *x, double &f, double &df) override;  //projected one-dimensional function
 
     void getVecFromX(const double &x, double *vec);
 };

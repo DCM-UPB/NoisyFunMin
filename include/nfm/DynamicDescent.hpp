@@ -1,12 +1,12 @@
-#ifndef DYNAMIC_DESCENT
-#define DYNAMIC_DESCENT
+#ifndef NFM_DYNAMICDESCENT_HPP
+#define NFM_DYNAMICDESCENT_HPP
 
 #include "nfm/NoisyFunMin.hpp"
 #include "nfm/NoisyFunction.hpp"
 #include "nfm/NoisyFunctionValue.hpp"
 
-#include <list>
 #include <iostream>
+#include <list>
 
 
 class DynamicDescent: public NFM
@@ -20,10 +20,10 @@ private:
 
 protected:
     // --- Internal methods
-    void findNextX(const double * dir);
+    void findNextX(const double * grad);
 
 public:
-    DynamicDescent(NoisyFunctionWithGradient * targetfun, const double stepSize = 1., const bool useGradientError = false, const size_t &max_n_const_values = 20): NFM(targetfun, useGradientError, max_n_const_values), _step_size(stepSize)
+    explicit DynamicDescent(NoisyFunctionWithGradient * targetfun, const double stepSize = 1., const bool useGradientError = false, const size_t &max_n_const_values = 20): NFM(targetfun, useGradientError, max_n_const_values), _step_size(stepSize)
     {
         _inertia = new double[_ndim];
         _old_norm_direction = new double[_ndim];
@@ -33,13 +33,13 @@ public:
         }
         setGradientTargetFun(targetfun);
     }
-    ~DynamicDescent(){
+    ~DynamicDescent() override{
          delete[] _old_norm_direction;
          delete[] _inertia;
     }
 
     // --- Minimization
-    void findMin();
+    void findMin() override;
 };
 
 

@@ -4,10 +4,9 @@
 
 void FunProjection1D::getVecFromX(const double &x, double *vec)
 {
-    for (int i=0; i<_originalndim; ++i)
-        {
-            vec[i]=_p0[i]+_direction[i]*x;
-        }
+    for (int i=0; i<_originalndim; ++i) {
+        vec[i]=_p0[i]+_direction[i]*x;
+    }
 }
 
 
@@ -25,5 +24,5 @@ FunProjection1D::~FunProjection1D()
     delete [] _p0;
     delete [] _direction;
     delete [] _vec;
-    _mdf=0;
+    _mdf=nullptr;
 }

@@ -19,7 +19,7 @@ void Adam::findMin(){
     double m[_ndim], v[_ndim]; // moment vectors
     double dx[_ndim]; // holds the actual updates for x
     double * xavg; // when averaging is enabled, holds the running average
-    if (_useAveraging) xavg = new double[_ndim];
+    if (_useAveraging) { xavg = new double[_ndim]; }
 
     for (int i=0; i<_ndim; ++i) { // set all to 0
         grad[i] = 0.;
@@ -27,7 +27,7 @@ void Adam::findMin(){
         m[i] = 0.;
         v[i] = 0.;
         dx[i] = 0.;
-        if (_useAveraging) xavg[i] = 0.;
+        if (_useAveraging) { xavg[i] = 0.; }
     }
 
     //begin the minimization loop
@@ -43,7 +43,7 @@ void Adam::findMin(){
             this->_gradtargetfun->fgrad(_x->getX(), newf, newdf, grad, graderr);
             _x->setF(newf, newdf);
 
-            if (_shouldStop(grad, graderr)) break;
+            if (_shouldStop(grad, graderr)) { break; }
 
             log_manager.writeOnLog("\n\nAdam::findMin() Step " + std::to_string(step) + "\n");
             _writeCurrentXInLog();
@@ -69,7 +69,9 @@ void Adam::findMin(){
         }
 
     if (_useAveraging) { // we need to update _x to the averaged x
-        for (int i=0; i<_ndim; ++i) _x->setX(i, xavg[i] / (1.-beta2t)); // bias corrected average
+        for (int i=0; i<_ndim; ++i) {
+            _x->setX(i, xavg[i] / (1.-beta2t)); // bias corrected average
+        }
         this->_gradtargetfun->fgrad(_x->getX(), newf, newdf, grad, graderr);
         _x->setF(newf, newdf);
 

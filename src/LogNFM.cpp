@@ -1,13 +1,13 @@
 #include "nfm/LogNFM.hpp"
 
-#include <iostream>
 #include <fstream>
+#include <iostream>
 #include <sstream>
 #include <thread>
 
 
 int NFMLogManager::_log_level = 0;
-std::string NFMLogManager::_log_file_path = "";
+std::string NFMLogManager::_log_file_path;
 
 
 void NFMLogManager::setLoggingOn(const bool verbose)
@@ -49,23 +49,24 @@ void NFMLogManager::writeOnLog(std::string s, const int log_level)
 {
     using namespace std;
 
-    if (_log_level < log_level) return;
+    if (_log_level < log_level) { return; }
 
     const std::string log_marker = "--NFM--    ";
     const std::string log_marker_with_linebreak = "\n--NFM--    ";
 
     if (_log_file_path.empty()){
         // append the string log_marker at the beginning of every new line
-        size_t pos = s.find("\n", 0);
+        size_t pos = s.find('\n', 0);
         // --- iterate through the string and change it accordingly
         while(pos < string::npos){
-            if (s.substr(pos, string::npos).length() > 0)
+            if (s.substr(pos, string::npos).length() > 0) {
                 s.replace(pos, string("\n").length(), log_marker_with_linebreak);
-            pos = s.find("\n", pos+1);
+            }
+            pos = s.find('\n', pos+1);
         }
         // write to the std output
         cout << log_marker << s << endl;
-    } else{
+    } else {
         ofstream out;
         out.open(_log_file_path, ios_base::app);
         out << s << endl;
@@ -81,15 +82,15 @@ void NFMLogManager::writeNoisyValueInLog(NoisyFunctionValue * x, const int log_l
 {
     using namespace std;
 
-    if (_log_level<log_level) return;
+    if (_log_level<log_level) { return; }
 
     stringstream s;
     s << name << ":\n";
     if (printX) {
         for (int i=0; i<x->getNDim(); ++i){
             s << xlabel << i << " = " << x->getX(i);
-            if (i==x->getNDim()-1) s << endl;
-            else s << "    ";
+            if (i==x->getNDim()-1) { s << endl; }
+            else { s << "    "; }
         }
     }
     s << flabel << " = " << x->getF() << " +- " << x->getDf() << endl;
@@ -102,15 +103,15 @@ void NFMLogManager::writeVectorInLog(const double * vec, const double * dvec, co
 {
     using namespace std;
 
-    if (_log_level<log_level) return;
+    if (_log_level<log_level) { return; }
 
     stringstream s;
     s << name << ":\n";
     for (int i=0; i<ndim; ++i){
         s << vlabel << i << " = " << vec[i];
-        if (dvec!=NULL) s << " +- " << dvec[i];
-        if (i==ndim-1 ) s << endl;
-        else s << "    ";
+        if (dvec!=nullptr) { s << " +- " << dvec[i]; }
+        if (i==ndim-1 ) { s << endl; }
+        else { s << "    "; }
     }
     s << flush;
     this->writeOnLog(s.str(), log_level);

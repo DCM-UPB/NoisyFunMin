@@ -1,5 +1,5 @@
-#ifndef NOISY_FUN_MIN
-#define NOISY_FUN_MIN
+#ifndef NFM_NOISYFUNMIN_HPP
+#define NFM_NOISYFUNMIN_HPP
 
 #include <list>
 #include <string>
@@ -44,7 +44,7 @@ protected:
     void _writeOldValuesInLog();
 
 public:
-    NFM(NoisyFunction * targetfun, const bool useGradientError = true, const size_t &max_n_const_values = 20);
+    explicit NFM(NoisyFunction * targetfun, bool useGradientError = true, const size_t &max_n_const_values = 20);
     virtual ~NFM();
 
     // --- Setters

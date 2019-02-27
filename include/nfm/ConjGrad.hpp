@@ -1,5 +1,5 @@
-#ifndef CONJ_GRAD
-#define CONJ_GRAD
+#ifndef NFM_CONJGRAD_HPP
+#define NFM_CONJGRAD_HPP
 
 #include "nfm/NoisyFunMin.hpp"
 #include "nfm/NoisyFunction.hpp"
@@ -15,19 +15,19 @@ protected:
     void _writeCGDirectionInLog(const double * dir, const std::string &name);
 
 public:
-    ConjGrad(NoisyFunctionWithGradient * targetfun, const bool useGradientError = true, const size_t &max_n_const_values = 20): NFM(targetfun, useGradientError, max_n_const_values)
+    explicit ConjGrad(NoisyFunctionWithGradient * targetfun, const bool useGradientError = true, const size_t &max_n_const_values = 20): NFM(targetfun, useGradientError, max_n_const_values)
     {
         setGradientTargetFun(targetfun);
         _use_conjgrad = true;
     }
-    ~ConjGrad(){ }
+    ~ConjGrad() override= default;
 
 
     // Configuration
     void useSimpleGradient(){_use_conjgrad = false;}  // make ConjGrad a Steepest Descent
 
     // --- Minimization
-    void findMin();
+    void findMin() override;
 };
 
 

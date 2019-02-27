@@ -1,5 +1,5 @@
-#ifndef NOISY_FUNCTION_VALUE
-#define NOISY_FUNCTION_VALUE
+#ifndef NFM_NOISYFUNCTIONVALUE_HPP
+#define NFM_NOISYFUNCTIONVALUE_HPP
 
 // function: R^(ndim) -> R   with noise (i.e. the value of the function has an associated error)
 // this class implements one of its value (the input and its output, i.e. x and f(x) with associated error)
