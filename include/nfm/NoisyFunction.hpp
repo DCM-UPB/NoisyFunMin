@@ -1,5 +1,5 @@
-#ifndef NOISY_FUNCTION
-#define NOISY_FUNCTION
+#ifndef NFM_NOISYFUNCTION_HPP
+#define NFM_NOISYFUNCTION_HPP
 
 
 class NoisyFunction
@@ -8,8 +8,8 @@ protected:
     int _ndim;
 
 public:
-    NoisyFunction(int ndim){_ndim=ndim;}
-    virtual ~NoisyFunction(){}
+    explicit NoisyFunction(int ndim){_ndim=ndim;}
+    virtual ~NoisyFunction()= default;
 
     int getNDim(){return _ndim;}
 
@@ -22,8 +22,8 @@ public:
 class NoisyFunctionWithGradient: public NoisyFunction
 {
 public:
-    NoisyFunctionWithGradient(int ndim): NoisyFunction(ndim){}
-    virtual ~NoisyFunctionWithGradient(){}
+    explicit NoisyFunctionWithGradient(int ndim): NoisyFunction(ndim){}
+    ~NoisyFunctionWithGradient() override= default;
 
     // Gradient
     virtual void grad(const double *, double *, double *) = 0;

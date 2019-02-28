@@ -1,9 +1,9 @@
-#ifndef ONED_TOOLS
-#define ONED_TOOLS
+#ifndef NFM_1DTOOLS_HPP
+#define NFM_1DTOOLS_HPP
 
-#include "nfm/NoisyFunctionValue.hpp"
 #include "nfm/Definitions.hpp"
 #include "nfm/FunProjection1D.hpp"
+#include "nfm/NoisyFunctionValue.hpp"
 
 #include <string>
 
@@ -26,6 +26,6 @@ namespace nfm
     // function used internally for writing on the log
 
     void _abortFindBracket();  // function called when the findBracket() routine is taking too many computations
-}
+}  // namespace nfm
 
 #endif

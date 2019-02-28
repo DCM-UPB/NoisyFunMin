@@ -1,11 +1,11 @@
+#include <cassert>
 #include <iostream>
-#include <assert.h>
 
-#include "nfm/NoisyFunction.hpp"
-#include "nfm/NoisyFunctionValue.hpp"
 #include "nfm/1DTools.hpp"
 #include "nfm/ConjGrad.hpp"
 #include "nfm/LogNFM.hpp"
+#include "nfm/NoisyFunction.hpp"
+#include "nfm/NoisyFunctionValue.hpp"
 
 #include "TestNFMFunctions.hpp"
 

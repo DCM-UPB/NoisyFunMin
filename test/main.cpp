@@ -1,11 +1,11 @@
-#include <iostream>
 #include <cmath>
+#include <iostream>
 
-#include "nfm/NoisyFunction.hpp"
-#include "nfm/NoisyFunctionValue.hpp"
 #include "nfm/1DTools.hpp"
 #include "nfm/ConjGrad.hpp"
 #include "nfm/LogNFM.hpp"
+#include "nfm/NoisyFunction.hpp"
+#include "nfm/NoisyFunctionValue.hpp"
 
 #include "TestNFMFunctions.hpp"
 
@@ -13,7 +13,7 @@
 int main(){
     using namespace std;
 
-    NFMLogManager * log_manager = new NFMLogManager();
+    auto * log_manager = new NFMLogManager();
     log_manager->setLoggingOn();
     log_manager->setLoggingPathFile("log.txt");
 

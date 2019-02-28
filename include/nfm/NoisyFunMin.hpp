@@ -1,5 +1,5 @@
-#ifndef NOISY_FUN_MIN
-#define NOISY_FUN_MIN
+#ifndef NFM_NOISYFUNMIN_HPP
+#define NFM_NOISYFUNMIN_HPP
 
 #include <list>
 #include <string>
@@ -30,6 +30,7 @@ protected:
     std::list<NoisyFunctionValue *> _old_values; // list of previous target values
 
     void _clearOldValues(); // reset old values list
+    void _storeOldValue(); // store last value in old values list
     bool _isConverged(); // check if the target function has stabilized
     bool _meaningfulGradient(const double * grad, const double * graderr); //check if the gradient is meaningful. i.e. if its values are greater than the statistical errors
     bool _shouldStop(const double * grad, const double * graderr); // check for all stopping criteria
@@ -44,7 +45,7 @@ protected:
     void _writeOldValuesInLog();
 
 public:
-    NFM(NoisyFunction * targetfun, const bool useGradientError = true, const size_t &max_n_const_values = 20);
+    explicit NFM(NoisyFunction * targetfun, bool useGradientError = true, const size_t &max_n_const_values = 20);
     virtual ~NFM();
 
     // --- Setters
