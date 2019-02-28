@@ -3,10 +3,9 @@
 
 #include "nfm/NoisyFunMin.hpp"
 #include "nfm/NoisyFunction.hpp"
-#include "nfm/NoisyFunctionValue.hpp"
 
+#include <algorithm>
 #include <iostream>
-#include <list>
 
 
 class DynamicDescent: public NFM
@@ -27,10 +26,9 @@ public:
     {
         _inertia = new double[_ndim];
         _old_norm_direction = new double[_ndim];
-        for (int i=0; i<_ndim; ++i){
-            _inertia[i] = 0.;
-            _old_norm_direction[i] = 0.;
-        }
+        std::fill(_inertia, _inertia+_ndim, 0.);
+        std::fill(_old_norm_direction, _old_norm_direction+_ndim, 0.);
+
         setGradientTargetFun(targetfun);
     }
     ~DynamicDescent() override{

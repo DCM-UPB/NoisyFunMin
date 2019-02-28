@@ -2,8 +2,8 @@
 
 #include "nfm/LogNFM.hpp"
 
+#include <algorithm>
 #include <cmath>
-
 
 // --- Minimization
 
@@ -18,17 +18,16 @@ void Adam::findMin(){
     double grad[_ndim], graderr[_ndim]; // gradient and (unused) error
     double m[_ndim], v[_ndim]; // moment vectors
     double dx[_ndim]; // holds the actual updates for x
-    double * xavg; // when averaging is enabled, holds the running average
+    double * xavg = nullptr; // when averaging is enabled, holds the running average
     if (_useAveraging) { xavg = new double[_ndim]; }
 
-    for (int i=0; i<_ndim; ++i) { // set all to 0
-        grad[i] = 0.;
-        graderr[i] = 0.;
-        m[i] = 0.;
-        v[i] = 0.;
-        dx[i] = 0.;
-        if (_useAveraging) { xavg[i] = 0.; }
-    }
+    // set all arrays to 0
+    std::fill(grad, grad+_ndim, 0.);
+    std::fill(graderr, graderr+_ndim, 0.);
+    std::fill(m, m+_ndim, 0.);
+    std::fill(v, v+_ndim, 0.);
+    std::fill(dx, dx+_ndim, 0.);
+    if (_useAveraging) { std::fill(xavg, xavg+_ndim, 0.); }
 
     //begin the minimization loop
     double newf, newdf;
@@ -43,6 +42,7 @@ void Adam::findMin(){
             this->_gradtargetfun->fgrad(_x->getX(), newf, newdf, grad, graderr);
             _x->setF(newf, newdf);
 
+            _storeOldValue();
             if (_shouldStop(grad, graderr)) { break; }
 
             log_manager.writeOnLog("\n\nAdam::findMin() Step " + std::to_string(step) + "\n");
@@ -51,7 +51,7 @@ void Adam::findMin(){
 
             beta1t = beta1t * _beta1; // update beta1 power
             beta2t = beta2t * _beta2; // update beat2 power
-            double afac = _alpha * sqrt(1.-beta2t) / (1.-beta1t);
+            const double afac = _alpha * sqrt(1.-beta2t) / (1.-beta1t);
 
             // compute the update
             for (int i=0; i<_ndim; ++i) {

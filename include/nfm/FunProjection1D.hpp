@@ -3,6 +3,7 @@
 
 #include "nfm/NoisyFunction.hpp"
 
+#include <algorithm>
 
 class FunProjection1D: public NoisyFunction
 {
@@ -18,16 +19,13 @@ public:
     {
         _originalndim=originalndim;
         _p0=new double[_originalndim];
-        for (int i=0; i<_originalndim; ++i)
-            {
-                _p0[i]=p0[i];
-            }
         _direction=new double[_originalndim];
-        for (int i=0; i<_originalndim; ++i)
-            {
-                _direction[i]=direction[i];
-            }
         _vec=new double[_originalndim];
+
+        std::copy(p0, p0+_originalndim, _p0);
+        std::copy(direction, direction+_originalndim, _direction);
+        std::fill(_vec, _vec+_originalndim, 0.);
+
         _mdf=mdf;
     }
     ~FunProjection1D() override;

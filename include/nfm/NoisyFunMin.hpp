@@ -30,6 +30,7 @@ protected:
     std::list<NoisyFunctionValue *> _old_values; // list of previous target values
 
     void _clearOldValues(); // reset old values list
+    void _storeOldValue(); // store last value in old values list
     bool _isConverged(); // check if the target function has stabilized
     bool _meaningfulGradient(const double * grad, const double * graderr); //check if the gradient is meaningful. i.e. if its values are greater than the statistical errors
     bool _shouldStop(const double * grad, const double * graderr); // check for all stopping criteria

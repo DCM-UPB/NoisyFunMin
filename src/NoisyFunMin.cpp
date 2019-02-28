@@ -15,19 +15,26 @@ void NFM::_clearOldValues()
     _old_values.clear();
 }
 
+
+void NFM::_storeOldValue()
+{
+    if (_max_n_const_values > 0) {
+        auto * v = new NoisyFunctionValue(_x->getNDim());
+        *v = *_x;
+        _old_values.push_front(v);
+
+        if (_old_values.size() > _max_n_const_values) {
+            delete _old_values.back();
+            _old_values.pop_back();
+        }
+    }
+}
+
+
 bool NFM::_isConverged(){
     using namespace std;
 
     if (_max_n_const_values < 1) { return false; }
-
-    auto * v = new NoisyFunctionValue(_x->getNDim());
-    *v = *_x;
-    _old_values.push_front(v);
-
-    if (_old_values.size() > _max_n_const_values) {
-        delete _old_values.back();
-        _old_values.pop_back();
-    }
 
     if (_old_values.size() == _max_n_const_values) {
         for (auto it = _old_values.begin(); it != _old_values.end(); ++it){
@@ -38,7 +45,7 @@ bool NFM::_isConverged(){
             }
         }
 
-        NFMLogManager log_manager = NFMLogManager();
+        NFMLogManager log_manager;
         log_manager.writeOnLog("\nCost function has stabilised, interrupting minimization procedure.\n");
 
         return true;
@@ -59,7 +66,7 @@ bool NFM::_meaningfulGradient(const double * grad, const double * graderr)
         return true;
     }
 
-    NFMLogManager log_manager = NFMLogManager();
+    NFMLogManager log_manager;
     log_manager.writeOnLog("\nGradient seems to be meaningless, i.e. its error is too large.\n");
     return false;
 }
@@ -74,7 +81,7 @@ bool NFM::_shouldStop(const double * grad, const double * graderr)
 
 void NFM::_writeCurrentXInLog()
 {
-    NFMLogManager log_manager = NFMLogManager();
+    NFMLogManager log_manager;
     if (log_manager.isVerbose()) {
         log_manager.writeNoisyValueInLog(_x, 2, "Current position and target value", "f", true, "x");
     }
@@ -83,13 +90,13 @@ void NFM::_writeCurrentXInLog()
 
 void NFM::_writeGradientInLog(const double * grad, const double * dgrad)
 {
-    NFMLogManager log_manager = NFMLogManager();
+    NFMLogManager log_manager;
     log_manager.writeVectorInLog(grad, _useGradientError ? dgrad : nullptr, _ndim, 2, "Raw gradient", "g");
 }
 
 void NFM::_writeXUpdateInLog(const double * xu)
 {
-    NFMLogManager log_manager = NFMLogManager();
+    NFMLogManager log_manager;
     log_manager.writeVectorInLog(xu, nullptr, _ndim, 2, "Position update", "u");
 }
 
@@ -97,7 +104,7 @@ void NFM::_writeOldValuesInLog()
 {
     using namespace std;
 
-    NFMLogManager log_manager = NFMLogManager();
+    NFMLogManager log_manager;
 
     stringstream s;
     s << endl << "last values:    ";
