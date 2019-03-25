@@ -3,7 +3,7 @@
 
 #include <string>
 
-#include "nfm/NoisyFunctionValue.hpp"
+#include "nfm/NoisyValue.hpp"
 
 namespace nfm
 {
@@ -30,7 +30,7 @@ public:
     void writeOnLog(std::string s, int log_level = 1);
 
     // --- Advanced log helpers
-    void writeNoisyValueInLog(NoisyFunctionValue * x, int log_level, const std::string &name, const std::string &flabel = "f", bool printX = false, const std::string &xlabel = "x");
+    void writeNoisyValueInLog(NoisyValue * x, int log_level, const std::string &name, const std::string &flabel = "f", bool printX = false, const std::string &xlabel = "x");
     void writeVectorInLog(const double * vec, const double * dvec /* optional error vector */, int ndim, int log_level, const std::string &name, const std::string &vlabel = "v");
 };
 } // namespace nfm

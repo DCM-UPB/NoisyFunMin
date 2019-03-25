@@ -5,7 +5,7 @@
 #include <string>
 
 #include "nfm/NoisyFunction.hpp"
-#include "nfm/NoisyFunctionValue.hpp"
+#include "nfm/NoisyValue.hpp"
 
 namespace nfm
 {
@@ -16,7 +16,7 @@ protected:
     int _ndim;  //dimensionality of the space where the target function is embedded
     NoisyFunction * _targetfun;  //target function to minimize
 
-    NoisyFunctionValue * _x;  //last position and its corresponding function value
+    NoisyValue * _x;  //last position and its corresponding function value
 
     NoisyFunctionWithGradient * _gradtargetfun;  //gradient of the target function
     bool _flaggradtargetfun;  //has the gradient been provided?
@@ -29,7 +29,7 @@ protected:
     double _epsx; //changes in the position x smaller than this value will stop the minimization
 
     const size_t _max_n_const_values; //stop after this number of target values have been constant within error bounds
-    std::list<NoisyFunctionValue *> _old_values; // list of previous target values
+    std::list<NoisyValue> _old_values; // list of previous target values
 
     void _clearOldValues(); // reset old values list
     void _storeOldValue(); // store last value in old values list

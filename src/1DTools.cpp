@@ -2,8 +2,9 @@
 
 #include "nfm/LogNFM.hpp"
 
-#include <iostream>
+#include <string>
 #include <sstream>
+#include <stdexcept>
 
 
 namespace nfm
@@ -12,12 +13,12 @@ const double hugeNum = 1000000.;
 const int MAX_NUM_EVAL_FOR_BRACKET = 100;
 
 
-void findBracket(NoisyFunction * f1d, NoisyFunctionValue &a, NoisyFunctionValue &b, NoisyFunctionValue &c)
+void findBracket(NoisyFunction * f1d, NoisyValue &a, NoisyValue &b, NoisyValue &c)
 {
     using namespace std;
 
     if (f1d->getNDim() != 1) {
-        cout << "ERROR parabgoldMinimization(): The NoisyFunction is not 1D. Ndim=" << f1d->getNDim() << endl;
+        throw std::invalid_argument("[nfm::findBracket] The NoisyFunction is not 1D. Ndim=" + to_string(f1d->getNDim()));
     }
 
     double newf, dnewf;
@@ -69,7 +70,7 @@ void findBracket(NoisyFunction * f1d, NoisyFunctionValue &a, NoisyFunctionValue 
             _writeabcInLog("findBracket init", a, a, b);
 
             if (a.getX(0) < -hugeNum) {
-                throw std::runtime_error("NoisyFunctionMin Error! Bracketing impossible. Cannot find a b such that fa!=fb");
+                throw std::runtime_error("[nfm::findBracket] Bracketing impossible. Cannot find a b such that fa!=fb");
             }
         }
     }
@@ -138,12 +139,12 @@ void findBracket(NoisyFunction * f1d, NoisyFunctionValue &a, NoisyFunctionValue 
 }
 
 
-void parabgoldMinimization(NoisyFunction * f1d, const double &eps, NoisyFunctionValue &a, NoisyFunctionValue &b, NoisyFunctionValue &c)
+void parabgoldMinimization(NoisyFunction * f1d, const double &eps, NoisyValue &a, NoisyValue &b, NoisyValue &c)
 {
     using namespace std;
 
     if (f1d->getNDim() != 1) {
-        cout << "ERROR parabgoldMinimization(): The NoisyFunction is not 1D. Ndim=" << f1d->getNDim() << endl;
+        throw std::invalid_argument("[nfm::parabgoldMinimization] The NoisyFunction is not 1D. Ndim=" + std::to_string(f1d->getNDim()));
     }
 
     int count = 0, lh = 0, rh = 0, cx = 0;
@@ -156,7 +157,7 @@ void parabgoldMinimization(NoisyFunction * f1d, const double &eps, NoisyFunction
                          ? (a.getF() - b.getF() - a.getDf() - b.getDf())
                          : (c.getF() - b.getF() - c.getDf() - b.getDf());
 
-    NoisyFunctionValue x(1);
+    NoisyValue x(1);
     double delta;
     double newf, dnewf;
 
@@ -277,7 +278,7 @@ void parabgoldMinimization(NoisyFunction * f1d, const double &eps, NoisyFunction
 }
 
 
-void _writeabcInLog(const std::string &key, NoisyFunctionValue &a, NoisyFunctionValue &b, NoisyFunctionValue &c)
+void _writeabcInLog(const std::string &key, NoisyValue &a, NoisyValue &b, NoisyValue &c)
 {
     using namespace std;
 

@@ -81,7 +81,7 @@ void NFMLogManager::writeOnLog(std::string s, const int log_level)
 
 // --- Common logging routines
 
-void NFMLogManager::writeNoisyValueInLog(NoisyFunctionValue * x, const int log_level, const std::string &name, const std::string &flabel, const bool printX, const std::string &xlabel)
+void NFMLogManager::writeNoisyValueInLog(NoisyValue * x, const int log_level, const std::string &name, const std::string &flabel, const bool printX, const std::string &xlabel)
 {
     using namespace std;
 

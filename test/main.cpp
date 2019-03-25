@@ -19,14 +19,14 @@ int main()
 
     double x1 = 0., x2 = 3.;
     double f1 = 5., f2 = 4., df1 = 1.1, df2 = 0.2;
-    NoisyFunctionValue p1(1);
+    NoisyValue p1(1);
     p1.setX(x1);
     p1.setF(f1, df1);
-    NoisyFunctionValue p2(1);
+    NoisyValue p2(1);
     p2.setX(x2);
     p2.setF(f2, df2);
 
-    cout << " - - - Check NoisyFunctionValue" << endl;
+    cout << " - - - Check NoisyValue" << endl;
     cout << "f1<f2 ? (0 expected) " << (p1 < p2) << endl;
     cout << "f1<=f2 ? (1 expected) " << (p1 <= p2) << endl;
     cout << "f1>f2 ? (0 expected) " << (p1 > p2) << endl;
@@ -35,7 +35,7 @@ int main()
 
     //check bracketing
     cout << " - - - Check nfm::findBracket()" << endl;
-    NoisyFunctionValue p3(1);
+    NoisyValue p3(1);
     p1.setX(10.1);
     auto * f1d = new F1D();
     f1d->f(p1.getX(), f1, df1);

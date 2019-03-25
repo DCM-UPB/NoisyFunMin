@@ -12,7 +12,7 @@ namespace nfm
 
 void NFM::_clearOldValues()
 {
-    for (NoisyFunctionValue * v : _old_values) {
+    for (NoisyValue * v : _old_values) {
         delete v;
     }
     _old_values.clear();
@@ -22,7 +22,7 @@ void NFM::_clearOldValues()
 void NFM::_storeOldValue()
 {
     if (_max_n_const_values > 0) {
-        auto * v = new NoisyFunctionValue(_x->getNDim());
+        auto * v = new NoisyValue(_x->getNDim());
         *v = *_x;
         _old_values.push_front(v);
 
@@ -168,7 +168,7 @@ NFM::NFM(NoisyFunction * targetfun, const bool useGradientError, const size_t &m
     _targetfun = targetfun;
     _ndim = _targetfun->getNDim();
     //allocate and initialize x
-    _x = new NoisyFunctionValue(_ndim);
+    _x = new NoisyValue(_ndim);
     for (int i = 0; i < _ndim; ++i) { _x->setX(i, 0.); }
     //gradient of the target function
     _gradtargetfun = nullptr;

@@ -19,9 +19,9 @@ int main()
     double f, df;
 
     // define 3 noisy function values
-    NoisyFunctionValue p1(1);
-    NoisyFunctionValue p2(1);
-    NoisyFunctionValue p3(1);
+    NoisyValue p1(1);
+    NoisyValue p2(1);
+    NoisyValue p3(1);
 
 
     // check parabola   x^2   ...

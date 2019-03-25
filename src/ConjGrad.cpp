@@ -109,7 +109,7 @@ void ConjGrad::findNextX(const double * dir, double &deltatargetfun, double &del
     //project the original multidimensional wave function into a one-dimensional function
     auto * proj1d = new FunProjection1D(_ndim, _x->getX(), dir, _targetfun);
     //determine the initial bracket
-    NoisyFunctionValue a(1), b(1), c(1);
+    NoisyValue a(1), b(1), c(1);
     a.setX(0.);
     double newf, dnewf;
     proj1d->f(a.getX(), newf, dnewf);

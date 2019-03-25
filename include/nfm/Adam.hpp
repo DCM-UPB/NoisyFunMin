@@ -3,7 +3,7 @@
 
 #include "nfm/NoisyFunMin.hpp"
 #include "nfm/NoisyFunction.hpp"
-#include "nfm/NoisyFunctionValue.hpp"
+#include "nfm/NoisyValue.hpp"
 
 #include <list>
 
