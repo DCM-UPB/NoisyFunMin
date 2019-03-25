@@ -7,14 +7,12 @@ namespace nfm
 
 // --- Sigma Level
 
-double NoisyValue::getSigmaLevel()
-{
-    return (_sigmaLevel > 0.) ? _sigmaLevel : DEFAULT_SIGMA_LEVEL;
-}
+// default sigmaLevel
+double NoisyValue::_sigmaLevel = DEFAULT_SIGMA_LEVEL;
 
 void NoisyValue::setSigmaLevel(const double sigmaLevel)
 {
-    _sigmaLevel = (sigmaLevel > 0.) ? sigmaLevel : DEFAULT_SIGMA_LEVEL;
+    _sigmaLevel = (sigmaLevel > 0.) ? sigmaLevel : 0.;
 }
 
 // --- Set

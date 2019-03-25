@@ -1,5 +1,5 @@
 #include "nfm/NoisyFunMin.hpp"
-#include "nfm/LogNFM.hpp"
+#include "nfm/LogManager.hpp"
 
 #include <cmath>
 #include <iostream>
@@ -49,7 +49,7 @@ bool NFM::_isConverged()
             }
         }
 
-        NFMLogManager log_manager;
+        LogManager log_manager;
         log_manager.writeOnLog("\nCost function has stabilised, interrupting minimization procedure.\n");
 
         return true;
@@ -70,7 +70,7 @@ bool NFM::_meaningfulGradient(const double * grad, const double * graderr)
         return true;
     }
 
-    NFMLogManager log_manager;
+    LogManager log_manager;
     log_manager.writeOnLog("\nGradient seems to be meaningless, i.e. its error is too large.\n");
     return false;
 }
@@ -85,7 +85,7 @@ bool NFM::_shouldStop(const double * grad, const double * graderr)
 
 void NFM::_writeCurrentXInLog()
 {
-    NFMLogManager log_manager;
+    LogManager log_manager;
     if (log_manager.isVerbose()) {
         log_manager.writeNoisyValueInLog(_x, 2, "Current position and target value", "f", true, "x");
     }
@@ -94,13 +94,13 @@ void NFM::_writeCurrentXInLog()
 
 void NFM::_writeGradientInLog(const double * grad, const double * dgrad)
 {
-    NFMLogManager log_manager;
+    LogManager log_manager;
     log_manager.writeVectorInLog(grad, _useGradientError ? dgrad : nullptr, _ndim, 2, "Raw gradient", "g");
 }
 
 void NFM::_writeXUpdateInLog(const double * xu)
 {
-    NFMLogManager log_manager;
+    LogManager log_manager;
     log_manager.writeVectorInLog(xu, nullptr, _ndim, 2, "Position update", "u");
 }
 
@@ -108,7 +108,7 @@ void NFM::_writeOldValuesInLog()
 {
     using namespace std;
 
-    NFMLogManager log_manager;
+    LogManager log_manager;
 
     stringstream s;
     s << endl << "last values:    ";

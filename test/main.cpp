@@ -3,7 +3,7 @@
 
 #include "nfm/1DTools.hpp"
 #include "nfm/ConjGrad.hpp"
-#include "nfm/LogNFM.hpp"
+#include "nfm/LogManager.hpp"
 
 #include "TestNFMFunctions.hpp"
 
@@ -13,7 +13,7 @@ int main()
     using namespace std;
     using namespace nfm;
 
-    auto * log_manager = new NFMLogManager();
+    auto * log_manager = new LogManager();
     log_manager->setLoggingOn();
     log_manager->setLoggingPathFile("log.txt");
 

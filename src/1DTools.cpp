@@ -1,6 +1,6 @@
 #include "nfm/1DTools.hpp"
 
-#include "nfm/LogNFM.hpp"
+#include "nfm/LogManager.hpp"
 
 #include <string>
 #include <sstream>
@@ -282,7 +282,7 @@ void _writeabcInLog(const std::string &key, NoisyValue &a, NoisyValue &b, NoisyV
 {
     using namespace std;
 
-    NFMLogManager log_manager;
+    LogManager log_manager;
 
     stringstream s;
     s << key << ":    " <<

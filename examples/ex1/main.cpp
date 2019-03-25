@@ -4,7 +4,7 @@
 #include <random>
 
 #include "nfm/ConjGrad.hpp"
-#include "nfm/LogNFM.hpp"
+#include "nfm/LogManager.hpp"
 
 
 class Noiseless2DParabola: public nfm::NoisyFunctionWithGradient
@@ -72,7 +72,7 @@ int main()
     cout << "    (x-1)^2 + (y+2)^2" << endl;
     cout << "whose min is in (1, -2)." << endl << endl << endl;
 
-    NFMLogManager log;
+    LogManager log;
     //log.setLoggingOn(); // use this to enable log printout
     //log.setLogLevel(2); // use this for verbose printout of the CG method
 

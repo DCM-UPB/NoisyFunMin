@@ -12,7 +12,7 @@ int main()
     using namespace std;
     using namespace nfm;
 
-    // NFMLogManager * log_manager = new NFMLogManager();
+    // LogManager * log_manager = new LogManager();
     // log_manager->setLoggingOn();
 
     // define 3D function that I want to minimise

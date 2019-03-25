@@ -1,7 +1,7 @@
 #include "nfm/ConjGrad.hpp"
 
 #include "nfm/1DTools.hpp"
-#include "nfm/LogNFM.hpp"
+#include "nfm/LogManager.hpp"
 
 #include <cmath>
 #include <iostream>
@@ -14,7 +14,7 @@ namespace nfm
 
 void ConjGrad::_writeCGDirectionInLog(const double * dir, const std::string &name)
 {
-    NFMLogManager log_manager;
+    LogManager log_manager;
     log_manager.writeVectorInLog(dir, nullptr, _ndim, 2, name, "g");
 }
 
@@ -25,7 +25,7 @@ void ConjGrad::findMin()
 {
     using namespace std;
 
-    NFMLogManager log_manager = NFMLogManager();
+    LogManager log_manager = LogManager();
     log_manager.writeOnLog("\nBegin ConjGrad::findMin() procedure\n");
 
     // clear old values

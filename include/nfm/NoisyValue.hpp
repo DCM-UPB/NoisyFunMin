@@ -35,25 +35,23 @@ struct NoisyValue
 {
 private:
     // Error width factor, accessed only via get/set methods.
-    // This static value is initially 0., which will be treated
-    // as if it was DEFAULT_SIGMA_LEVEL. We need that until C++17,
-    // which allows us to initialize the static member in-line.
-    static double _sigmaLevel; // if 0 we use DEFAULT_SIGMA_LEVEL
+    // This static value is initially DEFAULT_SIGMA_LEVEL.
+    static double _sigmaLevel;
 
 public:
     double value;
     double error; // standard error (sigma)
 
     // Static methods
-    static void setSigmaLevel(double sigmaLevel); // will set DEFAULT_SIGMA_LEVEL if sigmaLevel <= 0
-    static double getSigmaLevel(); // will return DEFAULT_SIGMA_LEVEL if _sigmaLevel <= 0
+    static void setSigmaLevel(double sigmaLevel = DEFAULT_SIGMA_LEVEL); // will set 0. if sigmaLevel <= 0
+    static double getSigmaLevel() { return _sigmaLevel; };
 
     //Setters
     void set(double val, double err); // set both fields at once
 
     //Getters
-    double getUBound() const { return value + error*getSigmaLevel(); }
-    double getLBound() const { return value - error*getSigmaLevel(); }
+    double getUBound() const { return value + error*_sigmaLevel; }
+    double getLBound() const { return value - error*_sigmaLevel; }
 
     // Binary Operators (implemented based on compound assignments)
 

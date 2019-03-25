@@ -1,6 +1,6 @@
 #include "nfm/DynamicDescent.hpp"
 
-#include "nfm/LogNFM.hpp"
+#include "nfm/LogManager.hpp"
 
 #include <cmath>
 #include <numeric>
@@ -14,7 +14,7 @@ void DynamicDescent::_writeInertiaInLog()
 {
     using namespace std;
 
-    NFMLogManager log_manager = NFMLogManager();
+    LogManager log_manager = LogManager();
     log_manager.writeVectorInLog(_inertia, nullptr, _ndim, 2, "Current inertia", "i");
 }
 
@@ -25,7 +25,7 @@ void DynamicDescent::findMin()
 {
     using namespace std;
 
-    NFMLogManager log_manager = NFMLogManager();
+    LogManager log_manager = LogManager();
     log_manager.writeOnLog("\nBegin DynamicDescent::findMin() procedure\n");
 
     // clear old values

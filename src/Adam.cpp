@@ -1,6 +1,6 @@
 #include "nfm/Adam.hpp"
 
-#include "nfm/LogNFM.hpp"
+#include "nfm/LogManager.hpp"
 
 #include <algorithm>
 #include <cmath>
@@ -12,7 +12,7 @@ namespace nfm
 
 void Adam::findMin()
 {
-    NFMLogManager log_manager = NFMLogManager();
+    LogManager log_manager = LogManager();
     log_manager.writeOnLog("\nBegin Adam::findMin() procedure\n");
 
     // clear old values
