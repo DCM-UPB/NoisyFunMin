@@ -1,6 +1,8 @@
 #ifndef NFM_NOISYFUNCTIONVALUE_HPP
 #define NFM_NOISYFUNCTIONVALUE_HPP
 
+namespace nfm
+{
 // function: R^(ndim) -> R   with noise (i.e. the value of the function has an associated error)
 // this class implements one of its value (the input and its output, i.e. x and f(x) with associated error)
 class NoisyFunctionValue
@@ -36,6 +38,6 @@ public:
     bool operator== (const NoisyFunctionValue &val);
     NoisyFunctionValue& operator= (const NoisyFunctionValue &val);
 };
-
+} // namespace nfm
 
 #endif

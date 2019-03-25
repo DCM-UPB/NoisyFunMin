@@ -7,8 +7,6 @@
 
 #include <string>
 
-
-
 namespace nfm
 {
 
@@ -18,8 +16,7 @@ namespace nfm
     void parabgoldMinimization(NoisyFunction * f1d, const double &eps, NoisyFunctionValue &a, NoisyFunctionValue &b, NoisyFunctionValue &c);
     //                                  ^function   ^level of precision ^3 points that initially provide the bracket, in the end the minimum will be in b
 
-
-
+    
     // PRIVATE FUNCTIONS
 
     void _writeabcInLog(const std::string &key, NoisyFunctionValue &a, NoisyFunctionValue &b, NoisyFunctionValue &c);

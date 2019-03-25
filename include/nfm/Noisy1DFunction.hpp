@@ -1,6 +1,8 @@
 #ifndef NOISY_1D_FUN
 #define NOISY_1D_FUN
 
+namespace nfm
+{
 
 class Noisy1DFunction
 {
@@ -9,6 +11,6 @@ public:
     virtual void f(const double &, double &, double &) = 0;
     //              ^input          ^output   ^error on the output
 };
-
+} // namespace nfm
 
 #endif

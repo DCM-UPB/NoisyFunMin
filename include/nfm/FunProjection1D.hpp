@@ -5,6 +5,9 @@
 
 #include <algorithm>
 
+namespace nfm
+{
+
 class FunProjection1D: public NoisyFunction
 {
 protected:
@@ -34,5 +37,6 @@ public:
 
     void getVecFromX(const double &x, double *vec);
 };
+} // namespace nfm
 
 #endif

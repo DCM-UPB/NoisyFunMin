@@ -7,6 +7,9 @@
 
 #include <list>
 
+namespace nfm
+{
+
 class Adam: public NFM
 {
 protected:
@@ -22,6 +25,6 @@ public:
     // --- Minimization
     void findMin() override;
 };
-
+} // namespace nfm
 
 #endif

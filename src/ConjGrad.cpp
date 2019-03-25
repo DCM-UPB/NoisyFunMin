@@ -12,6 +12,9 @@
 #include <stdexcept>
 #include <string>
 
+namespace nfm
+{
+
 // --- Logging
 
 void ConjGrad::_writeCGDirectionInLog(const double * dir, const std::string &name)
@@ -128,3 +131,4 @@ void ConjGrad::findNextX(const double * dir, double &deltatargetfun, double &del
     //cout << "x is in " << this->getX(0) << "   " << this->getX(1) << "   " << this->getX(2) << endl;
     delete proj1d;
 }
+} // namespace nfm

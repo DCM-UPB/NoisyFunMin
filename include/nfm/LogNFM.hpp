@@ -5,6 +5,8 @@
 
 #include "nfm/NoisyFunctionValue.hpp"
 
+namespace nfm
+{
 
 class NFMLogManager{
 private:
@@ -30,7 +32,6 @@ public:
     void writeNoisyValueInLog(NoisyFunctionValue * x, int log_level, const std::string &name, const std::string &flabel = "f", bool printX = false, const std::string &xlabel = "x");
     void writeVectorInLog(const double * vec, const double * dvec /* optional error vector */, int ndim, int log_level, const std::string &name, const std::string &vlabel = "v");
 };
-
-
+} // namespace nfm
 
 #endif

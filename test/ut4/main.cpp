@@ -13,6 +13,7 @@
 
 int main(){
     using namespace std;
+    using namespace nfm;
 
     NFMLogManager log_manager;
     //log_manager.setLoggingOn();

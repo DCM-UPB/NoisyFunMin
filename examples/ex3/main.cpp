@@ -10,7 +10,7 @@
 
 
 
-class Noiseless2DParabola: public NoisyFunctionWithGradient{
+class Noiseless2DParabola: public nfm::NoisyFunctionWithGradient{
 public:
     Noiseless2DParabola(): NoisyFunctionWithGradient(2){}
 
@@ -29,7 +29,7 @@ public:
 
 
 
-class Noisy2DParabola: public NoisyFunctionWithGradient{
+class Noisy2DParabola: public nfm::NoisyFunctionWithGradient{
 private:
     const double _sigma = 0.15;
     std::random_device _rdev;
@@ -37,7 +37,7 @@ private:
     std::uniform_real_distribution<double> _rd;  //after initialization (done in the constructor) can be used with _rd(_rgen)
 
 public:
-    Noisy2DParabola(): NoisyFunctionWithGradient(2){
+    Noisy2DParabola(): nfm::NoisyFunctionWithGradient(2){
         // initialize random generator
         _rgen = std::mt19937_64(_rdev());
         _rd = std::uniform_real_distribution<double>(-_sigma, _sigma);
@@ -64,6 +64,7 @@ public:
 
 int main() {
     using namespace std;
+    using namespace nfm;
 
     cout << "We want to minimize the 2D function" << endl;
     cout << "    (x-1)^2 + (y+2)^2" << endl;

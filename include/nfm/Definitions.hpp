@@ -1,7 +1,6 @@
 #ifndef NFM_DEFINITIONS_HPP
 #define NFM_DEFINITIONS_HPP
 
-
 namespace nfm
 {
     //1D Function

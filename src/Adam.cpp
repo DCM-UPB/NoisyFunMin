@@ -5,6 +5,9 @@
 #include <algorithm>
 #include <cmath>
 
+namespace nfm
+{
+
 // --- Minimization
 
 void Adam::findMin(){
@@ -81,3 +84,4 @@ void Adam::findMin(){
     log_manager.writeNoisyValueInLog(_x, 1, "Final position and target value");
     log_manager.writeOnLog("\nEnd Adam::findMin() procedure\n");
 }
+} // namespace nfm

@@ -7,6 +7,8 @@
 #include "nfm/NoisyFunction.hpp"
 #include "nfm/NoisyFunctionValue.hpp"
 
+namespace nfm
+{
 
 class NFM
 {
@@ -70,6 +72,6 @@ public:
     // --- Minimization
     virtual void findMin() = 0;
 };
-
+} // namespace nfm
 
 #endif

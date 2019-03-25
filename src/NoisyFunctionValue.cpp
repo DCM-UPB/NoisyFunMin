@@ -3,6 +3,9 @@
 #include <algorithm>
 #include <stdexcept>
 
+namespace nfm
+{
+
 // --- Operations
 
 bool NoisyFunctionValue::operator<(const NoisyFunctionValue &val)
@@ -66,3 +69,4 @@ NoisyFunctionValue::~NoisyFunctionValue()
 {
     delete[] _x;
 }
+} // namespace nfm

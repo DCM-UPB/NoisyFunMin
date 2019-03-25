@@ -4,6 +4,9 @@
 #include "nfm/NoisyFunMin.hpp"
 #include "nfm/NoisyFunction.hpp"
 
+namespace nfm
+{
+
 class ConjGrad: public NFM
 {
 private:
@@ -29,6 +32,6 @@ public:
     // --- Minimization
     void findMin() override;
 };
-
+} // namespace nfm
 
 #endif

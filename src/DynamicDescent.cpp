@@ -9,6 +9,9 @@
 #include <iostream>
 #include <numeric>
 
+namespace nfm
+{
+
 // --- Log
 
 void DynamicDescent::_writeInertiaInLog(){
@@ -101,3 +104,4 @@ void DynamicDescent::findNextX(const double * grad)
     // store the grad for the next iteration
     std::copy(norm_grad, norm_grad+_ndim, _old_norm_direction);
 }
+} // namespace nfm

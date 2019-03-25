@@ -5,6 +5,8 @@
 #include <sstream>
 #include <thread>
 
+namespace nfm
+{
 
 int NFMLogManager::_log_level = 0;
 std::string NFMLogManager::_log_file_path;
@@ -116,3 +118,4 @@ void NFMLogManager::writeVectorInLog(const double * vec, const double * dvec, co
     s << flush;
     this->writeOnLog(s.str(), log_level);
 }
+} // namespace nfm

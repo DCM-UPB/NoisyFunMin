@@ -2,10 +2,10 @@
 #include <cmath>
 
 
-class Parabola: public NoisyFunction
+class Parabola: public nfm::NoisyFunction
 {
 public:
-    Parabola():NoisyFunction(1){}
+    Parabola():nfm::NoisyFunction(1){}
 
     void f(const double * in, double &f, double &df) override
     {
@@ -15,10 +15,10 @@ public:
 };
 
 
-class Well: public NoisyFunction
+class Well: public nfm::NoisyFunction
 {
 public:
-    Well():NoisyFunction(1){}
+    Well():nfm::NoisyFunction(1){}
 
     void f(const double * in, double &f, double &df) override
     {
@@ -32,10 +32,10 @@ public:
 };
 
 
-class PowerFour: public NoisyFunction
+class PowerFour: public nfm::NoisyFunction
 {
 public:
-    PowerFour():NoisyFunction(1){}
+    PowerFour():nfm::NoisyFunction(1){}
 
     void f(const double * in, double &f, double &df) override
     {
@@ -45,10 +45,10 @@ public:
 };
 
 
-class F1D: public NoisyFunction
+class F1D: public nfm::NoisyFunction
 {
 public:
-    F1D():NoisyFunction(1){}
+    F1D():nfm::NoisyFunction(1){}
 
     void f(const double * in, double &f, double &df) override
     {
@@ -58,7 +58,7 @@ public:
 };
 
 
-class F3D: public NoisyFunctionWithGradient
+class F3D: public nfm::NoisyFunctionWithGradient
 {
 public:
     F3D():NoisyFunctionWithGradient(3){}

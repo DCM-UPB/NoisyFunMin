@@ -1,6 +1,8 @@
 #ifndef NFM_NOISYFUNCTION_HPP
 #define NFM_NOISYFUNCTION_HPP
 
+namespace nfm
+{
 
 class NoisyFunction
 {
@@ -46,6 +48,6 @@ public:
 //      virtual bool domain(const double *) = 0;
 //      //                  ^input(size=_ndim)
 //};
-
+} // namespace nfm
 
 #endif

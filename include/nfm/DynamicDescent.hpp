@@ -7,6 +7,8 @@
 #include <algorithm>
 #include <iostream>
 
+namespace nfm
+{
 
 class DynamicDescent: public NFM
 {
@@ -39,6 +41,6 @@ public:
     // --- Minimization
     void findMin() override;
 };
-
+} // namespace nfm
 
 #endif

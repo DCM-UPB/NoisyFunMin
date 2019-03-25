@@ -12,6 +12,7 @@
 
 int main(){
     using namespace std;
+    using namespace nfm;
 
     auto * log_manager = new NFMLogManager();
     log_manager->setLoggingOn();

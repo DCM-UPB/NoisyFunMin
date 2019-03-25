@@ -1,5 +1,7 @@
 #include "nfm/FunProjection1D.hpp"
 
+namespace nfm
+{
 
 void FunProjection1D::getVecFromX(const double &x, double *vec)
 {
@@ -22,3 +24,4 @@ FunProjection1D::~FunProjection1D()
     delete [] _direction;
     delete [] _vec;
 }
+} // namespace nfm

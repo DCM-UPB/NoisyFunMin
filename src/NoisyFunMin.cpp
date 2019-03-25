@@ -5,6 +5,9 @@
 #include <iostream>
 #include <sstream>
 
+namespace nfm
+{
+
 // --- Protected methods
 
 void NFM::_clearOldValues()
@@ -185,3 +188,4 @@ NFM::~NFM()
 
     _clearOldValues();
 }
+} // namespace nfm
