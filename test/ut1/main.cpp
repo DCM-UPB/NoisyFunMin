@@ -4,13 +4,12 @@
 #include "nfm/1DTools.hpp"
 #include "nfm/ConjGrad.hpp"
 #include "nfm/LogNFM.hpp"
-#include "nfm/NoisyFunction.hpp"
-#include "nfm/NoisyFunctionValue.hpp"
 
 #include "TestNFMFunctions.hpp"
 
 
-int main(){
+int main()
+{
     using namespace std;
     using namespace nfm;
 
@@ -73,9 +72,10 @@ int main(){
     well.f(p1.getX(), f, df);
     p1.setF(f, df);
     bool flag_exception_thrown = false;
-    try{
+    try {
         nfm::findBracket(&well, p1, p2, p3);
-    } catch(exception& e){
+    }
+    catch (exception &e) {
         flag_exception_thrown = true;
     }
     assert(flag_exception_thrown);

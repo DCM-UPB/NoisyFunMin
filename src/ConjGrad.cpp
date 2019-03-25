@@ -1,16 +1,11 @@
 #include "nfm/ConjGrad.hpp"
 
 #include "nfm/1DTools.hpp"
-#include "nfm/FunProjection1D.hpp"
 #include "nfm/LogNFM.hpp"
-#include "nfm/NoisyFunctionValue.hpp"
 
-#include <algorithm>
 #include <cmath>
 #include <iostream>
 #include <numeric>
-#include <stdexcept>
-#include <string>
 
 namespace nfm
 {
@@ -51,13 +46,13 @@ void ConjGrad::findMin()
     if (this->_meaningfulGradient(gradold, graderr)) {
         double gradnew[_ndim];
         double conjv[_ndim]; //interested in following -gradient
-        for (int i=0; i<_ndim; ++i){ gradold[i]=-gradold[i]; }
+        for (int i = 0; i < _ndim; ++i) { gradold[i] = -gradold[i]; }
         //inizialize the conjugate vectors
-        for (int i=0; i<_ndim; ++i){ conjv[i]=gradold[i]; }
+        for (int i = 0; i < _ndim; ++i) { conjv[i] = gradold[i]; }
         this->_writeCGDirectionInLog(conjv, "Conjugated Vectors");
         //find new position
         double deltatargetfun, deltax;
-        this->findNextX(conjv,deltatargetfun,deltax);
+        this->findNextX(conjv, deltatargetfun, deltax);
 
         this->_writeCurrentXInLog();
 
@@ -65,30 +60,31 @@ void ConjGrad::findMin()
         //cout << "deltatargetfunction = " << deltatargetfun << "   " << _epstargetfun << endl;
         //cout << "deltax = " << deltax << "   " << _epsx << endl << endl;
         int cont = 0;
-        while ( ( deltatargetfun>=_epstargetfun ) && (deltax>=_epsx) ) {
-            log_manager.writeOnLog("\n\nConjGrad::findMin() Step " + std::to_string(cont+1) + "\n");
+        while ((deltatargetfun >= _epstargetfun) && (deltax >= _epsx)) {
+            log_manager.writeOnLog("\n\nConjGrad::findMin() Step " + std::to_string(cont + 1) + "\n");
             //cout << "x is in " << getX(0) << "   " << getX(1) << "   " << getX(2) << endl << endl;
             //evaluate the new gradient
-            this->_gradtargetfun->grad(_x->getX(),gradnew,graderr);
+            this->_gradtargetfun->grad(_x->getX(), gradnew, graderr);
             this->_writeGradientInLog(gradnew, graderr);
-            for (int i=0; i<_ndim; ++i){ gradnew[i]=-gradnew[i]; }
+            for (int i = 0; i < _ndim; ++i) { gradnew[i] = -gradnew[i]; }
             if (!this->_meaningfulGradient(gradnew, graderr)) { break; }
             // compute the direction to follow for finding the next x
             //    if _use_conjgrad == true   ->   Conjugate Gradient
             //    else   ->   Steepest Descent
-            if (_use_conjgrad){
+            if (_use_conjgrad) {
                 //determine the new conjugate vector
-                const double scalprodnew = std::inner_product(gradnew, gradnew+_ndim, gradnew, 0.);
-                const double scalprodold = std::inner_product(gradold, gradold+_ndim, gradold, 0.);
+                const double scalprodnew = std::inner_product(gradnew, gradnew + _ndim, gradnew, 0.);
+                const double scalprodold = std::inner_product(gradold, gradold + _ndim, gradold, 0.);
                 const double ratio = scalprodnew/scalprodold;
-                for (int i=0; i<_ndim; ++i){ conjv[i]=gradnew[i]+conjv[i]*ratio; }
-            } else {
+                for (int i = 0; i < _ndim; ++i) { conjv[i] = gradnew[i] + conjv[i]*ratio; }
+            }
+            else {
                 // simply use as conjugate gradient the gradient (i.e. make a steepest descent!)
-                std::copy(gradnew, gradnew+_ndim, conjv);
+                std::copy(gradnew, gradnew + _ndim, conjv);
             }
             this->_writeCGDirectionInLog(conjv, "Conjugated vectors");
             //find new position
-            this->findNextX(conjv,deltatargetfun,deltax);
+            this->findNextX(conjv, deltatargetfun, deltax);
             //cout << "deltatargetfunction = " << deltatargetfun << "   " << _epstargetfun << endl;
             //cout << "deltax = " << deltax << "   " << _epsx << endl << endl;
 
@@ -122,12 +118,12 @@ void ConjGrad::findNextX(const double * dir, double &deltatargetfun, double &del
     //find the minimum in the bracket
     nfm::parabgoldMinimization(proj1d, _epstargetfun, a, b, c);
     //get the x corresponding to the found b
-    proj1d->getVecFromX(b.getX(0),_x->getX());
+    proj1d->getVecFromX(b.getX(0), _x->getX());
     _x->setF(b.getF(), b.getDf());
     //compute the two deltas
-    deltatargetfun=fabs(b.getF()-newf)-dnewf-b.getDf();
-    deltax=std::inner_product(dir, dir+_ndim, dir, 0.);
-    deltax=fabs(b.getX(0)*sqrt(deltax)); //*NORMA VETTORE dir
+    deltatargetfun = fabs(b.getF() - newf) - dnewf - b.getDf();
+    deltax = std::inner_product(dir, dir + _ndim, dir, 0.);
+    deltax = fabs(b.getX(0)*sqrt(deltax)); //*NORMA VETTORE dir
     //cout << "x is in " << this->getX(0) << "   " << this->getX(1) << "   " << this->getX(2) << endl;
     delete proj1d;
 }

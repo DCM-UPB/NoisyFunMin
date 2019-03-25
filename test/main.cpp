@@ -4,13 +4,12 @@
 #include "nfm/1DTools.hpp"
 #include "nfm/ConjGrad.hpp"
 #include "nfm/LogNFM.hpp"
-#include "nfm/NoisyFunction.hpp"
-#include "nfm/NoisyFunctionValue.hpp"
 
 #include "TestNFMFunctions.hpp"
 
 
-int main(){
+int main()
+{
     using namespace std;
     using namespace nfm;
 
@@ -18,31 +17,31 @@ int main(){
     log_manager->setLoggingOn();
     log_manager->setLoggingPathFile("log.txt");
 
-    double x1=0. , x2=3.;
-    double f1=5. , f2=4. , df1=1.1 , df2=0.2;
+    double x1 = 0., x2 = 3.;
+    double f1 = 5., f2 = 4., df1 = 1.1, df2 = 0.2;
     NoisyFunctionValue p1(1);
     p1.setX(x1);
-    p1.setF(f1,df1);
+    p1.setF(f1, df1);
     NoisyFunctionValue p2(1);
     p2.setX(x2);
-    p2.setF(f2,df2);
+    p2.setF(f2, df2);
 
     cout << " - - - Check NoisyFunctionValue" << endl;
-    cout << "f1<f2 ? (0 expected) " << (p1<p2) << endl;
-    cout << "f1<=f2 ? (1 expected) " << (p1<=p2) << endl;
-    cout << "f1>f2 ? (0 expected) " << (p1>p2) << endl;
-    cout << "f1>=f2 ? (1 expected) " << (p1>=p2) << endl;
-    cout << "f1==f2 ? (1 expected) " << (p1==p2) << endl << endl;
+    cout << "f1<f2 ? (0 expected) " << (p1 < p2) << endl;
+    cout << "f1<=f2 ? (1 expected) " << (p1 <= p2) << endl;
+    cout << "f1>f2 ? (0 expected) " << (p1 > p2) << endl;
+    cout << "f1>=f2 ? (1 expected) " << (p1 >= p2) << endl;
+    cout << "f1==f2 ? (1 expected) " << (p1 == p2) << endl << endl;
 
     //check bracketing
     cout << " - - - Check nfm::findBracket()" << endl;
     NoisyFunctionValue p3(1);
     p1.setX(10.1);
-    F1D * f1d = new F1D();
+    auto * f1d = new F1D();
     f1d->f(p1.getX(), f1, df1);
-    p1.setF(f1,df1);
+    p1.setF(f1, df1);
     nfm::findBracket(f1d, p1, p2, p3);
-    cout << "a="  << p1.getX(0) << "     b="  << p2.getX(0) << "     c=" << p3.getX(0) << endl;
+    cout << "a=" << p1.getX(0) << "     b=" << p2.getX(0) << "     c=" << p3.getX(0) << endl;
     cout << "fa=" << p1.getF() << "      fb=" << p2.getF() << "      fc=" << p3.getF() << endl << endl;
     log_manager->writeOnLog("\n\n=========================================================================\n\n");
 
@@ -57,7 +56,9 @@ int main(){
     F3D * f3d = new F3D();
     ConjGrad cjgrad(f3d);
     double x[3];
-    x[0] = -2.;   x[1] = 1.0;   x[2] = 0.0;
+    x[0] = -2.;
+    x[1] = 1.0;
+    x[2] = 0.0;
     cjgrad.setX(x);
     cjgrad.findMin();
     cout << "Minimum of f3d is in " << cjgrad.getX(0) << "   " << cjgrad.getX(1) << "   " << cjgrad.getX(2) << endl;

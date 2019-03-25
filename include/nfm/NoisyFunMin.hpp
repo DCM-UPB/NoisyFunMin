@@ -55,19 +55,19 @@ public:
     void setX(const int &i, const double &x);
     void setGradientTargetFun(NoisyFunctionWithGradient * grad);
     //void setDomain(nfm::DomainFun domain);
-    void setEpsTargetFun(double &epstargetfun){_epstargetfun=epstargetfun;}
-    void setEpsX(double &epsx){_epsx=epsx;}
+    void setEpsTargetFun(double &epstargetfun) { _epstargetfun = epstargetfun; }
+    void setEpsX(double &epsx) { _epsx = epsx; }
 
     // --- Getters
-    int getNDim(){return _ndim;}
-    double getX(const int &i){return _x->getX(i);};
-    void getX(double * x){for(int i=0; i<_ndim; ++i){x[i]=_x->getX(i);}}
-    double getF(){ return _x->getF(); }
-    double getDf(){ return _x->getDf(); }
-    NoisyFunctionWithGradient* getGradientTargetFun(){return _gradtargetfun;}
+    int getNDim() { return _ndim; }
+    double getX(const int &i) { return _x->getX(i); };
+    void getX(double * x) { for (int i = 0; i < _ndim; ++i) { x[i] = _x->getX(i); } }
+    double getF() { return _x->getF(); }
+    double getDf() { return _x->getDf(); }
+    NoisyFunctionWithGradient * getGradientTargetFun() { return _gradtargetfun; }
     //nfm::DomainFun getDomain(){return _indomain;}
-    double getEpsTargetFun(){return _epstargetfun;}
-    double getEpsX(){return _epsx;}
+    double getEpsTargetFun() { return _epstargetfun; }
+    double getEpsX() { return _epsx; }
 
     // --- Minimization
     virtual void findMin() = 0;

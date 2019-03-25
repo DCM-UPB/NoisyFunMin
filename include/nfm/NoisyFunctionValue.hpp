@@ -18,25 +18,25 @@ public:
     ~NoisyFunctionValue();
 
     //Setters
-    void setX(const double &x){_x[0]=x;}
+    void setX(const double &x) { _x[0] = x; }
     void setX(const double * x);
-    void setX(const int &i, const double &x){_x[i]=x;}
+    void setX(const int &i, const double &x) { _x[i] = x; }
     void setF(const double &f, const double &df);
 
     //Getters
-    int getNDim(){return _ndim;}
-    double getX(const int &idx){return _x[idx];}
-    double * getX(){return _x;}
-    double getF(){return _f;}
-    double getDf(){return _df;}
+    int getNDim() { return _ndim; }
+    double getX(const int &idx) { return _x[idx]; }
+    double * getX() { return _x; }
+    double getF() { return _f; }
+    double getDf() { return _df; }
 
     //Operation
-    bool operator< (const NoisyFunctionValue &val);
-    bool operator>= (const NoisyFunctionValue &val){return !((*this)<val);}
-    bool operator> (const NoisyFunctionValue &val);
-    bool operator<= (const NoisyFunctionValue &val){return !((*this)>val);}
-    bool operator== (const NoisyFunctionValue &val);
-    NoisyFunctionValue& operator= (const NoisyFunctionValue &val);
+    bool operator<(const NoisyFunctionValue &val);
+    bool operator>=(const NoisyFunctionValue &val) { return !((*this) < val); }
+    bool operator>(const NoisyFunctionValue &val);
+    bool operator<=(const NoisyFunctionValue &val) { return !((*this) > val); }
+    bool operator==(const NoisyFunctionValue &val);
+    NoisyFunctionValue &operator=(const NoisyFunctionValue &val);
 };
 } // namespace nfm
 

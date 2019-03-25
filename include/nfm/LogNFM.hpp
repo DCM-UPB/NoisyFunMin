@@ -8,14 +8,15 @@
 namespace nfm
 {
 
-class NFMLogManager{
+class NFMLogManager
+{
 private:
     static int _log_level; // <1 = no log, 1 = essential log, >1 verbose log
     static std::string _log_file_path;  // if the path is not given, the log uses the cout
 
 public:
-    NFMLogManager()= default;
-    ~NFMLogManager()= default;
+    NFMLogManager() = default;
+    ~NFMLogManager() = default;
 
     void setLoggingOn(bool verbose = false); // set loglevel to 1 or 2 (verbose)
     void setLoggingOff(); // set loglevel 0

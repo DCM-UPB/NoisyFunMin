@@ -10,7 +10,8 @@ namespace nfm
 
 // --- Minimization
 
-void Adam::findMin(){
+void Adam::findMin()
+{
     NFMLogManager log_manager = NFMLogManager();
     log_manager.writeOnLog("\nBegin Adam::findMin() procedure\n");
 
@@ -25,60 +26,59 @@ void Adam::findMin(){
     if (_useAveraging) { xavg = new double[_ndim]; }
 
     // set all arrays to 0
-    std::fill(grad, grad+_ndim, 0.);
-    std::fill(graderr, graderr+_ndim, 0.);
-    std::fill(m, m+_ndim, 0.);
-    std::fill(v, v+_ndim, 0.);
-    std::fill(dx, dx+_ndim, 0.);
-    if (_useAveraging) { std::fill(xavg, xavg+_ndim, 0.); }
+    std::fill(grad, grad + _ndim, 0.);
+    std::fill(graderr, graderr + _ndim, 0.);
+    std::fill(m, m + _ndim, 0.);
+    std::fill(v, v + _ndim, 0.);
+    std::fill(dx, dx + _ndim, 0.);
+    if (_useAveraging) { std::fill(xavg, xavg + _ndim, 0.); }
 
     //begin the minimization loop
     double newf, newdf;
     double beta1t = 1.; // stores beta1^t
     double beta2t = 1.; // stores beta2^t
     int step = 0;
-    while ( true )
-        {
-            ++step;
+    while (true) {
+        ++step;
 
-            // compute current gradient and target value
-            this->_gradtargetfun->fgrad(_x->getX(), newf, newdf, grad, graderr);
-            _x->setF(newf, newdf);
+        // compute current gradient and target value
+        this->_gradtargetfun->fgrad(_x->getX(), newf, newdf, grad, graderr);
+        _x->setF(newf, newdf);
 
-            _storeOldValue();
-            if (_shouldStop(grad, graderr)) { break; }
+        _storeOldValue();
+        if (_shouldStop(grad, graderr)) { break; }
 
-            log_manager.writeOnLog("\n\nAdam::findMin() Step " + std::to_string(step) + "\n");
-            _writeCurrentXInLog();
-            _writeGradientInLog(grad, graderr);
+        log_manager.writeOnLog("\n\nAdam::findMin() Step " + std::to_string(step) + "\n");
+        _writeCurrentXInLog();
+        _writeGradientInLog(grad, graderr);
 
-            beta1t = beta1t * _beta1; // update beta1 power
-            beta2t = beta2t * _beta2; // update beat2 power
-            const double afac = _alpha * sqrt(1.-beta2t) / (1.-beta1t);
+        beta1t = beta1t*_beta1; // update beta1 power
+        beta2t = beta2t*_beta2; // update beat2 power
+        const double afac = _alpha*sqrt(1. - beta2t)/(1. - beta1t);
 
-            // compute the update
-            for (int i=0; i<_ndim; ++i) {
-                m[i] = _beta1 * m[i] + (1.-_beta1) * grad[i]; // Update biased first moment
-                v[i] = _beta2 * v[i] + (1.-_beta2) * grad[i]*grad[i]; // Update biased second raw moment
+        // compute the update
+        for (int i = 0; i < _ndim; ++i) {
+            m[i] = _beta1*m[i] + (1. - _beta1)*grad[i]; // Update biased first moment
+            v[i] = _beta2*v[i] + (1. - _beta2)*grad[i]*grad[i]; // Update biased second raw moment
 
-                dx[i] = - afac * m[i] / (sqrt(v[i]) + _epsilon); // calculate updates
-                _x->setX(i, _x->getX(i) + dx[i]); // update _x
+            dx[i] = -afac*m[i]/(sqrt(v[i]) + _epsilon); // calculate updates
+            _x->setX(i, _x->getX(i) + dx[i]); // update _x
 
-                if (_useAveraging) {
-                    xavg[i] = _beta2 * xavg[i] + (1.-_beta2) * _x->getX(i);
-                }
+            if (_useAveraging) {
+                xavg[i] = _beta2*xavg[i] + (1. - _beta2)*_x->getX(i);
             }
-            _writeXUpdateInLog(dx);
         }
+        _writeXUpdateInLog(dx);
+    }
 
     if (_useAveraging) { // we need to update _x to the averaged x
-        for (int i=0; i<_ndim; ++i) {
-            _x->setX(i, xavg[i] / (1.-beta2t)); // bias corrected average
+        for (int i = 0; i < _ndim; ++i) {
+            _x->setX(i, xavg[i]/(1. - beta2t)); // bias corrected average
         }
         this->_gradtargetfun->fgrad(_x->getX(), newf, newdf, grad, graderr);
         _x->setF(newf, newdf);
 
-        delete [] xavg;
+        delete[] xavg;
     }
 
     log_manager.writeNoisyValueInLog(_x, 1, "Final position and target value");

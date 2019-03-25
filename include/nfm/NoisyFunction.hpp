@@ -10,10 +10,10 @@ protected:
     int _ndim;
 
 public:
-    explicit NoisyFunction(int ndim){_ndim=ndim;}
-    virtual ~NoisyFunction()= default;
+    explicit NoisyFunction(int ndim) { _ndim = ndim; }
+    virtual ~NoisyFunction() = default;
 
-    int getNDim(){return _ndim;}
+    int getNDim() { return _ndim; }
 
     // Noisy Function
     virtual void f(const double *, double &, double &) = 0;
@@ -24,8 +24,8 @@ public:
 class NoisyFunctionWithGradient: public NoisyFunction
 {
 public:
-    explicit NoisyFunctionWithGradient(int ndim): NoisyFunction(ndim){}
-    ~NoisyFunctionWithGradient() override= default;
+    explicit NoisyFunctionWithGradient(int ndim): NoisyFunction(ndim) {}
+    ~NoisyFunctionWithGradient() override = default;
 
     // Gradient
     virtual void grad(const double *, double *, double *) = 0;

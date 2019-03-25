@@ -34,15 +34,16 @@ void NFM::_storeOldValue()
 }
 
 
-bool NFM::_isConverged(){
+bool NFM::_isConverged()
+{
     using namespace std;
 
     if (_max_n_const_values < 1) { return false; }
 
     if (_old_values.size() == _max_n_const_values) {
-        for (auto it = _old_values.begin(); it != _old_values.end(); ++it){
-            if (it != _old_values.begin()){
-                if (! (**it == **_old_values.begin()) ){
+        for (auto it = _old_values.begin(); it != _old_values.end(); ++it) {
+            if (it != _old_values.begin()) {
+                if (!(**it == **_old_values.begin())) {
                     return false;
                 }
             }
@@ -61,8 +62,8 @@ bool NFM::_isConverged(){
 bool NFM::_meaningfulGradient(const double * grad, const double * graderr)
 {
     if (_useGradientError) {
-        for (int i=0; i<_ndim; ++i) {
-            if (fabs(grad[i])>graderr[i]) { return true; }
+        for (int i = 0; i < _ndim; ++i) {
+            if (fabs(grad[i]) > graderr[i]) { return true; }
         }
     }
     else {
@@ -111,13 +112,13 @@ void NFM::_writeOldValuesInLog()
 
     stringstream s;
     s << endl << "last values:    ";
-    for (auto & _old_value : _old_values){
+    for (auto &_old_value : _old_values) {
         s << _old_value->getF() << " +- " << _old_value->getDf() << "    ";
     }
     s << endl;
     s << "equal to first element? ";
-    for (auto it=_old_values.begin(); it!=_old_values.end(); ++it){
-        if (it != _old_values.begin()){
+    for (auto it = _old_values.begin(); it != _old_values.end(); ++it) {
+        if (it != _old_values.begin()) {
             s << ((**it) == (**_old_values.begin())) << "    ";
         }
     }
@@ -161,14 +162,14 @@ void NFM::setX(const int &i, const double &x)
 // --- Constructor and destructor
 
 NFM::NFM(NoisyFunction * targetfun, const bool useGradientError, const size_t &max_n_const_values)
-    : _useGradientError(useGradientError), _max_n_const_values(max_n_const_values)
+        : _useGradientError(useGradientError), _max_n_const_values(max_n_const_values)
 {
     //set ndim and the target function
     _targetfun = targetfun;
     _ndim = _targetfun->getNDim();
     //allocate and initialize x
     _x = new NoisyFunctionValue(_ndim);
-    for (int i=0; i<_ndim; ++i){ _x->setX(i,0.); }
+    for (int i = 0; i < _ndim; ++i) { _x->setX(i, 0.); }
     //gradient of the target function
     _gradtargetfun = nullptr;
     _flaggradtargetfun = false;
@@ -176,8 +177,8 @@ NFM::NFM(NoisyFunction * targetfun, const bool useGradientError, const size_t &m
     //_indomain = 0;
     //_flagindomain = false;
     //eps
-    _epstargetfun=0.;
-    _epsx=0.;
+    _epstargetfun = 0.;
+    _epsx = 0.;
 }
 
 
