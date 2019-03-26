@@ -14,7 +14,7 @@ std::string LogManager::log_file_path;
 
 void LogManager::setLoggingOn(const bool verbose)
 {
-    log_level = verbose ? LogLevel::VERBOSE : LogLevel::ON;
+    log_level = verbose ? LogLevel::VERBOSE : LogLevel::NORMAL;
 }
 
 void LogManager::setLoggingOff()
@@ -34,7 +34,7 @@ bool LogManager::isLoggingOn()
 
 bool LogManager::isVerbose()
 {
-    return (log_level > LogLevel::ON);
+    return (log_level > LogLevel::NORMAL);
 }
 
 LogLevel LogManager::getLogLevel()
@@ -47,7 +47,7 @@ void LogManager::setLoggingPathFile(const std::string &path)
     log_file_path = path;
 }
 
-void LogManager::writeOnLog(std::string s, const LogLevel logLvl)
+void LogManager::logString(std::string s, LogLevel logLvl)
 {
     using namespace std;
 
@@ -80,8 +80,8 @@ void LogManager::writeOnLog(std::string s, const LogLevel logLvl)
 
 // --- Common logging routines
 
-void LogManager::writeNoisyValueInLog(const NoisyValue nv, const LogLevel logLvl,
-                                      const std::string &name, const std::string &flabel)
+void LogManager::logNoisyValue(const NoisyValue nv, const LogLevel logLvl,
+                               const std::string &name, const std::string &flabel)
 {
     using namespace std;
 
@@ -91,11 +91,11 @@ void LogManager::writeNoisyValueInLog(const NoisyValue nv, const LogLevel logLvl
     if (!name.empty()) { os << name << ":\n"; }
     os << flabel << " = " << nv << "\n";
     os << flush;
-    LogManager::writeOnLog(os.str(), logLvl);
+    LogManager::logString(os.str(), logLvl);
 }
 
-void LogManager::writeVectorInLog(const std::vector<double> &x, const LogLevel logLvl,
-                                  const std::string &name, const std::string &xlabel)
+void LogManager::logVector(const std::vector<double> &x, const LogLevel logLvl,
+                           const std::string &name, const std::string &xlabel)
 {
     using namespace std;
 
@@ -109,12 +109,12 @@ void LogManager::writeVectorInLog(const std::vector<double> &x, const LogLevel l
         else { os << "    "; }
     }
     os << flush;
-    LogManager::writeOnLog(os.str(), logLvl);
+    LogManager::logString(os.str(), logLvl);
 }
 
 
-void LogManager::writeNoisyVectorInLog(const std::vector<NoisyValue> &g, const LogLevel logLvl,
-                                       const std::string &name, const std::string &glabel)
+void LogManager::logNoisyVector(const std::vector<NoisyValue> &g, const LogLevel logLvl, const bool printErrors,
+                                const std::string &name, const std::string &glabel)
 {
     using namespace std;
 
@@ -123,19 +123,21 @@ void LogManager::writeNoisyVectorInLog(const std::vector<NoisyValue> &g, const L
     ostringstream os;
     if (!name.empty()) { os << name << ":\n"; }
     for (size_t i = 0; i < g.size(); ++i) {
-        os << glabel << i << " = " << g[i];
+        os << glabel << i << " = ";
+        if (printErrors) { os << g[i]; }
+        else { os << g[i].value; }
         if (i >= g.size() - 1) { os << "\n"; }
         else { os << "    "; }
     }
     os << flush;
-    LogManager::writeOnLog(os.str(), logLvl);
+    LogManager::logString(os.str(), logLvl);
 }
 
 
-void LogManager::writeXValuePairInLog(const std::pair<std::vector<double>, NoisyValue> &pair, LogLevel logLvl,
-                                      const std::string &name, const std::pair<std::string, std::string> &labels)
+void LogManager::logNoisyIOPair(const NoisyIOPair &pair, LogLevel logLvl, const std::string &name,
+                                const std::string &xlabel, const std::string &flabel)
 {
-    LogManager::writeVectorInLog(pair.first, logLvl, name, labels.first);
-    LogManager::writeNoisyValueInLog(pair.second, logLvl, "", labels.second);
+    LogManager::logVector(pair.x, logLvl, name, xlabel);
+    LogManager::logNoisyValue(pair.f, logLvl, "", flabel);
 }
 } // namespace nfm

@@ -18,20 +18,18 @@ protected:
     void _writeCGDirectionInLog(const double * dir, const std::string &name);
 
 public:
-    explicit ConjGrad(NoisyFunctionWithGradient * targetfun, const bool useGradientError = true, const size_t &max_n_const_values = 20):
-            NFM(targetfun, useGradientError, max_n_const_values)
-    {
-        setGradientTargetFun(targetfun);
-        _use_conjgrad = true;
-    }
-    ~ConjGrad() override = default;
+    explicit ConjGrad(NoisyFunctionWithGradient * targetfun, const int &max_n_const_values = 20):
+            NFM(targetfun, max_n_const_values), _use_conjgrad(true)
+    {}
+    ~ConjGrad() final = default;
 
 
     // Configuration
     void useSimpleGradient() { _use_conjgrad = false; }  // make ConjGrad a Steepest Descent
+    void useConjugateGradient() { _use_conjgrad = true; }  // reset to normal
 
     // --- Minimization
-    void findMin() override;
+    void findMin() final;
 };
 } // namespace nfm
 

@@ -43,13 +43,13 @@ int main()
     nfm::findBracket(f1d, p1, p2, p3);
     cout << "a=" << p1.getX(0) << "     b=" << p2.getX(0) << "     c=" << p3.getX(0) << endl;
     cout << "fa=" << p1.getF() << "      fb=" << p2.getF() << "      fc=" << p3.getF() << endl << endl;
-    log_manager->writeOnLog("\n\n=========================================================================\n\n");
+    log_manager->logString("\n\n=========================================================================\n\n");
 
     // check parabgold
     cout << " - - - Check nfm::parabgoldMinimization()" << endl;
     nfm::parabgoldMinimization(f1d, 0., p1, p2, p3);
     cout << "Minimum of f1d is " << p2.getF() << " +- " << p2.getDf() << "    in " << p2.getX(0) << endl << endl;
-    log_manager->writeOnLog("\n\n=========================================================================\n\n");
+    log_manager->logString("\n\n=========================================================================\n\n");
 
     // check Conjugate Gradient
     cout << " - - - Check ConjGrad" << endl;

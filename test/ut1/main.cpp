@@ -36,7 +36,7 @@ int main()
     assert(p3.getX(0) > 0.);
 
     // ... starting from x=1000
-    log_manager.writeOnLog("\n\n=========================================================================\n\n");
+    log_manager.logString("\n\n=========================================================================\n\n");
     p1.setX(1000.);
     parabola.f(p1.getX(), f, df);
     p1.setF(f, df);
@@ -45,7 +45,7 @@ int main()
     assert(p3.getX(0) > 0.);
 
     // ... starting from x=0
-    log_manager.writeOnLog("\n\n=========================================================================\n\n");
+    log_manager.logString("\n\n=========================================================================\n\n");
     p1.setX(0.);
     parabola.f(p1.getX(), f, df);
     p1.setF(f, df);
@@ -58,7 +58,7 @@ int main()
     Well well;
 
     // ... starting from x=-10
-    log_manager.writeOnLog("\n\n=========================================================================\n\n");
+    log_manager.logString("\n\n=========================================================================\n\n");
     p1.setX(-10.);
     well.f(p1.getX(), f, df);
     p1.setF(f, df);
@@ -67,7 +67,7 @@ int main()
     assert(p3.getX(0) > 1.);
 
     // ... starting from x=-1000
-    log_manager.writeOnLog("\n\n=========================================================================\n\n");
+    log_manager.logString("\n\n=========================================================================\n\n");
     p1.setX(-1000.);
     well.f(p1.getX(), f, df);
     p1.setF(f, df);
@@ -81,7 +81,7 @@ int main()
     assert(flag_exception_thrown);
 
     // ... starting from x=10
-    log_manager.writeOnLog("\n\n=========================================================================\n\n");
+    log_manager.logString("\n\n=========================================================================\n\n");
     p1.setX(10.);
     well.f(p1.getX(), f, df);
     p1.setF(f, df);

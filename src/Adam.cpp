@@ -12,8 +12,7 @@ namespace nfm
 
 void Adam::findMin()
 {
-    LogManager log_manager = LogManager();
-    log_manager.writeOnLog("\nBegin Adam::findMin() procedure\n");
+    LogManager::logString("\nBegin Adam::findMin() procedure\n");
 
     // clear old values
     _clearOldValues();
@@ -42,15 +41,15 @@ void Adam::findMin()
         ++step;
 
         // compute current gradient and target value
-        this->_gradtargetfun->fgrad(_x->getX(), newf, newdf, grad, graderr);
-        _x->setF(newf, newdf);
+        this->_gradfun->fgrad(_last->getX(), newf, newdf, grad, graderr);
+        _last->setF(newf, newdf);
 
         _storeOldValue();
         if (_shouldStop(grad, graderr)) { break; }
 
-        log_manager.writeOnLog("\n\nAdam::findMin() Step " + std::to_string(step) + "\n");
-        _writeCurrentXInLog();
-        _writeGradientInLog(grad, graderr);
+        LogManager::logString("\n\nAdam::findMin() Step " + std::to_string(step) + "\n");
+        _writeCurrentXToLog();
+        _writeGradientToLog(grad, graderr);
 
         beta1t = beta1t*_beta1; // update beta1 power
         beta2t = beta2t*_beta2; // update beat2 power
@@ -62,26 +61,26 @@ void Adam::findMin()
             v[i] = _beta2*v[i] + (1. - _beta2)*grad[i]*grad[i]; // Update biased second raw moment
 
             dx[i] = -afac*m[i]/(sqrt(v[i]) + _epsilon); // calculate updates
-            _x->setX(i, _x->getX(i) + dx[i]); // update _x
+            _last->setX(i, _last->getX(i) + dx[i]); // update _last
 
             if (_useAveraging) {
-                xavg[i] = _beta2*xavg[i] + (1. - _beta2)*_x->getX(i);
+                xavg[i] = _beta2*xavg[i] + (1. - _beta2)*_last->getX(i);
             }
         }
-        _writeXUpdateInLog(dx);
+        _writeXUpdateToLog(dx);
     }
 
-    if (_useAveraging) { // we need to update _x to the averaged x
+    if (_useAveraging) { // we need to update _last to the averaged x
         for (int i = 0; i < _ndim; ++i) {
-            _x->setX(i, xavg[i]/(1. - beta2t)); // bias corrected average
+            _last->setX(i, xavg[i]/(1. - beta2t)); // bias corrected average
         }
-        this->_gradtargetfun->fgrad(_x->getX(), newf, newdf, grad, graderr);
-        _x->setF(newf, newdf);
+        this->_gradfun->fgrad(_last->getX(), newf, newdf, grad, graderr);
+        _last->setF(newf, newdf);
 
         delete[] xavg;
     }
 
-    log_manager.writeNoisyValueInLog(_x, 1, "Final position and target value");
-    log_manager.writeOnLog("\nEnd Adam::findMin() procedure\n");
+    LogManager::logNoisyIOPair(_last, 1, "Final position and target value");
+    LogManager::logString("\nEnd Adam::findMin() procedure\n");
 }
 } // namespace nfm

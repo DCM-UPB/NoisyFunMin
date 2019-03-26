@@ -26,7 +26,7 @@ void DynamicDescent::findMin()
     using namespace std;
 
     LogManager log_manager = LogManager();
-    log_manager.writeOnLog("\nBegin DynamicDescent::findMin() procedure\n");
+    log_manager.logString("\nBegin DynamicDescent::findMin() procedure\n");
 
     // clear old values
     this->_clearOldValues();
@@ -40,15 +40,15 @@ void DynamicDescent::findMin()
     while (true) {
         // compute the gradient and current target
         double newf, newdf;
-        this->_gradtargetfun->fgrad(_x->getX(), newf, newdf, grad, graderr);
-        _x->setF(newf, newdf);
+        this->_gradfun->fgrad(_last->getX(), newf, newdf, grad, graderr);
+        _last->setF(newf, newdf);
 
         this->_storeOldValue();
         if (this->_shouldStop(grad, graderr)) { break; }
 
-        log_manager.writeOnLog("\n\nDynamicDescent::findMin() Step " + std::to_string(cont + 1) + "\n");
-        this->_writeCurrentXInLog();
-        this->_writeGradientInLog(grad, graderr);
+        log_manager.logString("\n\nDynamicDescent::findMin() Step " + std::to_string(cont + 1) + "\n");
+        this->_writeCurrentXToLog();
+        this->_writeGradientToLog(grad, graderr);
 
         // if it is the first iteration, initialise the inertia
         if (cont == 0) {
@@ -63,8 +63,8 @@ void DynamicDescent::findMin()
         cont++;
     }
 
-    log_manager.writeNoisyValueInLog(_x, 1, "Final position and target value");
-    log_manager.writeOnLog("\nEnd DynamicDescent::findMin() procedure\n");
+    log_manager.writeNoisyValueInLog(_last, 1, "Final position and target value");
+    log_manager.logString("\nEnd DynamicDescent::findMin() procedure\n");
 }
 
 
@@ -91,13 +91,13 @@ void DynamicDescent::findNextX(const double * grad)
     // report it in the log
     this->_writeInertiaInLog();
 
-    // update _x
+    // update _last
     double dx[_ndim];
     for (int i = 0; i < _ndim; ++i) {
         dx[i] = -_step_size*_inertia[i]*grad[i];
-        _x->setX(i, _x->getX(i) + dx[i]);
+        _last->setX(i, _last->getX(i) + dx[i]);
     }
-    this->_writeXUpdateInLog(dx);
+    this->_writeXUpdateToLog(dx);
 
     // store the grad for the next iteration
     std::copy(norm_grad, norm_grad + _ndim, _old_norm_direction);

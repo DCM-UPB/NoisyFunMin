@@ -3,25 +3,27 @@
 namespace nfm
 {
 
-void FunProjection1D::getVecFromX(const double &x, double * vec)
+FunProjection1D::FunProjection1D(NoisyFunction * mdf, std::vector<double> p0, std::vector<double> direction):
+        NoisyFunction(1), _mdf(mdf), _p0(std::move(p0)), _direction(std::move(direction))
 {
-    for (int i = 0; i < _originalndim; ++i) {
-        vec[i] = _p0[i] + _direction[i]*x;
+    if (_p0.size() != _mdf->getNDim()) {
+        throw std::invalid_argument("[FunProjection1D] Size of the initial position vector is not equal to NoisyFunction dimension.");
+    }
+    if (_direction.size() != _mdf->getNDim()) {
+        throw std::invalid_argument("[FunProjection1D] Size of the direction vector is not equal to NoisyFunction dimension.");
+    }
+    _vec.reserve(p0.size());
+}
+
+void FunProjection1D::getVecFromX(const double x, std::vector<double> &vec)
+{
+    for (int i=0; i<_mdf->getNDim(); ++i) {
+        _vec[i] = _p0[i] + x*_direction[i];
     }
 }
 
-
-void FunProjection1D::f(const double * x, double &f, double &df)
-{
-    this->getVecFromX(*x, _vec);
-    _mdf->f(_vec, f, df);
-}
-
-
-FunProjection1D::~FunProjection1D()
-{
-    delete[] _p0;
-    delete[] _direction;
-    delete[] _vec;
+NoisyValue FunProjection1D::f(const std::vector<double> &x) {
+    this->getVecFromX(x[0], _vec);
+    return _mdf->f(_vec);
 }
 } // namespace nfm

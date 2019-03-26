@@ -1,28 +1,39 @@
 #ifndef NFM_1DTOOLS_HPP
 #define NFM_1DTOOLS_HPP
 
-#include "nfm/Definitions.hpp"
 #include "nfm/FunProjection1D.hpp"
 #include "nfm/NoisyValue.hpp"
 
 #include <string>
+#include <tuple>
 
 namespace nfm
 {
 
-void findBracket(NoisyFunction * f1d, NoisyValue &a, NoisyValue &b, NoisyValue &c);
-//               ^function   ^three points that will provide the bracket. a contains the starting point (i.e. is also an input)
+// 1D version of NoisyIOPair
+struct NoisyIOPair1D
+{
+    double x;
+    NoisyValue f;
+};
 
-void parabgoldMinimization(NoisyFunction * f1d, const double &eps, NoisyValue &a, NoisyValue &b, NoisyValue &c);
-//                                  ^function   ^level of precision ^3 points that initially provide the bracket, in the end the minimum will be in b
+struct NoisyBracket
+// holds 3 bracketing positions and
+// corresponding function values
+{
+    NoisyIOPair1D a;
+    NoisyIOPair1D b;
+    NoisyIOPair1D c;
+};
 
+void writeBracketToLog(const std::string &key, const NoisyBracket &bracket);
+// function used for writing NoisyBracket to the log
 
-// PRIVATE FUNCTIONS
+NoisyBracket findBracket(NoisyFunction &f1d, double initX);
+//                                   ^1D function     ^the starting point
 
-void _writeabcInLog(const std::string &key, NoisyValue &a, NoisyValue &b, NoisyValue &c);
-// function used internally for writing on the log
-
-void _abortFindBracket();  // function called when the findBracket() routine is taking too many computations
-}  // namespace nfm
+NoisyIOPair1D parabgoldMinimization(NoisyFunction &f1d, const double &eps, NoisyBracket bracket);
+//                                               ^1D function     ^level of precision   ^provide initial bracket
+} // namespace nfm
 
 #endif

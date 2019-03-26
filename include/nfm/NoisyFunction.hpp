@@ -8,6 +8,14 @@
 namespace nfm
 {
 
+struct NoisyIOPair
+// Use this if you want to store pairs
+// of input and output of NoisyFunctions.
+{
+    std::vector<double> x;
+    NoisyValue f;
+};
+
 class NoisyFunction
 {
 protected:

@@ -2,6 +2,7 @@
 #define NFM_LOGMANAGER_HPP
 
 #include "nfm/NoisyValue.hpp"
+#include "nfm/NoisyFunction.hpp"
 
 #include <string>
 #include <vector>
@@ -14,7 +15,7 @@ namespace nfm
 enum class LogLevel
 {
     OFF = 0,
-    ON = 1,
+    NORMAL = 1,
     VERBOSE = 2
 };
 
@@ -29,8 +30,8 @@ public:
     static LogLevel log_level; // <1 = no log, 1 = essential log, >1 verbose log
     static std::string log_file_path;  // if the path is not given, the log uses the cout
 
-    static void setLoggingOn(bool verbose = false); // set loglevel to ON or VERBOSE
-    static void setLogLevel(LogLevel level = LogLevel::ON); // passing ints should work too
+    static void setLoggingOn(bool verbose = false); // set loglevel to NORMAL or VERBOSE
+    static void setLogLevel(LogLevel level = LogLevel::NORMAL); // passing ints should work too
     static void setLoggingOff();
     static LogLevel getLogLevel();
     static bool isLoggingOn();
@@ -38,25 +39,25 @@ public:
 
     static void setLoggingPathFile(const std::string &path);
 
-    static void writeOnLog(std::string s, LogLevel logLvl = LogLevel::ON);
+    static void logString(std::string s, LogLevel logLvl = LogLevel::NORMAL);
 
     // --- Advanced log helpers
 
     // write single noisy value (e.g. NoisyFunction result)
-    static void writeNoisyValueInLog(NoisyValue nv, LogLevel logLvl,
-                                     const std::string &name = "", const std::string &flabel = "f");
+    static void logNoisyValue(NoisyValue nv, LogLevel logLvl,
+                              const std::string &name = "", const std::string &flabel = "f");
 
     // write vector of exact values (e.g. positions)
-    static void writeVectorInLog(const std::vector<double> &x, LogLevel logLvl,
-                                 const std::string &name = "", const std::string &xlabel = "x");
+    static void logVector(const std::vector<double> &x, LogLevel logLvl,
+                          const std::string &name = "", const std::string &xlabel = "x");
 
     // write vector of noisy values (e.g. gradients)
-    static void writeNoisyVectorInLog(const std::vector<NoisyValue> &g, LogLevel logLvl,
-                                      const std::string &name = "", const std::string &glabel = "g");
+    static void logNoisyVector(const std::vector<NoisyValue> &g, LogLevel logLvl, bool printErrors = true,
+                               const std::string &name = "", const std::string &glabel = "g");
 
     // write a pair of exact vector and noisy value
-    static void writeXValuePairInLog(const std::pair<std::vector<double>, NoisyValue> &pair, LogLevel logLvl,
-                                     const std::string &name = "", const std::pair<std::string, std::string> &labels = {"x", "f"});
+    static void logNoisyIOPair(const NoisyIOPair &pair, LogLevel logLvl, const std::string &name = "",
+                               const std::string &xlabel = "x", const std::string &flabel = "f");
 };
 } // namespace nfm
 

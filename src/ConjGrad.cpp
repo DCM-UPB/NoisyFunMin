@@ -26,7 +26,7 @@ void ConjGrad::findMin()
     using namespace std;
 
     LogManager log_manager = LogManager();
-    log_manager.writeOnLog("\nBegin ConjGrad::findMin() procedure\n");
+    log_manager.logString("\nBegin ConjGrad::findMin() procedure\n");
 
     // clear old values
     this->_clearOldValues();
@@ -36,12 +36,12 @@ void ConjGrad::findMin()
     double graderr[_ndim];
     double newf, newerr;
 
-    this->_gradtargetfun->fgrad(_x->getX(), newf, newerr, gradold, graderr);
-    _x->setF(newf, newerr);
+    this->_gradfun->fgrad(_last->getX(), newf, newerr, gradold, graderr);
+    _last->setF(newf, newerr);
     this->_storeOldValue();
 
-    this->_writeCurrentXInLog();
-    this->_writeGradientInLog(gradold, graderr);
+    this->_writeCurrentXToLog();
+    this->_writeGradientToLog(gradold, graderr);
 
     if (this->_meaningfulGradient(gradold, graderr)) {
         double gradnew[_ndim];
@@ -54,18 +54,18 @@ void ConjGrad::findMin()
         double deltatargetfun, deltax;
         this->findNextX(conjv, deltatargetfun, deltax);
 
-        this->_writeCurrentXInLog();
+        this->_writeCurrentXToLog();
 
         //begin the minimization loop
-        //cout << "deltatargetfunction = " << deltatargetfun << "   " << _epstargetfun << endl;
+        //cout << "deltatargetfunction = " << deltatargetfun << "   " << _epsf << endl;
         //cout << "deltax = " << deltax << "   " << _epsx << endl << endl;
         int cont = 0;
-        while ((deltatargetfun >= _epstargetfun) && (deltax >= _epsx)) {
-            log_manager.writeOnLog("\n\nConjGrad::findMin() Step " + std::to_string(cont + 1) + "\n");
+        while ((deltatargetfun >= _epsf) && (deltax >= _epsx)) {
+            log_manager.logString("\n\nConjGrad::findMin() Step " + std::to_string(cont + 1) + "\n");
             //cout << "x is in " << getX(0) << "   " << getX(1) << "   " << getX(2) << endl << endl;
             //evaluate the new gradient
-            this->_gradtargetfun->grad(_x->getX(), gradnew, graderr);
-            this->_writeGradientInLog(gradnew, graderr);
+            this->_gradfun->grad(_last->getX(), gradnew, graderr);
+            this->_writeGradientToLog(gradnew, graderr);
             for (int i = 0; i < _ndim; ++i) { gradnew[i] = -gradnew[i]; }
             if (!this->_meaningfulGradient(gradnew, graderr)) { break; }
             // compute the direction to follow for finding the next x
@@ -85,10 +85,10 @@ void ConjGrad::findMin()
             this->_writeCGDirectionInLog(conjv, "Conjugated vectors");
             //find new position
             this->findNextX(conjv, deltatargetfun, deltax);
-            //cout << "deltatargetfunction = " << deltatargetfun << "   " << _epstargetfun << endl;
+            //cout << "deltatargetfunction = " << deltatargetfun << "   " << _epsf << endl;
             //cout << "deltax = " << deltax << "   " << _epsx << endl << endl;
 
-            this->_writeCurrentXInLog();
+            this->_writeCurrentXToLog();
 
             _storeOldValue();
             if (this->_isConverged()) { break; }
@@ -96,7 +96,7 @@ void ConjGrad::findMin()
         }
     }
 
-    log_manager.writeOnLog("\nEnd ConjGrad::findMin() procedure\n");
+    log_manager.logString("\nEnd ConjGrad::findMin() procedure\n");
 }
 
 
@@ -107,7 +107,7 @@ void ConjGrad::findNextX(const double * dir, double &deltatargetfun, double &del
     using namespace std;
 
     //project the original multidimensional wave function into a one-dimensional function
-    auto * proj1d = new FunProjection1D(_ndim, _x->getX(), dir, _targetfun);
+    auto * proj1d = new FunProjection1D(_ndim, _last->getX(), dir, _targetfun);
     //determine the initial bracket
     NoisyValue a(1), b(1), c(1);
     a.setX(0.);
@@ -116,10 +116,10 @@ void ConjGrad::findNextX(const double * dir, double &deltatargetfun, double &del
     a.setF(newf, dnewf);
     nfm::findBracket(proj1d, a, b, c);
     //find the minimum in the bracket
-    nfm::parabgoldMinimization(proj1d, _epstargetfun, a, b, c);
+    nfm::parabgoldMinimization(proj1d, _epsf, a, b, c);
     //get the x corresponding to the found b
-    proj1d->getVecFromX(b.getX(0), _x->getX());
-    _x->setF(b.getF(), b.getDf());
+    proj1d->getVecFromX(b.getX(0), _last->getX());
+    _last->setF(b.getF(), b.getDf());
     //compute the two deltas
     deltatargetfun = fabs(b.getF() - newf) - dnewf - b.getDf();
     deltax = std::inner_product(dir, dir + _ndim, dir, 0.);
