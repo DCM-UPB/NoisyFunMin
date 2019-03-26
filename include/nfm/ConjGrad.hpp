@@ -14,8 +14,8 @@ private:
 
 protected:
     // --- Internal methods
-    void findNextX(const double * dir, double &deltatargetfun, double &deltax);
-    void _writeCGDirectionInLog(const double * dir, const std::string &name);
+    void findNextX(const std::vector<double> &dir, double &deltatargetfun, double &deltax);
+    void _writeCGDirectionToLog(const std::vector<double> &dir, const std::string &name) const;
 
 public:
     explicit ConjGrad(NoisyFunctionWithGradient * targetfun, const int &max_n_const_values = 20):
