@@ -22,6 +22,8 @@ namespace nfm
 //
 //   - brentMinimization: Find x such that f(x) is minimal,
 //                        given a valid initial bracket.
+//     Note: Adapted from GNU Scientific Libraries's Brent Minimization code ( gsl/min/brent.c ),
+//           making use of NoisyValue comparison overloads.
 //
 //   - multiLineMinimization: Uses FunProjection1D and algorithms above
 //                            to minimize a multi-dimensional NoisyFunction

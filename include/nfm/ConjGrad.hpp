@@ -14,7 +14,7 @@ private:
 
 protected:
     // --- Internal methods
-    void findNextX(const std::vector<double> &dir, double &deltatargetfun, double &deltax);
+    void _findNextX(const std::vector<double> &dir, double &deltatargetfun, double &deltax); // do line-search
     void _writeCGDirectionToLog(const std::vector<double> &dir, const std::string &name) const;
 
 public:
@@ -29,7 +29,7 @@ public:
     void useConjugateGradient() { _use_conjgrad = true; }  // reset to normal
 
     // --- Minimization
-    void findMin() final;
+    void findMin() final; // perform noisy CG minimization
 };
 } // namespace nfm
 

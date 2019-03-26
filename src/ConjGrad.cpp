@@ -33,23 +33,27 @@ void ConjGrad::findMin()
     std::vector<NoisyValue> gradh(static_cast<size_t>(_ndim));
     _last.f = _gradfun->fgrad(_last.x, gradh);
     this->_storeOldValue();
-
-    // store inverted gradient in gradold
-    std::vector<double> gradold(static_cast<size_t>(_ndim));
-    for (int i = 0; i<_ndim; ++i) { gradold[i] = -gradh[i].value; } //interested in following -gradient
-
     this->_writeCurrentXToLog();
     this->_writeGradientToLog(gradh);
 
     if (this->_meaningfulGradient(gradh)) {
-        // internal vectors
-        std::vector<double> gradnew(static_cast<size_t>(_ndim)); // will be used to store new grad
-        std::vector<double> conjv(gradold); //initialize the conjugate vectors
+        // initialize gradient vector and old length
+        std::vector<double> gradnew(static_cast<size_t>(_ndim)); // store negative gradient in gradnew
+        double scalprodold = 0.;
+        for (int i = 0; i<_ndim; ++i) {
+            gradnew[i] = -gradh[i].value; // interested in following -gradient
+            scalprodold += gradnew[i]*gradnew[i];
+        }
+        scalprodold = sqrt(scalprodold);
+
+        // initialize the conjugate vectors
+        std::vector<double> conjv(gradnew);
         this->_writeCGDirectionToLog(conjv, "Conjugated Vectors");
 
         //find new position
-        double deltatargetfun, deltax;
-        this->findNextX(conjv, deltatargetfun, deltax);
+        double deltatargetfun, deltax; // to store step deltas
+        this->_findNextX(conjv, deltatargetfun, deltax);
+        this->_storeOldValue();
         this->_writeCurrentXToLog();
 
         //begin the minimization loop
@@ -59,8 +63,8 @@ void ConjGrad::findMin()
         while ((deltatargetfun >= _epsf) && (deltax >= _epsx)) {
             LogManager::logString("\n\nConjGrad::findMin() Step " + std::to_string(cont + 1) + "\n");
             //cout << "x is in " << getX(0) << "   " << getX(1) << "   " << getX(2) << endl << endl;
-            //evaluate the new gradient (and function value)
-            _last.f = _gradfun->fgrad(_last.x, gradh);
+            //evaluate the new gradient
+            _gradfun->grad(_last.x, gradh);
             this->_writeGradientToLog(gradh);
             if (!this->_meaningfulGradient(gradh)) { break; }
             for (int i = 0; i<_ndim; ++i) { gradnew[i] = -gradh[i].value; } // negative gradient
@@ -69,11 +73,13 @@ void ConjGrad::findMin()
             //    if _use_conjgrad == true   ->   Conjugate Gradient
             //    else   ->   Steepest Descent
             if (_use_conjgrad) {
-                //determine the new conjugate vector
+                //determine the new conjugate vector (with Fletcher-Reeves step)
                 const double scalprodnew = std::inner_product(gradnew.begin(), gradnew.end(), gradnew.begin(), 0.);
-                const double scalprodold = std::inner_product(gradold.begin(), gradold.end(), gradold.begin(), 0.);
                 const double ratio = scalprodnew/scalprodold;
-                for (int i = 0; i < _ndim; ++i) { conjv[i] = gradnew[i] + conjv[i]*ratio; }
+                scalprodold = scalprodnew;
+                for (int i = 0; i < _ndim; ++i) {
+                    conjv[i] = gradnew[i] + conjv[i]*ratio;
+                }
             }
             else {
                 // simply use as conjugate gradient the gradient (i.e. make a steepest descent!)
@@ -82,13 +88,12 @@ void ConjGrad::findMin()
             this->_writeCGDirectionToLog(conjv, "Conjugated vectors");
 
             //find new position
-            this->findNextX(conjv, deltatargetfun, deltax);
+            this->_findNextX(conjv, deltatargetfun, deltax);
+            this->_storeOldValue();
+            this->_writeCurrentXToLog();
             //cout << "deltatargetfunction = " << deltatargetfun << "   " << _epsf << endl;
             //cout << "deltax = " << deltax << "   " << _epsx << endl << endl;
 
-            this->_writeCurrentXToLog();
-
-            _storeOldValue();
             if (this->_isConverged()) { break; }
             cont++;
         }
@@ -100,7 +105,7 @@ void ConjGrad::findMin()
 
 // --- Internal methods
 
-void ConjGrad::findNextX(const std::vector<double> &dir, double &deltatargetfun, double &deltax)
+void ConjGrad::_findNextX(const std::vector<double> &dir, double &deltatargetfun, double &deltax)
 {
     using namespace std;
 

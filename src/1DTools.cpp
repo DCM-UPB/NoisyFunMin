@@ -6,7 +6,6 @@
 #include <cmath>
 #include <iostream>
 #include <functional>
-#include <nfm/1DTools.hpp>
 
 
 // --- Internal helpers
@@ -27,28 +26,18 @@ inline nfm::NoisyValue evalF1D(const double x, std::vector<double> &xv, nfm::Noi
 
 // helper functions
 template <class T>
-inline void shift2(T &a, T &b, const T c)
-{
-    a = b;
-    b = c;
-}
-
-template <class T>
-inline void shift3(T &a, T &b, T &c, const T d)
+inline void shiftABC(T &a, T &b, T &c, const T d)
 {
     a = b;
     b = c;
     c = d;
 }
 
-template <class T>
-inline void moveBracket(T &a, T &b, T &c, const T d, const T e, const T f)
-{
-    a = d;
-    b = e;
-    c = f;
+inline nfm::NoisyBracket sortBracket(nfm::NoisyBracket bracket) // we take value and return by value
+{   // make sure bracket x's are in ascending order (assuming b is bracketed)
+    if (bracket.a.x > bracket.c.x) { std::swap(bracket.a, bracket.c); }
+    return bracket;
 }
-
 
 namespace nfm
 {
@@ -70,7 +59,7 @@ NoisyBracket findBracket(NoisyFunction &f1d, const double initX1, const double i
         throw std::invalid_argument("[nfm::findBracket] The NoisyFunction is not 1D. Ndim=" + std::to_string(f1d.getNDim()));
     }
 
-    constexpr double STRETCH_FACTOR = 1.5; // stretch factor for successive steps
+    constexpr double STRETCH_FACTOR = 1.618; // stretch factor for successive steps
     constexpr double STRETCH_LIMIT = 100.; // maximal stretch factor
     constexpr double MIN_DOUBLE = 1.e-20; // prevent malicious division
     constexpr int NEVAL_LIMIT = 100; // how many function evaluations to allow until throwing
@@ -83,22 +72,22 @@ NoisyBracket findBracket(NoisyFunction &f1d, const double initX1, const double i
     NoisyIOPair1D h{}; // helper variable
     std::vector<double> xvec(1); // helper array to invoke noisy function
 
-    // shortcut lambda
     int ieval = 0; // keeps track of number of function evaluations
-    std::function<NoisyValue(double x)> fun = [&](const double x) { return evalF1D(x, xvec, f1d, ieval, NEVAL_LIMIT); };
+    // shortcut lambda
+    std::function<NoisyValue(double x)> F = [&](const double x) { return evalF1D(x, xvec, f1d, ieval, NEVAL_LIMIT); };
 
     a.x = initX1;
-    a.f = fun(a.x);
+    a.f = F(a.x);
     b.x = initX2;
-    b.f = fun(b.x);
+    b.f = F(b.x);
     if (b.f > a.f) { std::swap(a, b); } // make sure that downhill is in direction of b
 
     c.x = b.x + STRETCH_FACTOR*(b.x - a.x); // start with first guess
-    c.f = fun(c.x);
+    c.f = F(c.x);
     writeBracketToLog("findBracket init", bracket);
 
     while (b.f > c.f) { // loop until bracket found
-        // compute parabolic extrapolation from a,b,c
+        // compute parabolic extrapolation from bracket
         const double r = (b.x - a.x)*(b.f.value - c.f.value);
         const double q = (b.x - c.x)*(b.f.value - a.f.value);
         const double qmr = q - r; // used for sign
@@ -106,308 +95,172 @@ NoisyBracket findBracket(NoisyFunction &f1d, const double initX1, const double i
         h.x = b.x - ((b.x - c.x)*q - (b.x - a.x)*r)/(qmr >= 0. ? qmr2 : -qmr2);
         const double hlim = b.x + STRETCH_LIMIT*(c.x - b.x); // limit on hx
 
-        // check the possible cases
+        // check all cases
         if ((b.x - h.x)*(h.x - c.x) > 0.) { // h is between b and c
-            h.f = fun(h.x);
+            h.f = F(h.x);
             if (h.f < c.f) { // minimum between b and c
                 a = b;
                 b = h;
                 writeBracketToLog("findBracket final", bracket);
-                return bracket;
+                return sortBracket(bracket); // return ascending-x bracket
             }
             else if (h.f > b.f) {// minimum between a and h
                 c = h;
                 writeBracketToLog("findBracket final", bracket);
-                return bracket;
+                return sortBracket(bracket); // return ascending-x bracket
             }
             h.x = c.x + STRETCH_FACTOR*(c.x - b.x); // parabolic fit didn't work, use default stretch
-            h.f = fun(h.x);
+            h.f = F(h.x);
         }
         else if ((c.x - h.x)*(h.x - hlim) > 0.) { // fit is between c and hlim
-            h.f = fun(h.x);
+            h.f = F(h.x);
             if (h.f < c.f) {
-                shift3(b.x, c.x, h.x, h.x + STRETCH_FACTOR*(h.x - c.x));
-                shift3(b.f, c.f, h.f, fun(h.x));
+                shiftABC(b.x, c.x, h.x, h.x + STRETCH_FACTOR*(h.x - c.x));
+                shiftABC(b.f, c.f, h.f, F(h.x));
             }
         }
-        else if ((h.x - hlim)*(hlim - c.x) >= 0.) { // Limit h to max allowed value
+        else if ((h.x - hlim)*(hlim - c.x) >= 0.) { // Limit h to max value
             h.x = hlim;
-            h.f = fun(h.x);
+            h.f = F(h.x);
         }
         else { // reject h, use default stretch
             h.x = c.x + STRETCH_FACTOR*(c.x - b.x);
-            h.f = fun(h.x);
+            h.f = F(h.x);
         }
         // prepare next iteration and continue
-        shift3(a.x, b.x, c.x, h.x);
-        shift3(a.f, b.f, c.f, h.f);
+        shiftABC(a, b, c, h);
         writeBracketToLog("findBracket step", bracket);
     }
 
     writeBracketToLog("findBracket final", bracket);
-    return bracket;
-
-
-
-/*    // bracket (+ shortcuts)
-    NoisyBracket bracket {};
-    NoisyIOPair1D & a = bracket.a;
-    NoisyIOPair1D & b = bracket.b;
-    NoisyIOPair1D & c = bracket.c;
-
-    std::vector<double> newx(1); // helper array to invoke noisy function
-    int count_newf = 0;
-
-    a.x = initX;
-    b.x = a.x + 0.25;
-
-    if (++count_newf > MAX_NUM_EVAL_FOR_BRACKET) { _abortFindBracket(); }
-    newx[0] = b.x;
-    b.f = f1d.f(newx);
-    writeBracketToLog("findBracket init", bracket);
-
-    while (b.f == a.f) {  // if fb==fa, increase b until when the two values are different
-        //cout << "WHILE 1    fa=" << a.f << "   fb=" << b.f << endl;
-        b.x = a.x + 1.5*(b.x - a.x);
-        //cout << "b=" << b.x << endl;
-
-        if (++count_newf > MAX_NUM_EVAL_FOR_BRACKET) { _abortFindBracket(); }
-        newx[0] = b.x;
-        b.f = f1d.f(newx);
-        writeBracketToLog("findBracket init", bracket);
-
-        if (fabs(b.x) > hugeNum) {
-            break;
-        }
-    }
-
-    if (b.f == a.f) {  // could not find a b such that fb!=fa, now try looking in the other direction
-        if (++count_newf > MAX_NUM_EVAL_FOR_BRACKET) { _abortFindBracket(); }
-
-        b = a;
-        a.x = b.x - 0.25;
-        newx[0] = a.x;
-        a.f = f1d.f(newx);
-        writeBracketToLog("findBracket init", bracket);
-
-        while (b.f == a.f) {   // if fb==fa, decrease a until when the two values are different
-            //cout << "WHILE 1    fa=" << a.f << "   fb=" << b.f << endl;
-            a.x = b.x - 1.5*(b.x - a.x);
-            //cout << "a=" << a.x << endl;
-
-            if (++count_newf > MAX_NUM_EVAL_FOR_BRACKET) { _abortFindBracket(); }
-            newx[0] = a.x;
-            a.f = f1d.f(newx);
-            writeBracketToLog("findBracket init", bracket);
-
-            if (fabs(a.x) > hugeNum) {
-                throw std::runtime_error("[nfm::findBracket] Bracketing impossible. Cannot find a b such that fa!=fb");
-            }
-        }
-    }
-
-    if (b.f < a.f) {
-        //cout << "COND b<a" << endl;
-        c.x = b.x + (b.x - a.x);
-        //cout << "c=" << c.x << endl;
-
-        if (++count_newf > MAX_NUM_EVAL_FOR_BRACKET) { _abortFindBracket(); }
-        newx[0] = c.x;
-        c.f = f1d.f(newx);
-        writeBracketToLog("findBracket (A)", bracket);
-
-        while (!(c.f > b.f)) {
-            //cout << "WHILE 2" << endl;
-            if (c.f < b.f) {
-                a = b;
-                b = c;
-                c.x = b.x + 2.*(b.x - a.x);
-            }
-            else {
-                c.x = c.x + 2.*(c.x - b.x);
-            }
-            //cout << "c=" << c.x << endl;
-            if (++count_newf > MAX_NUM_EVAL_FOR_BRACKET) { _abortFindBracket(); }
-            newx[0] = c.x;
-            c.f = f1d.f(newx);
-            writeBracketToLog("findBracket (B)", bracket);
-        }
-    }
-    else {
-        c = b;
-        b = a;
-        //cout << "COND b>a" << endl;
-        a.x = b.x - (c.x - b.x);
-        //cout << "c=" << c.x << endl;
-
-        if (++count_newf > MAX_NUM_EVAL_FOR_BRACKET) { _abortFindBracket(); }
-        newx[0] = a.x;
-        a.f = f1d.f(newx);
-        writeBracketToLog("findBracket (C)", bracket);
-
-        while (!(a.f > b.f)) {
-            //cout << "WHILE 2" << endl;
-            if (a.f < b.f) {
-                c = b;
-                b = a;
-                a.x = b.x - 2.*(c.x - b.x);
-            }
-            else {
-                a.x = a.x - 2.*(b.x - a.x);
-            }
-            //cout << "c=" << c.x << endl;
-
-            if (++count_newf > MAX_NUM_EVAL_FOR_BRACKET) { abortFindBracket(); }
-            newx[0] = a.x;
-            a.f = f1d.f(newx);
-            writeBracketToLog("findBracket (D)", bracket);
-        }
-    }
-
-    writeBracketToLog("findBracket", bracket);
-    */
+    return sortBracket(bracket); // return ascending-x bracket
 }
 
 NoisyIOPair1D brentMinimization(NoisyFunction &f1d, const double eps, NoisyBracket bracket)
 {
-    using namespace std;
-
+    //
+    // Adaption of GNU Scientific Libraries's Brent Minimization for NoisyValues
+    //
     if (f1d.getNDim() != 1) {
         throw std::invalid_argument("[nfm::brentMinimization] The NoisyFunction is not 1D. Ndim=" + std::to_string(f1d.getNDim()));
     }
+    if (bracket.b.f > bracket.a.f) { throw std::invalid_argument("[brentMinimization]: Initial bracket contains fb>fa"); }
+    if (bracket.b.f > bracket.c.f) { throw std::invalid_argument("[brentMinimization]: Initial bracket contains fb>fc"); }
+    if (bracket.a.x > bracket.c.x) { throw std::invalid_argument("[brentMinimization]: Initial bracket contains ax>cx"); }
 
+    // shortcut lambda
+    std::vector<double> xvec(1); // helper array to invoke noisy function
+    std::function<NoisyValue(double x)> F = [&](const double x)
+    {
+        xvec[0] = x;
+        return f1d(xvec);
+    };
 
+    const int MAX_NITERATIONS = 100;
+    const double GOLDEN_MEAN = 0.382;
 
-    /*
-    int count = 0, lh = 0, rh = 0, cx = 0;
-    bool force_lh = false, force_rh = false;
+    // we reuse the bracket
+    NoisyIOPair1D &lb = bracket.a; // lower bound
+    NoisyIOPair1D &m = bracket.b;
+    NoisyIOPair1D &ub = bracket.c; // upper bound
 
-    if (b > a) { cout << "ERROR parabgoldMinimization(): b>a" << endl; }
-    if (b > c) { cout << "ERROR parabgoldMinimization(): b>c" << endl; }
+    // initialize helpers
+    double d = 0., e = 0.;
+    NoisyIOPair1D v{}, w{};
+    v.x = lb.x + GOLDEN_MEAN*(ub.x - lb.x);
+    v.f = F(v.x);
+    w = v;
 
-    double present_eps = (a > c)
-                         ? (a.getF() - b.getF() - a.getDf() - b.getDf())
-                         : (c.getF() - b.getF() - c.getDf() - b.getDf());
+    // main brent loop
+    for (int it = 0; it < MAX_NITERATIONS; ++it) {
+        const double present_eps = (lb.f > ub.f)
+                                   ? (lb.f.value - m.f.value - lb.f.error - m.f.error)
+                                   : (ub.f.value - m.f.value - ub.f.error - m.f.error);
+        if (present_eps > eps) { break; } // terminate early
 
-    NoisyValue x(1);
-    double delta;
-    double newf, dnewf;
+        const double mtolb = m.x - lb.x;
+        const double mtoub = ub.x - m.x;
+        const double xm = 0.5*(lb.x + ub.x);
+        const double tol = 1.5e-08*fabs(m.x); // numeric tolerance
 
-    //cout << endl << endl << "a=" << a.getX(0) << "     b=" << b.getX(0) << "    c=" << c.getX(0) << endl;
-    //cout << "fa=" << a.getF()  << "    fb=" << b.getF()  << "   fc=" << c.getF() << endl << endl;
+        std::swap(d, e);
+        NoisyIOPair1D u{};
 
-    writeBracketToLog("parabgoldMinimization", a, b, c);
+        double p = 0.;
+        double q = 0.;
+        double r = 0.;
 
-    while (present_eps > eps) {
-        //update counter
-        count++;
-        //check the conditions for a,b and c
-        if (b > a) { cout << "ERROR parabgoldMinimization(): b>a, count=" << count << endl; }
-        if (b > c) { cout << "ERROR parabgoldMinimization(): b>c, count=" << count << endl; }
+        // fit parabola (magic code from GSL)
+        if (fabs(e) > tol) {
+            r = (m.x - w.x)*(m.f.value - v.f.value);
+            q = (m.x - v.x)*(m.f.value - w.f.value);
+            p = (m.x - v.x)*q - (m.x - w.x)*r;
+            q = 2.*(q - r);
 
-        //find the new x using a parabolic interpolation
-        x.setX(b.getX(0) - 0.5*((b.getX(0) - a.getX(0))*(b.getX(0) - a.getX(0))*(b.getF() - c.getF()) - (b.getX(0) - c.getX(0))*(b.getX(0) - c.getX(0))*(b.getF() - a.getF()))/((b.getX(0) - a.getX(0))*(b.getF() - c.getF()) - (b.getX(0) - c.getX(0))*(b.getF() - a.getF())));
-
-        //if the range has been reduced on the same side of b too many times,
-        //or last time the parabolic prediction has led to a point equivalent to b,
-        //use the golden bi-section rule on the other side of b
-        if (((x.getX(0) < b.getX(0)) && (lh > 1)) || ((x.getX(0) > b.getX(0)) && (rh > 1)) || (cx > 0)) {
-            if (b.getX(0) - a.getX(0) > c.getX(0) - b.getX(0)) {
-                delta = (b.getX(0) - a.getX(0))*0.38197*0.5;
-                x.setX(b.getX(0) - delta);
+            if (q > 0.) {
+                p = -p;
             }
             else {
-                delta = (c.getX(0) - b.getX(0))*0.38197*0.5;
-                x.setX(b.getX(0) + delta);
+                q = -q;
             }
+
+            r = e;
+            e = d;
         }
 
-        //if it has been asked to propose a point on the left side of b
-        if (force_lh) {
-            delta = (b.getX(0) - a.getX(0))*0.38197*0.5;
-            x.setX(b.getX(0) - delta);
-            //cout << "force SX" << endl;
-        }
-        //if it has been asked to propose a point on the right side of b
-        if (force_rh) {
-            delta = (c.getX(0) - b.getX(0))*0.38197*0.5;
-            x.setX(b.getX(0) + delta);
-            //cout << "force DX" << endl;
-        }
+        if (fabs(p) < fabs(0.5*q*r) && p < q*mtolb && p < q*mtoub) {
+            double t2 = 2*tol;
 
-        //compute the value of f in the point x
-        f1d.f(x.getX(), newf, dnewf);
-        x.setF(newf, dnewf);
+            d = p/q;
+            u.x = m.x + d;
 
-        //cout << "x=" << x.getX(0) << "     b=" << b.getX(0) << endl;
-        force_rh = false;
-        force_lh = false;
-        if (x.getX(0) < b.getX(0)) {
-            lh++;
-            rh = 0;
-            if (x > b) {
-                cx = 0;
-                //cout << "a=x" << endl;
-                a = x;
-            }
-            else if (x < b) {
-                cx = 0;
-                //cout << "c=b" << endl;
-                c = b;
-                //cout << "b=x" << endl;
-                b = x;
-            }
-            else {
-                if (cx > 0) {
-                    force_rh = true;
-                    force_lh = false;
-                }
-                cx++;
-                if (x.getF() < b.getF()) {
-                    //cout << "b=x" << endl;
-                    b = x;
-                }
+            if ((u.x - lb.x) < t2 || (ub.x - u.x) < t2) {
+                d = (m.x < xm) ? tol : -tol;
             }
         }
         else {
-            lh = 0;
-            rh++;
-            if (x > b) {
-                cx = 0;
-                //cout << "c=x" << endl;
-                c = x;
+            e = (m.x < xm) ? ub.x - m.x : -(m.x - lb.x);
+            d = GOLDEN_MEAN*e;
+        }
+
+        if (fabs(d) >= tol) {
+            u.x = m.x + d;
+        }
+        else {
+            u.x = m.x + ((d > 0) ? tol : -tol);
+        }
+
+        // here the function get's evaluated
+        u.f = F(u.x);
+
+        // check continue conditions
+        if (u.f <= m.f) {
+            if (u.x < m.x) { ub = m; }
+            else { lb = m; }
+
+            v = w;
+            w = m;
+            m = u;
+            continue;
+        }
+        else {
+            if (u.x < m.x) { lb = u; }
+            else { ub = u; }
+
+            if (u.f <= w.f || w.x == m.x) {
+                v = w;
+                w = u;
+                continue;
             }
-            else if (x < b) {
-                cx = 0;
-                //cout << "a=b" << endl;
-                a = b;
-                //cout << "b=x" << endl;
-                b = x;
-            }
-            else {
-                if (cx > 0) {
-                    force_lh = true;
-                    force_rh = false;
-                }
-                cx++;
-                if (x.getF() < b.getF()) {
-                    //cout << "b=x" << endl;
-                    b = x;
-                }
+            else if (u.f <= v.f || v.x == m.x || v.x == w.x) {
+                v = u;
+                continue;
             }
         }
-        //update the actual eps value
-        present_eps = (a > c)
-                      ? (a.getF() - b.getF() - a.getDf() - b.getDf())
-                      : (c.getF() - b.getF() - c.getDf() - b.getDf());
-        //cout << "a=" << a.getX(0) << "     b=" << b.getX(0) << "    c=" << c.getX(0) << endl;
-        //cout << "fa=" << a.getF()  << "    fb=" << b.getF()  << "   fc=" << c.getF() << endl << endl;
-        if (cx > 2) { break; }
     }
-    //cout << "ParabGold Terminated. count=" << count << endl;
 
-    writeBracketToLog("parabgoldMinimization", a, b, c);
-    */
+    // return best result
+    return m;
 }
 
 NoisyIOPair multiLineMinimization(NoisyFunction &mdf, const std::vector<double> &p0, const std::vector<double> &dir, double eps, double initX1, double initX2)
