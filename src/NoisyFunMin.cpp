@@ -80,7 +80,7 @@ bool NFM::_shouldStop(const std::vector<NoisyValue> * grad) const
 void NFM::_writeCurrentXToLog() const
 {
     if (LogManager::isVerbose()) {
-        LogManager::logNoisyIOPair(_last, LogLevel::VERBOSE, "Current position and target value", "f", "x");
+        LogManager::logNoisyIOPair(_last, LogLevel::VERBOSE, "Current position and target value", "x", "f");
     }
     else { LogManager::logNoisyValue(_last.f, LogLevel::NORMAL, "Current target value", "f"); }
 }
@@ -132,13 +132,7 @@ void NFM::getX(double x[]) const
 NFM::NFM(NoisyFunction * targetfun, const int max_n_const_values):
         _ndim(targetfun->getNDim()), _targetfun(targetfun),
         _gradfun(dynamic_cast<NoisyFunctionWithGradient *>(_targetfun)), _flag_gradfun(_gradfun != nullptr),
-        _flag_graderr(_flag_gradfun ? _gradfun->hasGradErr() : false), _max_n_const_values(max_n_const_values)
-{
-    // allocate and initialize x
-    _last.x.reserve(static_cast<size_t>(_ndim));
-    std::fill(_last.x.begin(), _last.x.end(), 0.);
-
-    _epsf = 0.;
-    _epsx = 0.;
-}
+        _flag_graderr(_flag_gradfun ? _gradfun->hasGradErr() : false), _max_n_const_values(max_n_const_values),
+        _last(NoisyIOPair(_ndim)), _epsf(0.), _epsx(0.)
+        {}
 } // namespace nfm

@@ -36,6 +36,7 @@ public:
     static LogLevel getLogLevel();
     static bool isLoggingOn();
     static bool isVerbose();
+    static bool shouldLog(LogLevel level); // should a message of this level be logged?
 
     static void setLoggingPathFile(const std::string &path);
 

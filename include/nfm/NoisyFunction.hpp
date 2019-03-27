@@ -12,8 +12,14 @@ struct NoisyIOPair
 // Use this if you want to store pairs
 // of input and output of NoisyFunctions.
 {
-    std::vector<double> x;
-    NoisyValue f;
+    std::vector<double> x{};
+    NoisyValue f{};
+
+    explicit NoisyIOPair(int ndim)
+    {
+        x.assign(static_cast<size_t>(ndim), 0.);
+        f.set(0., 0.);
+    }
 };
 
 class NoisyFunction

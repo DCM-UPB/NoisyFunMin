@@ -3,6 +3,7 @@
 #include <fstream>
 #include <iostream>
 #include <sstream>
+#include <nfm/LogManager.hpp>
 
 
 namespace nfm
@@ -37,6 +38,11 @@ bool LogManager::isVerbose()
     return (log_level > LogLevel::NORMAL);
 }
 
+bool LogManager::shouldLog(LogLevel level)
+{
+    return (log_level >= level);
+}
+
 LogLevel LogManager::getLogLevel()
 {
     return log_level;
@@ -50,8 +56,7 @@ void LogManager::setLoggingPathFile(const std::string &path)
 void LogManager::logString(std::string s, LogLevel logLvl)
 {
     using namespace std;
-
-    if (log_level < logLvl) { return; }
+    if (!shouldLog(logLvl)) { return; }
 
     const string log_marker = "--NFM--    ";
     const string log_marker_with_linebreak = "\n--NFM--    ";
@@ -84,8 +89,7 @@ void LogManager::logNoisyValue(const NoisyValue nv, const LogLevel logLvl,
                                const std::string &name, const std::string &flabel)
 {
     using namespace std;
-
-    if (log_level < logLvl) { return; }
+    if (!shouldLog(logLvl)) { return; }
 
     ostringstream os;
     if (!name.empty()) { os << name << ":\n"; }
@@ -98,8 +102,7 @@ void LogManager::logVector(const std::vector<double> &x, const LogLevel logLvl,
                            const std::string &name, const std::string &xlabel)
 {
     using namespace std;
-
-    if (log_level < logLvl) { return; }
+    if (!shouldLog(logLvl)) { return; }
 
     ostringstream os;
     if (!name.empty()) { os << name << ":\n"; }
@@ -117,8 +120,7 @@ void LogManager::logNoisyVector(const std::vector<NoisyValue> &g, const LogLevel
                                 const std::string &name, const std::string &glabel)
 {
     using namespace std;
-
-    if (log_level < logLvl) { return; }
+    if (!shouldLog(logLvl)) { return; }
 
     ostringstream os;
     if (!name.empty()) { os << name << ":\n"; }

@@ -136,7 +136,7 @@ NoisyBracket findBracket(NoisyFunction &f1d, const double initX1, const double i
     return sortBracket(bracket); // return ascending-x bracket
 }
 
-NoisyIOPair1D brentMinimization(NoisyFunction &f1d, const double eps, NoisyBracket bracket)
+NoisyIOPair1D brentMinimization(NoisyFunction &f1d, NoisyBracket bracket, const double eps)
 {
     //
     // Adaption of GNU Scientific Libraries's Brent Minimization for NoisyValues
@@ -176,7 +176,8 @@ NoisyIOPair1D brentMinimization(NoisyFunction &f1d, const double eps, NoisyBrack
         const double present_eps = (lb.f > ub.f)
                                    ? (lb.f.value - m.f.value - lb.f.error - m.f.error)
                                    : (ub.f.value - m.f.value - ub.f.error - m.f.error);
-        if (present_eps > eps) { break; } // terminate early
+        std::cout << "present_eps " << present_eps << std::endl;
+        if (present_eps < eps) { break; } // terminate early
 
         const double mtolb = m.x - lb.x;
         const double mtoub = ub.x - m.x;
@@ -241,6 +242,7 @@ NoisyIOPair1D brentMinimization(NoisyFunction &f1d, const double eps, NoisyBrack
             v = w;
             w = m;
             m = u;
+            writeBracketToLog("brentMin step", NoisyBracket({lb,m,ub}));
             continue;
         }
         else {
@@ -250,29 +252,33 @@ NoisyIOPair1D brentMinimization(NoisyFunction &f1d, const double eps, NoisyBrack
             if (u.f <= w.f || w.x == m.x) {
                 v = w;
                 w = u;
+                writeBracketToLog("brentMin step", NoisyBracket({lb,m,ub}));
                 continue;
             }
             else if (u.f <= v.f || v.x == m.x || v.x == w.x) {
                 v = u;
+                writeBracketToLog("brentMin step", NoisyBracket({lb,m,ub}));
                 continue;
             }
         }
+        writeBracketToLog("brentMin step", NoisyBracket({lb,m,ub}));
     }
 
     // return best result
     return m;
 }
 
-NoisyIOPair multiLineMinimization(NoisyFunction &mdf, const std::vector<double> &p0, const std::vector<double> &dir, double eps, double initX1, double initX2)
+NoisyIOPair multiLineMinimization(NoisyFunction &mdf, const std::vector<double> &p0, const std::vector<double> &dir,
+                                  const double eps, const double initX1, const double initX2)
 {
     // project the original multi-dim function into a one-dim function
     FunProjection1D proj1d(&mdf, p0, dir);
 
     // find initial bracket and then the minimum in the bracket
-    NoisyIOPair1D min1D = brentMinimization(proj1d, eps, findBracket(proj1d, initX1, initX2));
+    NoisyIOPair1D min1D = brentMinimization(proj1d, findBracket(proj1d, initX1, initX2), eps);
 
     // return NoisyIOPair
-    NoisyIOPair minND;
+    NoisyIOPair minND(mdf.getNDim());
     minND.f = min1D.f; // store the minimal f value
     proj1d.getVecFromX(min1D.x, minND.x); // get the true x position
     return minND;
