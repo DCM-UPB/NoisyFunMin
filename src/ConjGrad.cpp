@@ -110,7 +110,8 @@ void ConjGrad::_findNextX(const std::vector<double> &dir, double &deltatargetfun
     using namespace std;
 
     NoisyIOPair old = _last; // on the last gradient calculation f was stored as well
-    _last = nfm::multiLineMinimization(*_targetfun, _last.x, dir, _epsf); // store line-minimization result in last
+    _last = nfm::multiLineMinimization(*_targetfun, _last, dir, 1., _epsf); // store line-minimization result in last
+
     //compute the two deltas
     deltatargetfun = std::max(0., fabs(_last.f.value - old.f.value) - _last.f.error - old.f.error);
     std::transform (old.x.begin(), old.x.end(), _last.x.begin(), old.x.begin(), std::minus<>()); // old.x = old.x-last.x

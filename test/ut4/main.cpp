@@ -14,8 +14,7 @@ int main()
     using namespace std;
     using namespace nfm;
 
-    LogManager log_manager;
-    //log_manager.setLoggingOn();
+    LogManager::setLoggingOn(true);
 
     // define 3D function that I want to minimise
     auto * f3d = new F3D();
@@ -24,7 +23,7 @@ int main()
 
 
     // test DynamicDescent
-    DynamicDescent dyndesc(f3d);
+    DynamicDescent dyndesc(f3d, 0.03);
     x[0] = -2.;
     x[1] = 1.0;
     x[2] = 0.0;

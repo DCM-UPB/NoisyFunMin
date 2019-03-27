@@ -7,87 +7,83 @@
 
 #include "TestNFMFunctions.hpp"
 
+nfm::NoisyBracket prepareBracket(nfm::NoisyFunction &fun, const double ax, const double cx)
+{
+    nfm::NoisyBracket bracket{ {ax, {}}, {0.5*(ax + cx), {}}, {cx, {}}}; // bracket from ax to cx
+    std::vector<double> xvec(1);
+    xvec[0] = bracket.a.x;
+    bracket.a.f = fun(xvec);
+    // we don't need to calculate the b function value
+    xvec[0] = bracket.c.x;
+    bracket.c.f = fun(xvec);
+    return bracket;
+}
 
 int main()
 {
     using namespace std;
     using namespace nfm;
 
-    LogManager log_manager;
-    //log_manager.setLoggingOn();
+    LogManager::setLoggingOn(true);
 
-    double f, df;
-
-    // define 3 noisy function values
-    NoisyValue p1(1);
-    NoisyValue p2(1);
-    NoisyValue p3(1);
-
+    // a noisy function input/output pair and a bracket
+    NoisyIOPair p(1);
+    NoisyBracket bracket {};
+    NoisyIOPair1D &a = bracket.a;
+    NoisyIOPair1D &c = bracket.c;
+    bool flag_success;
 
     // check parabola   x^2   ...
     Parabola parabola;
 
-    // ... starting from x=-1000
-    p1.setX(-1000.);
-    parabola.f(p1.getX(), f, df);
-    p1.setF(f, df);
-    nfm::findBracket(&parabola, p1, p2, p3);
-    assert(p1.getX(0) < 0.);
-    assert(p3.getX(0) > 0.);
+    // ... starting from interval [-1000, 1]
+    bracket = prepareBracket(parabola, -1000., 1.);
+    flag_success = nfm::findBracket(parabola, bracket);
+    assert(flag_success);
+    assert(a.x < 0.);
+    assert(c.x > 0.);
 
-    // ... starting from x=1000
-    log_manager.logString("\n\n=========================================================================\n\n");
-    p1.setX(1000.);
-    parabola.f(p1.getX(), f, df);
-    p1.setF(f, df);
-    nfm::findBracket(&parabola, p1, p2, p3);
-    assert(p1.getX(0) < 0.);
-    assert(p3.getX(0) > 0.);
+    // ... starting from interval [-5, 1000]
+    LogManager::logString("\n\n=========================================================================\n\n");
+    bracket = prepareBracket(parabola, 1000., -5.); // should be sorted in findBracket
+    flag_success = nfm::findBracket(parabola, bracket);
+    assert(flag_success);
+    assert(a.x < 0.);
+    assert(c.x > 0.);
 
-    // ... starting from x=0
-    log_manager.logString("\n\n=========================================================================\n\n");
-    p1.setX(0.);
-    parabola.f(p1.getX(), f, df);
-    p1.setF(f, df);
-    nfm::findBracket(&parabola, p1, p2, p3);
-    assert(p1.getX(0) < 0.);
-    assert(p3.getX(0) > 0.);
+    // ... starting from interval [-1.5,10]
+    LogManager::logString("\n\n=========================================================================\n\n");
+    bracket = prepareBracket(parabola, -1.5,10.);
+    flag_success = nfm::findBracket(parabola, bracket);
+    assert(flag_success);
+    assert(a.x < 0.);
+    assert(c.x > 0.);
 
 
     // check well function   -1 if (-1 < x < 1) else +1   ...
     Well well;
 
-    // ... starting from x=-10
-    log_manager.logString("\n\n=========================================================================\n\n");
-    p1.setX(-10.);
-    well.f(p1.getX(), f, df);
-    p1.setF(f, df);
-    nfm::findBracket(&well, p1, p2, p3);
-    assert(p1.getX(0) < -1.);
-    assert(p3.getX(0) > 1.);
+    // ... starting from interval [-1.25, 3.5]
+    LogManager::logString("\n\n=========================================================================\n\n");
+    bracket = prepareBracket(well, -1.25, 5.5);
+    flag_success = nfm::findBracket(well, bracket);
+    assert(flag_success);
+    assert(a.x < -1.);
+    assert(c.x > 1.);
 
-    // ... starting from x=-1000
-    log_manager.logString("\n\n=========================================================================\n\n");
-    p1.setX(-1000.);
-    well.f(p1.getX(), f, df);
-    p1.setF(f, df);
-    bool flag_exception_thrown = false;
-    try {
-        nfm::findBracket(&well, p1, p2, p3);
-    }
-    catch (exception &e) {
-        flag_exception_thrown = true;
-    }
-    assert(flag_exception_thrown);
+    // ... starting from interval [-1000, 500]
+    LogManager::logString("\n\n=========================================================================\n\n");
+    bracket = prepareBracket(well, -1000., 100.);
+    flag_success = nfm::findBracket(well, bracket);
+    assert(!flag_success);
 
-    // ... starting from x=10
-    log_manager.logString("\n\n=========================================================================\n\n");
-    p1.setX(10.);
-    well.f(p1.getX(), f, df);
-    p1.setF(f, df);
-    nfm::findBracket(&well, p1, p2, p3);
-    assert(p1.getX(0) < -1.);
-    assert(p3.getX(0) > 1.);
+    // ... starting from interval [-1, 3]
+    LogManager::logString("\n\n=========================================================================\n\n");
+    bracket = prepareBracket(well, -1.1,3.);
+    flag_success = nfm::findBracket(well, bracket);
+    assert(flag_success);
+    assert(a.x < -1.);
+    assert(c.x > 1.);
 
     return 0;
 }

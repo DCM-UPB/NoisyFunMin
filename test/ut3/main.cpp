@@ -14,8 +14,7 @@ int main()
     using namespace std;
     using namespace nfm;
 
-    LogManager log_manager;
-    //log_manager.setLoggingOn();
+    LogManager::setLoggingOn(true);
 
     // define 3D function that I want to minimise
     auto * f3d = new F3D();

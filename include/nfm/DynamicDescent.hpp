@@ -25,7 +25,7 @@ protected:
     void findNextX(const std::vector<NoisyValue> &grad);
 
 public:
-    explicit DynamicDescent(NoisyFunctionWithGradient * targetfun, double stepSize = 1., int max_n_const_values = 20);
+    explicit DynamicDescent(NoisyFunctionWithGradient * targetfun, double stepSize = 0.01, int max_n_const_values = 20);
 
     double getStepSize() const { return _stepSize; }
     void setStepSize(double stepSize) { _stepSize = stepSize; }

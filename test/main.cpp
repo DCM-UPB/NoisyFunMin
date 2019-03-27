@@ -20,7 +20,6 @@ int main()
     double f1 = 5., f2 = 4., df1 = 1.1, df2 = 0.2;
     NoisyIOPair1D p1{x1, NoisyValue({f1, df1})};
     NoisyIOPair1D p2{x2, NoisyValue({f2, df2})};
-    vector<double> xvec(1); // 1d vector to call NoisyFunctions
 
     cout << " - - - Check NoisyValue" << endl;
     cout << "f1<f2 ? (0 expected) " << (p1.f < p2.f) << endl;
@@ -32,18 +31,23 @@ int main()
     //check bracketing
     cout << " - - - Check nfm::findBracket()" << endl;
     F1D f1d;
-    p1.x = 10.1;
+    NoisyIOPair1D p3{};
+    vector<double> xvec(1); // 1d vector to call NoisyFunctions
+
     xvec[0] = p1.x;
     p1.f = f1d.f(xvec);
-    NoisyBracket brk = nfm::findBracket(f1d, p1.x, p2.x);
+    xvec[0] = p3.x = 10.1;
+    p3.f = f1d.f(xvec);
+    NoisyBracket brk {p1, p2, p3};
+    nfm::findBracket(f1d, brk);
     cout << "a=" << brk.a.x << "     b=" << brk.b.x << "     c=" << brk.c.x << endl;
     cout << "fa=" << brk.a.f << "      fb=" << brk.b.f << "      fc=" << brk.c.f << endl << endl;
     LogManager::logString("\n\n=========================================================================\n\n");
 
     // check parabgold
     cout << " - - - Check nfm::brentMinimization()" << endl;
-    NoisyIOPair1D p3 = nfm::brentMinimization(f1d, brk, 0.);
-    cout << "Minimum of f1d is " << p3.f << "    in " << p3.x << endl << endl;
+    p2 = nfm::brentMinimization(f1d, brk, 0.);
+    cout << "Minimum of f1d is " << p2.f << "    in " << p2.x << endl << endl;
     LogManager::logString("\n\n=========================================================================\n\n");
 
     // check Conjugate Gradient

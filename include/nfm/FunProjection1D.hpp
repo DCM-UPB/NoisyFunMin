@@ -4,7 +4,6 @@
 #include "nfm/NoisyFunction.hpp"
 
 #include <algorithm>
-#include <stdexcept>
 
 namespace nfm
 {
@@ -26,6 +25,10 @@ public:
 
     //projected one-dimensional function
     NoisyValue f(const std::vector<double> &x) final;
+
+    //projected one-dimensional function (using single double)
+    NoisyValue f(double x);
+    NoisyValue operator()(double x) { return this->f(x); }
 };
 } // namespace nfm
 

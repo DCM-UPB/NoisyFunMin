@@ -1,6 +1,6 @@
 #include "nfm/FunProjection1D.hpp"
 
-#include <iostream>
+#include <stdexcept>
 
 namespace nfm
 {
@@ -19,16 +19,18 @@ FunProjection1D::FunProjection1D(NoisyFunction * mdf, std::vector<double> p0, st
 
 void FunProjection1D::getVecFromX(const double x, std::vector<double> &vec)
 {
-    std::cout << "getVecFromX: " << x << std::endl;
     for (int i=0; i<_mdf->getNDim(); ++i) {
-        std::cout << "i " << i << " vec[i] " << _vec[i] << " p0[i] " << _p0[i] << " dir[i] " << _dir[i] << std::endl;
-        _vec[i] = _p0[i] + x*_dir[i];
-        std::cout << "-> vec[i] = " << _vec[i] << std::endl;
+        vec[i] = _p0[i] + x*_dir[i];
     }
 }
 
 NoisyValue FunProjection1D::f(const std::vector<double> &x) {
     this->getVecFromX(x[0], _vec);
+    return _mdf->f(_vec);
+}
+
+NoisyValue FunProjection1D::f(const double x) {
+    this->getVecFromX(x, _vec);
     return _mdf->f(_vec);
 }
 } // namespace nfm

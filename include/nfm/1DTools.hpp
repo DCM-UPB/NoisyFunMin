@@ -23,7 +23,7 @@ namespace nfm
 //   - brentMinimization: Find x such that f(x) is minimal,
 //                        given a valid initial bracket.
 //     Note: Adapted from GNU Scientific Libraries's Brent Minimization code ( gsl/min/brent.c ),
-//           making use of NoisyValue comparison overloads.
+//           mainly differing in making use of our NoisyValue comparison overloads.
 //
 //   - multiLineMinimization: Uses FunProjection1D and algorithms above
 //                            to minimize a multi-dimensional NoisyFunction
@@ -45,20 +45,21 @@ struct NoisyBracket
     NoisyIOPair1D c;
 };
 
+// Function used for writing NoisyBracket to the log
 void writeBracketToLog(const std::string &key, const NoisyBracket &bracket);
-// function used for writing NoisyBracket to the log
 
-// find and initial bracket
-NoisyBracket findBracket(NoisyFunction &f1d, double initX1, double initX2);
-//                                     ^1D function ^the starting points^
+// Find an initial bracket for line minimizers
+bool findBracket(NoisyFunction &f1d, NoisyBracket &bracket);
+// ^did we have success        ^1D function       ^in/out bracket (a.x < b.x < c.x)
 
-// brent minimization with noisy values
-NoisyIOPair1D brentMinimization(NoisyFunction &f1d, NoisyBracket bracket, double eps = 1.e-8);
-//                                            ^1D function       ^init bracket   ^level of precision
+// Brent minimization with noisy values
+NoisyIOPair1D brentMinimization(NoisyFunction &f1d, NoisyBracket bracket, double epsf = 1.e-8);
+// ^minimized 1D-IO Pair                      ^1D function       ^init bracket   ^target precision
 
-// helper to perform line-minimization of multi-dim function
-NoisyIOPair multiLineMinimization(NoisyFunction &mdf, const std::vector<double> &p0, const std::vector<double> &dir, double eps, double initX1 = 0., double initX2 = 1.);
-//                                              ^mult-dim fun                   ^n-dim point                  ^direction   ^precision   ^provide initial bracket^
+// Helper to perform line-minimization of multi-dim function
+// Returns the previous state if bracketing was not successful
+NoisyIOPair multiLineMinimization(NoisyFunction &mdf, NoisyIOPair p0Pair, const std::vector<double> &dir, double initWidth = 1., double epsx = 1.e-8, double epsf = 1.e-8);
+// ^minimized IO Pair                           ^mult-dim fun     ^last value with point            ^direction   ^init bracket size     ^x change tol        ^f change tol
 } // namespace nfm
 
 

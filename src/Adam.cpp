@@ -18,7 +18,7 @@ void Adam::findMin()
     _clearOldValues();
 
     //initialize the gradient & moments
-    size_t nd = static_cast<size_t>(_ndim);
+    auto nd = static_cast<size_t>(_ndim);
     std::vector<NoisyValue> grad(nd); // gradient and (unused) error
     std::vector<double> m(nd), v(nd); // moment vectors
     std::vector<double> dx(nd); // holds the actual updates for x
