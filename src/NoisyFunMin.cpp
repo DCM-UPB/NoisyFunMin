@@ -16,10 +16,11 @@ namespace nfm
 
 void NFM::_storeOldValue()
 {
-    if (_max_n_const_values > 0) {
+    const auto max_nold = static_cast<size_t>(_max_n_const_values);
+    if (max_nold  > 0) {
         _old_values.emplace_front(NoisyValue(_last.f));
 
-        if (_old_values.size() > _max_n_const_values) {
+        if (_old_values.size() > max_nold) {
             _old_values.pop_back();
         }
     }
@@ -28,11 +29,11 @@ void NFM::_storeOldValue()
 
 bool NFM::_isConverged() const
 {
-    using namespace std;
+    const auto max_nold = static_cast<size_t>(_max_n_const_values);
 
-    if (_max_n_const_values < 1) { return false; }
+    if (max_nold < 1) { return false; }
 
-    if (_old_values.size() == _max_n_const_values) {
+    if (_old_values.size() == max_nold) {
         for (auto it = _old_values.begin(); it != _old_values.end(); ++it) {
             if (it != _old_values.begin()) {
                 if (!(*it == *_old_values.begin())) {
@@ -40,9 +41,7 @@ bool NFM::_isConverged() const
                 }
             }
         }
-
         LogManager::logString("\nCost function has stabilised, interrupting minimization procedure.\n");
-
         return true;
     }
 

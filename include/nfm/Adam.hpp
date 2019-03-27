@@ -20,10 +20,10 @@ protected:
 
 public:
     explicit Adam(NoisyFunctionWithGradient * targetfun,
-                  const bool useGradientError = false, const size_t &max_n_const_values = 20, const bool useAveraging = false,
-                  const double &alpha = 0.001, const double &beta1 = 0.9, const double &beta2 = 0.999, const double &epsilon = 10e-8):
-            NFM(targetfun, useGradientError, max_n_const_values), _useAveraging(useAveraging),
-            _alpha(alpha), _beta1(beta1), _beta2(beta2), _epsilon(epsilon) { setGradientTargetFun(targetfun); }
+                  int max_n_const_values = 20, bool useAveraging = false,
+                  double alpha = 0.001, double beta1 = 0.9, double beta2 = 0.999, double epsilon = 10e-8):
+            NFM(targetfun, max_n_const_values), _useAveraging(useAveraging),
+            _alpha(alpha), _beta1(beta1), _beta2(beta2), _epsilon(epsilon) { }
 
     // --- Minimization
     void findMin() override;
