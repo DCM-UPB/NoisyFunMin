@@ -45,8 +45,8 @@ int main()
     LogManager::logString("\n\n=========================================================================\n\n");
 
     // check parabgold
-    cout << " - - - Check nfm::brentMinimization()" << endl;
-    p2 = nfm::brentMinimization(f1d, brk, 0.);
+    cout << " - - - Check nfm::brentMin()" << endl;
+    p2 = nfm::brentMin(f1d, brk, 0.);
     cout << "Minimum of f1d is " << p2.f << "    in " << p2.x << endl << endl;
     LogManager::logString("\n\n=========================================================================\n\n");
 

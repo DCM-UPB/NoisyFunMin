@@ -36,7 +36,7 @@ void ConjGrad::_findMin()
         // initialize gradient vector and old length
         std::vector<double> gradnew(static_cast<size_t>(_ndim)); // store negative gradient in gradnew
         double scalprodold = 0.;
-        for (int i = 0; i<_ndim; ++i) {
+        for (int i = 0; i < _ndim; ++i) {
             gradnew[i] = -gradh[i].value; // interested in following -gradient
             scalprodold += gradnew[i]*gradnew[i];
         }
@@ -59,12 +59,17 @@ void ConjGrad::_findMin()
             _gradfun->grad(_last.x, gradh);
             this->_writeGradientToLog(gradh);
             if (!this->_meaningfulGradient(gradh)) { break; }
-            for (int i = 0; i<_ndim; ++i) { gradnew[i] = -gradh[i].value; } // negative gradient
+            for (int i = 0; i < _ndim; ++i) { gradnew[i] = -gradh[i].value; } // negative gradient
 
             // compute the direction to follow for finding the next x
             //    if _use_conjgrad == true   ->   Conjugate Gradient
             //    else   ->   Steepest Descent
-            if (_use_conjgrad) {
+            switch (_cgmode) {
+            case CGMode::RAW:
+                // simply use as conjugate gradient the gradient (i.e. make a steepest descent!)
+                for (int i = 0; i < _ndim; ++i) { std::copy(gradnew.begin(), gradnew.end(), conjv.begin()); }
+                break;
+            case CGMode::CGFR:
                 //determine the new conjugate vector (with Fletcher-Reeves step)
                 const double scalprodnew = std::inner_product(gradnew.begin(), gradnew.end(), gradnew.begin(), 0.);
                 const double ratio = scalprodold != 0 ? scalprodnew/scalprodold : 0.;
@@ -72,10 +77,7 @@ void ConjGrad::_findMin()
                 for (int i = 0; i < _ndim; ++i) {
                     conjv[i] = gradnew[i] + conjv[i]*ratio;
                 }
-            }
-            else {
-                // simply use as conjugate gradient the gradient (i.e. make a steepest descent!)
-                for (int i = 0; i< _ndim; ++i) { std::copy(gradnew.begin(), gradnew.end(), conjv.begin()); }
+                break;
             }
             this->_writeCGDirectionToLog(conjv, "Conjugated vectors");
 
@@ -93,7 +95,7 @@ void ConjGrad::_findMin()
 void ConjGrad::_findNextX(const std::vector<double> &dir)
 {
     // do line-minimization and store result in last
-    _last = nfm::multiLineMinimization(*_targetfun, _last, dir, 1.0, std::max(_epsx, 1.e-8), std::max(_epsf, 1.e-8)); // keep non-zero tol for line-search algos
+    _last = nfm::multiLineMin(*_targetfun, _last, dir, 0.25, 1.0, std::max(_epsx, m1d_default::XTOL), std::max(_epsf, m1d_default::FTOL)); // keep non-zero tol for line-search algos
     this->_storeLastValue();
 }
 } // namespace nfm

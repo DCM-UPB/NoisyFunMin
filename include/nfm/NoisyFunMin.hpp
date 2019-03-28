@@ -13,6 +13,13 @@ namespace nfm
 class NFM
 {
 protected:
+    // Default values for general NFM parameters
+    static constexpr int DEFAULT_MAX_N_CONST = 20; // stop on maximal number of constant values
+    static constexpr double DEFAULT_STEPSIZE = 0.01; // default to use for step sizes
+    static constexpr double DEFAULT_EPSX = 1.e-5; // stop on minimal position change
+    static constexpr double DEFAULT_EPSF = 0.; // stop on minimal target function change
+
+    // Protected members
     const int _ndim;  //dimensionality of the space where the target function is embedded
     NoisyFunction * const _targetfun;  //target function to minimize
 
@@ -26,7 +33,7 @@ protected:
 
     NoisyIOPair _last;  // last position and its function value, to be updated by child
 
-private: // optimizers don't need to and shouldn't directly use the following
+private: // private methods used by base class
     const int _max_n_const_values; // stop after this number of target values have been constant within error bounds
     std::list<NoisyIOPair> _old_values; // list of previous target values
     double _lastDeltaX{}; // change in x by last step (updated on storeLastValue)
@@ -40,7 +47,7 @@ private: // optimizers don't need to and shouldn't directly use the following
     void _writeCurrentXToLog() const; // write current x on log on storeLastValue
     void _writeOldValuesToLog() const; // stopping criterium debug logger
 
-protected: // methods for derived optimizers
+protected: // protected methods for derived optimizers
     // use this after every position&function update
     void _storeLastValue(); // store last value in old values list (updates deltax/deltaf)
 

@@ -15,7 +15,7 @@ namespace nfm
 NFM::NFM(NoisyFunction * targetfun, const int max_n_const_values):
         _ndim(targetfun->getNDim()), _targetfun(targetfun),
         _gradfun(dynamic_cast<NoisyFunctionWithGradient *>(_targetfun)), _flag_gradfun(_gradfun != nullptr),
-        _flag_graderr(_flag_gradfun ? _gradfun->hasGradErr() : false), _epsx(1.e-05), _epsf(0.),
+        _flag_graderr(_flag_gradfun ? _gradfun->hasGradErr() : false), _epsx(DEFAULT_EPSX), _epsf(DEFAULT_EPSF),
         _last(NoisyIOPair(_ndim)), _max_n_const_values(std::max(1, max_n_const_values)) /*<=1 means check disabled*/
 {}
 

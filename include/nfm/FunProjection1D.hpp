@@ -10,7 +10,7 @@ namespace nfm
 
 class FunProjection1D: public NoisyFunction
 {
-protected:
+private:
     NoisyFunction * const _mdf;  //multidimensional function that must be projected
     const std::vector<double> _p0;   //starting point
     const std::vector<double> _dir;   //direction

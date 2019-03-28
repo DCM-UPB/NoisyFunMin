@@ -12,7 +12,7 @@ namespace nfm
 
 class Adam: public NFM
 {
-protected:
+private:
     bool _useAveraging; // use automatic exponential decaying (beta2) parameter averaging, as proposed in the end of Adam paper
     double _alpha; // stepsize, default 0.001
     double _beta1, _beta2; // decay rates in [0, 1), default 0.9 and 0.999 respectively
@@ -22,9 +22,8 @@ protected:
     void _findMin() final;
 
 public:
-    explicit Adam(NoisyFunctionWithGradient * targetfun, int max_n_const_values = 20, bool useAveraging = false,
-                  double alpha = 0.001, double beta1 = 0.9, double beta2 = 0.999, double epsilon = 10e-8);
-
+    explicit Adam(NoisyFunctionWithGradient * targetfun, int max_n_const_values = DEFAULT_MAX_N_CONST,
+                  bool useAveraging = false, double alpha = 0.001, double beta1 = 0.9, double beta2 = 0.999, double epsilon = 10e-8);
 
     // Getters
     bool useAveraging() const { return _useAveraging; }

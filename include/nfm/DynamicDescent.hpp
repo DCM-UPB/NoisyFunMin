@@ -18,14 +18,13 @@ private:
     double _stepSize; // step size factor / learning rate
     double _alpha; // momenta update step-size
 
-protected:
     // --- Internal methods
-    void findNextX(const std::vector<NoisyValue> &grad, std::vector<double> &dx);
+    void _findNextX(const std::vector<NoisyValue> &grad, std::vector<double> &dx);
     void _findMin() final;
 
 public:
-    explicit DynamicDescent(NoisyFunctionWithGradient * targetfun, int max_n_const_values = 20,
-                            double stepSize = 0.01, double alpha = 0.9);
+    explicit DynamicDescent(NoisyFunctionWithGradient * targetfun, int max_n_const_values = DEFAULT_MAX_N_CONST,
+                            double stepSize = DEFAULT_STEPSIZE, double alpha = 0.9);
     ~DynamicDescent() final = default;
 
     double getStepSize() const { return _stepSize; }

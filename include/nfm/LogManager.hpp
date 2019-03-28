@@ -20,10 +20,10 @@ enum class LogLevel
 };
 
 // For simplicity we currently use a LogManager with
-// static fields. This means very easy output control
-// in application code, without requiring direct access
-// to a NFM object. However, it may be problematic in
-// certain multi-threading scenarios with shared memory.
+// static fields. This means very easy access from both
+// library and application code, without requiring direct
+// access to a certain object. However, it may be problematic
+// in certain multi-threading scenarios with shared memory.
 class LogManager
 {
 public:

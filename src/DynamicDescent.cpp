@@ -38,7 +38,7 @@ void DynamicDescent::_findMin()
         if (this->_shouldStop(&grad)) { break; }
 
         // find the next position
-        this->findNextX(grad, dx);
+        this->_findNextX(grad, dx);
     }
 
     LogManager::logNoisyIOPair(_last, LogLevel::NORMAL, "Final position and target value");
@@ -47,7 +47,7 @@ void DynamicDescent::_findMin()
 
 // --- Internal methods
 
-void DynamicDescent::findNextX(const std::vector<NoisyValue> &grad, std::vector<double> &dx)
+void DynamicDescent::_findNextX(const std::vector<NoisyValue> &grad, std::vector<double> &dx)
 {
     // update momenta and _last
     for (int i = 0; i < _ndim; ++i) {

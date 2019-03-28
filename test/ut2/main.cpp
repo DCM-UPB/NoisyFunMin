@@ -44,7 +44,7 @@ int main()
     p3.x = inp[0] = 5.;
     p3.f = pwr4.f(inp);
 
-    p2 = nfm::brentMinimization(pwr4, bracket, 0.);
+    p2 = nfm::brentMin(pwr4, bracket, 0.);
     assert(p2.x < 0.1);
     assert(p2.x > -0.1);
     assert(p2.f.value < 0.00001);
