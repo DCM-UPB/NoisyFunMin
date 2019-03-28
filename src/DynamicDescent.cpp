@@ -2,7 +2,6 @@
 
 #include "nfm/LogManager.hpp"
 
-#include <cmath>
 #include <numeric>
 
 namespace nfm
@@ -10,8 +9,7 @@ namespace nfm
 
 DynamicDescent::DynamicDescent(NoisyFunctionWithGradient * targetfun, const int max_n_const_values,
                                const double stepSize, const double alpha):
-        NFM(targetfun, max_n_const_values), _stepSize(stepSize), _alpha(alpha)
-{}
+        NFM(targetfun, max_n_const_values), _stepSize(stepSize), _alpha(alpha) {}
 
 // --- Minimization
 

@@ -24,7 +24,7 @@ public:
 
     nfm::NoisyValue f(const std::vector<double> &in) override
     {
-        nfm::NoisyValue y {-1, 0.1};
+        nfm::NoisyValue y{-1, 0.1};
         if ((in[0] <= -1.) || (in[0] >= 1.)) {
             y.value = 1.;
         }

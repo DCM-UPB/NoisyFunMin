@@ -3,7 +3,6 @@
 #include <iostream>
 
 #include "nfm/Adam.hpp"
-#include "nfm/LogManager.hpp"
 
 #include "TestNFMFunctions.hpp"
 

@@ -19,17 +19,20 @@ namespace nfm
 // Functions:
 //   - findBracket : Find a suitable bracket a,b,c, such that f(a)>f(b) and f(c)>(fb), while a<b<c.
 //     Note 1: Adapted from GNU Scientific Libraries's bracketing code ( gsl/min/bracketing.c ),
-//             mainly differing in making use of our NoisyValue comparison overloads.
+//             but making use of NoisyValue overloads.
 //     Note 2: The method is not guaranteed to succeed, in pathologic cases even when there is
 //             actually a minimum in the given initial interval. Check for the returned boolean.
 //
 //   - brentMin: Find x such that f(x) is minimal, given a valid initial bracket.
 //     Note: Adapted from GNU Scientific Libraries's Brent Minimization code ( gsl/min/brent.c ),
-//           mainly differing in making use of our NoisyValue comparison overloads and adapted
-//           precision criterion.
+//           differing in making use of our NoisyValue comparison overloads and other improvements
+//           for the noisy minimization use case.
 //
-//   - multiLineMin: Uses FunProjection1D and algorithms above to minimize a
-//                            multi-dimensional NoisyFunction along a line defined by p0 and dir.
+//   - multiLineMin: Uses FunProjection1D and algorithms above to minimize a multi-dimensional
+//                   NoisyFunction along a line defined by p0, dir and given initial left and right
+//                   line steps. Will try to scale these steps up iteratively, until an initial
+//                   valid bracket could be found or a given number of attempts is reached.
+//
 //
 
 // 1D version of NoisyIOPair
@@ -54,23 +57,23 @@ namespace m1d_default
 static constexpr double XTOL = 1.e-8;
 static constexpr double FTOL = 1.e-8;
 static constexpr int MAX_NEVAL = 100;
-}
+} // namespace m1d_default
 
 // Function used for writing NoisyBracket to the log
 void writeBracketToLog(const std::string &key, const NoisyBracket &bracket);
 
-// Find an initial bracket for line minimizers
+// Find an initial bracket for line minimizers (starts with bracket [A, (B), C], may increase it once to the right)
 bool findBracket(NoisyFunction &f1d, NoisyBracket &bracket, double epsx = m1d_default::XTOL);
 // ^did we have success        ^1D function  ^in/out bracket (a.x < b.x < c.x) ^bracket size tol
 
-// Brent minimization with noisy values
+// Brent minimization with noisy values, requires valid NoisyBracket with a.f > b.f, b.f < c.f and a.x < b.x < c.x
 NoisyIOPair1D brentMin(NoisyFunction &f1d, NoisyBracket bracket, double epsx = m1d_default::XTOL, double epsf = m1d_default::FTOL);
-// ^minimized 1D-IO Pair             ^1D function       ^init bracket   ^bracket size tol              ^target precision
+// ^minimized 1D-IO Pair             ^1D function       ^init bracket   ^bracket size tol               ^target precision
 
 // Helper to perform line-minimization of multi-dim function
 // Returns the previous state if bracketing was not successful
-NoisyIOPair multiLineMin(NoisyFunction &mdf, NoisyIOPair p0Pair, const std::vector<double> &dir, double initLeft, double initRight, double epsx = m1d_default::XTOL, double epsf = m1d_default::FTOL);
-// ^minimized IO Pair                  ^mult-dim fun     ^last value with point            ^direction   ^initial steps along line^         ^x change tol                  ^f change tol
+NoisyIOPair multiLineMin(NoisyFunction &mdf, NoisyIOPair p0Pair, const std::vector<double> &dir, double stepLeft, double stepRight, int maxNTries, double epsx = m1d_default::XTOL, double epsf = m1d_default::FTOL);
+// ^minimized IO Pair                  ^mult-dim fun     ^last value with point            ^direction   ^initial steps along line^     ^findBracket tries ^x change tol                    ^f change tol
 } // namespace nfm
 
 

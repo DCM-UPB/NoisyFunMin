@@ -27,9 +27,9 @@ int main()
 
     // define bracket of 3 noisy function input/output pairs
     NoisyBracket bracket{};
-    NoisyIOPair1D & p1 = bracket.a;
-    NoisyIOPair1D & p2 = bracket.b;
-    NoisyIOPair1D & p3 = bracket.c;
+    NoisyIOPair1D &p1 = bracket.a;
+    NoisyIOPair1D &p2 = bracket.b;
+    NoisyIOPair1D &p3 = bracket.c;
 
     std::vector<double> inp(1); // helper vector
 
@@ -37,7 +37,7 @@ int main()
     PowerFour pwr4;
 
     // ... using a=-3.   b=-2.   c=5.
-    p1.x =  inp[0] = -3.;
+    p1.x = inp[0] = -3.;
     p1.f = pwr4.f(inp);
     p2.x = inp[0] = -2.;
     p2.f = pwr4.f(inp);

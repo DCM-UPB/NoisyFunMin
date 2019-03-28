@@ -4,7 +4,6 @@
 
 #include "nfm/1DTools.hpp"
 #include "nfm/ConjGrad.hpp"
-#include "nfm/LogManager.hpp"
 
 #include "TestNFMFunctions.hpp"
 
@@ -24,15 +23,42 @@ int main()
     x[1] = 1.0;
     x[2] = 0.0;
 
-    // test ConjGrad
+    const double XTOL = 0.10;
+    const double YTOL = 0.15;
+    const double ZTOL = 0.05;
+
+
+    // test ConjGrad (Fletcher-Reeves)
     ConjGrad cjgrad(&f3d);
     cjgrad.setX(x);
-    cjgrad.setEpsX(1.e-5);
-    cjgrad.setEpsF(1.e-5);
     cjgrad.findMin();
-    assert(fabs(cjgrad.getX(0) - 1.0) < 0.15);
-    assert(fabs(cjgrad.getX(1) + 1.5) < 0.15);
-    assert(fabs(cjgrad.getX(2) - 0.5) < 0.1);
+    assert(fabs(cjgrad.getX(0) - 1.0) < XTOL);
+    assert(fabs(cjgrad.getX(1) + 1.5) < YTOL);
+    assert(fabs(cjgrad.getX(2) - 0.5) < ZTOL);
+
+    // steepest descent version
+    cjgrad.useRawGrad();
+    cjgrad.setX(x);
+    cjgrad.findMin();
+    assert(fabs(cjgrad.getX(0) - 1.0) < XTOL);
+    assert(fabs(cjgrad.getX(1) + 1.5) < YTOL);
+    assert(fabs(cjgrad.getX(2) - 0.5) < ZTOL);
+
+    // Polak-Ribiere version
+    cjgrad.useConjGradPR();
+    cjgrad.setX(x);
+    cjgrad.findMin();
+    assert(fabs(cjgrad.getX(0) - 1.0) < XTOL);
+    assert(fabs(cjgrad.getX(1) + 1.5) < YTOL);
+    assert(fabs(cjgrad.getX(2) - 0.5) < ZTOL);
+
+    // PR-CG with reset
+    cjgrad.useConjGradPR0();
+    cjgrad.setX(x);
+    cjgrad.findMin();
+    assert(fabs(cjgrad.getX(0) - 1.0) < XTOL);
+    assert(fabs(cjgrad.getX(1) + 1.5) < YTOL);
+    assert(fabs(cjgrad.getX(2) - 0.5) < ZTOL);
 
     return 0;
 }

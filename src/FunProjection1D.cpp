@@ -1,7 +1,5 @@
 #include "nfm/FunProjection1D.hpp"
 
-#include <stdexcept>
-
 namespace nfm
 {
 
@@ -19,17 +17,19 @@ FunProjection1D::FunProjection1D(NoisyFunction * mdf, std::vector<double> p0, st
 
 void FunProjection1D::getVecFromX(const double x, std::vector<double> &vec)
 {
-    for (int i=0; i<_mdf->getNDim(); ++i) {
+    for (int i = 0; i < _mdf->getNDim(); ++i) {
         vec[i] = _p0[i] + x*_dir[i];
     }
 }
 
-NoisyValue FunProjection1D::f(const std::vector<double> &x) {
+NoisyValue FunProjection1D::f(const std::vector<double> &x)
+{
     this->getVecFromX(x[0], _vec);
     return _mdf->f(_vec);
 }
 
-NoisyValue FunProjection1D::f(const double x) {
+NoisyValue FunProjection1D::f(const double x)
+{
     this->getVecFromX(x, _vec);
     return _mdf->f(_vec);
 }

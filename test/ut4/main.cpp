@@ -4,7 +4,6 @@
 
 #include "nfm/1DTools.hpp"
 #include "nfm/DynamicDescent.hpp"
-#include "nfm/LogManager.hpp"
 
 #include "TestNFMFunctions.hpp"
 
@@ -19,7 +18,7 @@ int main()
     // define 3D function that I want to minimise
     F3D f3d;
     // introduce array with the initial position
-    double x[3] {-2., 1., 0.};
+    double x[3]{-2., 1., 0.};
 
     // test DynamicDescent
     DynamicDescent dyndesc(&f3d);

@@ -22,7 +22,7 @@ int main()
     Noiseless2DParabola nlp;
     ConjGrad cg(&nlp);
 
-    std::vector<double> initpos {-1., -1.};
+    std::vector<double> initpos{-1., -1.};
     cg.setX(initpos);
 
     cg.findMin();
@@ -41,7 +41,6 @@ int main()
     // the tolerances / decrease target precision.
     cg2.setEpsX(0.01);
     cg2.setEpsF(0.01);
-
     cg2.findMin();
 
     cout << "The found minimum is: ";

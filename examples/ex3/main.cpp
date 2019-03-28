@@ -44,7 +44,7 @@ int main()
 
     // in noisy-target low-dim cases like this we often need to change adam parameters from default (in brackets)
     Adam adam2(&np, 20 /* max n constant (within error) values before stopping */,
-                   true /* use averaging to calculate final parameters */, 1.0 /* step size factor (0.001) */);
+               true /* use averaging to calculate final parameters */, 1.0 /* step size factor (0.001) */);
     adam2.setX({-1., -1.});
 
     adam2.findMin();

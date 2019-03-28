@@ -11,9 +11,9 @@ namespace nfm
 // --- Constructor
 
 Adam::Adam(NoisyFunctionWithGradient * targetfun, const int max_n_const_values, const bool useAveraging,
-        const double alpha, const double beta1, const double beta2, const double epsilon):
+           const double alpha, const double beta1, const double beta2, const double epsilon):
         NFM(targetfun, max_n_const_values), _useAveraging(useAveraging),
-        _alpha(alpha), _beta1(beta1), _beta2(beta2), _epsilon(epsilon) { }
+        _alpha(alpha), _beta1(beta1), _beta2(beta2), _epsilon(epsilon) {}
 
 // --- Minimization
 

@@ -1,8 +1,6 @@
 #include "nfm/DynamicDescent.hpp"
 #include "nfm/LogManager.hpp"
 
-#include <iostream>
-
 #include "../common/ExampleFunctions.hpp"
 
 
@@ -23,7 +21,7 @@ int main()
     Noiseless2DParabola nlp;
     DynamicDescent dd(&nlp);
 
-    double initpos[2] {-1., 1.};
+    double initpos[2]{-1., 1.};
     dd.setX(initpos);
 
     // in the case without noise we change settings

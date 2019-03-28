@@ -29,7 +29,7 @@ bool NFM::_isConverged() const
     if (_old_values.size() >= max_nold) {
         for (auto it = _old_values.begin(); it != _old_values.end(); ++it) {
             if (it != _old_values.begin()) {
-                if (!( (*it).f == (*_old_values.begin()).f )) {
+                if (!((*it).f == (*_old_values.begin()).f)) {
                     return false;
                 }
             }

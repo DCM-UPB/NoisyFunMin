@@ -86,7 +86,7 @@ public:
     bool operator!=(NoisyValue other) const { return !(*this == other); }
 
     // Stream Output
-    friend std::ostream& operator<<(std::ostream& os, NoisyValue nv);
+    friend std::ostream &operator<<(std::ostream &os, NoisyValue nv);
 };
 } // namespace nfm
 

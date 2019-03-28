@@ -9,7 +9,9 @@
 
 nfm::NoisyBracket prepareBracket(nfm::NoisyFunction &fun, const double ax, const double cx)
 {
-    nfm::NoisyBracket bracket{ {ax, {}}, {0.5*(ax + cx), {}}, {cx, {}}}; // bracket from ax to cx
+    nfm::NoisyBracket bracket{{ax,            {}},
+                              {0.5*(ax + cx), {}},
+                              {cx,            {}}}; // bracket from ax to cx
     std::vector<double> xvec(1);
     xvec[0] = bracket.a.x;
     bracket.a.f = fun(xvec);
@@ -39,7 +41,7 @@ int main()
 
     // a noisy function input/output pair and a bracket
     NoisyIOPair p(1);
-    NoisyBracket bracket {};
+    NoisyBracket bracket{};
     NoisyIOPair1D &a = bracket.a;
     NoisyIOPair1D &c = bracket.c;
     bool flag_success;
@@ -64,7 +66,7 @@ int main()
 
     // ... starting from interval [-1.5,10]
     LogManager::logString("\n\n=========================================================================\n\n");
-    bracket = prepareBracket(parabola, -1.5,10.);
+    bracket = prepareBracket(parabola, -1.5, 10.);
     flag_success = nfm::findBracket(parabola, bracket);
     assert(flag_success);
     assert(a.x < 0.);
@@ -90,7 +92,7 @@ int main()
 
     // ... starting from interval [-1, 3]
     LogManager::logString("\n\n=========================================================================\n\n");
-    bracket = prepareBracket(well, -1.1,3.);
+    bracket = prepareBracket(well, -1.1, 3.);
     flag_success = nfm::findBracket(well, bracket);
     assert(flag_success);
     assert(a.x < -1.);

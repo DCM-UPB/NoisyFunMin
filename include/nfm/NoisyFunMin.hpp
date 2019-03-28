@@ -15,7 +15,6 @@ class NFM
 protected:
     // Default values for general NFM parameters
     static constexpr int DEFAULT_MAX_N_CONST = 20; // stop on maximal number of constant values
-    static constexpr double DEFAULT_STEPSIZE = 0.01; // default to use for step sizes
     static constexpr double DEFAULT_EPSX = 1.e-5; // stop on minimal position change
     static constexpr double DEFAULT_EPSF = 0.; // stop on minimal target function change
 
@@ -81,7 +80,7 @@ public:
 
     double getX(int i) const { return _last.x[i]; }; // elementary get
     void getX(double x[]) const; // get via c-style array
-    void getX(std::vector<double> &x) const { return this->getX(x.data()); } // get via vector
+    void getX(std::vector<double> &x) const { this->getX(x.data()); } // get via vector
     std::vector<double> getX() const { return _last.x; } // get in new vector
     double getF() const { return _last.f.value; }
     double getDf() const { return _last.f.error; }

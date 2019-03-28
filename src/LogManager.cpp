@@ -2,7 +2,6 @@
 
 #include <fstream>
 #include <iostream>
-#include <nfm/LogManager.hpp>
 #include <sstream>
 
 

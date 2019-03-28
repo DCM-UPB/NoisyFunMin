@@ -9,15 +9,18 @@ namespace nfm
 
 enum class CGMode
 {
-    RAW /* use raw gradients */,
-    CGFR /* use Fletcher-Reeves CG */
+    NOCG, /* use raw gradients */
+    CGFR, /* use Fletcher-Reeves CG */
+    CGPR, /* use Polak-Ribiere CG */
+    CGPR0  /* use PR-CG with reset */
 };
 
 // Noisy Conjugate-Gradient Minimization
 class ConjGrad: public NFM
 {
 private:
-    double _stepSize; // search interval size
+    double _stepSize; // initial search interval size factor
+    int _max_n_bracketing; // maximal amount of findBracket() attempts (with 2x increased search area per try)
     CGMode _cgmode; // which gradients to use
 
     // --- Internal methods
@@ -28,16 +31,25 @@ private:
     void _findMin() final; // perform noisy CG minimization
 
 public:
-    explicit ConjGrad(NoisyFunctionWithGradient * targetfun, int max_n_const_values = 20, double stepSize = 0.):
-            NFM(targetfun, max_n_const_values), _stepSize(stepSize), _cgmode(CGMode::CGFR) {}
+    explicit ConjGrad(NoisyFunctionWithGradient * targetfun, int max_n_const_values = DEFAULT_MAX_N_CONST,
+                      double stepSize = 1., int max_n_bracketing = 3);
     ~ConjGrad() final = default;
 
-
-    // Configuration
-    void useRawGrad() { _cgmode = CGMode::RAW; }  // make ConjGrad Steepest-Descent-like
-    void useConjGradFR() { _cgmode = CGMode::CGFR; }  // reset to normal
+    // CG Configuration
+    void useRawGrad() { _cgmode = CGMode::NOCG; }  // make ConjGrad Steepest-Descent-like
+    void useConjGradFR() { _cgmode = CGMode::CGFR; }  // reset to default
+    void useConjGradPR() { _cgmode = CGMode::CGPR; } // use Polak-Ribiere CG
+    void useConjGradPR0() { _cgmode = CGMode::CGPR0; } // use PR-CG with reset
     void setCGMode(CGMode cgmode) { _cgmode = cgmode; }
     CGMode getCGMode() const { return _cgmode; }
+
+    // Setters
+    void setStepSize(double stepSize) { _stepSize = stepSize; }
+    void setMaxNBracketing(int maxn_bracket) { _max_n_bracketing = std::max(1, maxn_bracket); }
+
+    // Getters
+    double getStepSize() const { return _stepSize; }
+    int getMaxNBracketing() const { return _max_n_bracketing; }
 };
 } // namespace nfm
 
