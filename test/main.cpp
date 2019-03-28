@@ -13,8 +13,8 @@ int main()
     using namespace std;
     using namespace nfm;
 
-    LogManager::setLogLevel(LogLevel::VERBOSE);
-    LogManager::setLoggingPathFile("log.txt");
+    LogManager::setLogLevel(LogLevel::NORMAL);
+    //LogManager::setLoggingPathFile("log.txt");
 
     double x1 = 0., x2 = 3.;
     double f1 = 5., f2 = 4., df1 = 1.1, df2 = 0.2;
@@ -59,6 +59,7 @@ int main()
     x[1] = 1.0;
     x[2] = 0.0;
     cjgrad.setX(x);
+    cjgrad.setEpsX(0.01);
     cjgrad.setEpsF(0.01);
     cjgrad.findMin();
     cout << "Minimum of f3d is in " << cjgrad.getX(0) << "   " << cjgrad.getX(1) << "   " << cjgrad.getX(2) << endl;

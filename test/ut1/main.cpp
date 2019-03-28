@@ -24,7 +24,18 @@ int main()
     using namespace std;
     using namespace nfm;
 
-    //LogManager::setLoggingOn(true);
+    // test some log manager stuff
+    LogManager::setLoggingOn(true);
+    assert(LogManager::isLoggingOn());
+    assert(LogManager::isVerbose());
+    LogManager::setLoggingOn(false);
+    assert(LogManager::isLoggingOn());
+    assert(!LogManager::isVerbose());
+    LogManager::setLoggingOff();
+    assert(!LogManager::isLoggingOn());
+    assert(!LogManager::isVerbose());
+
+    //LogManager::setLoggingOn(true); // uncomment if you actually want printout
 
     // a noisy function input/output pair and a bracket
     NoisyIOPair p(1);

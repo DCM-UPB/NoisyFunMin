@@ -15,8 +15,8 @@ int main()
     cout << "    (x-1)^2 + (y+2)^2" << endl;
     cout << "whose min is in (1, -2)." << endl << endl << endl;
 
-    //LogManager::setLoggingOn(); // use this to enable log printout
-    LogManager::setLoggingOn(true); // use this for verbose printout of the Adam method
+    LogManager::setLoggingOn(); // use this to enable log printout
+    //LogManager::setLoggingOn(true); // use this for verbose printout of the Adam method
 
     cout << "we first minimize it, supposing to have no noise at all" << endl;
 
@@ -27,6 +27,11 @@ int main()
     adam.setX(0, -1.);
     adam.setX(1, -1.);
 
+    // make sure that the noiseless case converges quickly
+    adam.setAlpha(0.1);
+    adam.setBeta1(0.1);
+    adam.setBeta2(0.5);
+    adam.setEpsF(0.001);
     adam.findMin();
 
     cout << "The found minimum is: ";

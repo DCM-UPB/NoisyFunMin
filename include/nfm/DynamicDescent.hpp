@@ -5,31 +5,33 @@
 #include "nfm/NoisyFunction.hpp"
 
 #include <algorithm>
-#include <iostream>
 #include <cmath>
+#include <iostream>
 
 namespace nfm
 {
 
+// Basic Stochastic Gradient Descent with Momenta
 class DynamicDescent: public NFM
 {
 private:
-    double _stepSize; // an overall step size scaling factor
-    std::vector<double> _inertia; // inertia per parameter
-    std::vector<double> _old_norm_dir;
-
-    void _writeInertiaToLog();
+    double _stepSize; // step size factor / learning rate
+    double _alpha; // momenta update step-size
 
 protected:
     // --- Internal methods
-    void findNextX(const std::vector<NoisyValue> &grad);
-    void _findMin() override;
+    void findNextX(const std::vector<NoisyValue> &grad, std::vector<double> &dx);
+    void _findMin() final;
 
 public:
-    explicit DynamicDescent(NoisyFunctionWithGradient * targetfun, double stepSize = 0.01, int max_n_const_values = 20);
+    explicit DynamicDescent(NoisyFunctionWithGradient * targetfun, int max_n_const_values = 20,
+                            double stepSize = 0.01, double alpha = 0.9);
+    ~DynamicDescent() final = default;
 
     double getStepSize() const { return _stepSize; }
-    void setStepSize(double stepSize) { _stepSize = stepSize; }
+    void setStepSize(double stepSize) { _stepSize = std::max(0., stepSize); }
+    double getAlpha() const { return _alpha; }
+    void setAlpha(double alpha) { _alpha = std::max(0., alpha); }
 };
 } // namespace nfm
 

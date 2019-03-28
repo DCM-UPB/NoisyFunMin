@@ -8,21 +8,10 @@
 namespace nfm
 {
 
-DynamicDescent::DynamicDescent(NoisyFunctionWithGradient * targetfun, const double stepSize, const int max_n_const_values):
-        NFM(targetfun, max_n_const_values), _stepSize(stepSize)
-{
-    _inertia.assign(static_cast<size_t>(_ndim), 1.);
-    _old_norm_dir.assign(static_cast<size_t>(_ndim), 0.);
-}
-
-
-// --- Log
-
-void DynamicDescent::_writeInertiaToLog()
-{
-    LogManager::logVector(_inertia, LogLevel::VERBOSE, "Current inertia", "i");
-}
-
+DynamicDescent::DynamicDescent(NoisyFunctionWithGradient * targetfun, const int max_n_const_values,
+                               const double stepSize, const double alpha):
+        NFM(targetfun, max_n_const_values), _stepSize(stepSize), _alpha(alpha)
+{}
 
 // --- Minimization
 
@@ -30,11 +19,11 @@ void DynamicDescent::_findMin()
 {
     LogManager::logString("\nBegin DynamicDescent::findMin() procedure\n");
 
-    //arrays to hold the gradient and (possibly) error
+    // vector to hold the gradient and (possibly) error
     std::vector<NoisyValue> grad(static_cast<size_t>(_ndim));
 
-    // init inertia to 1
-    for (double &ini : _inertia) { ini = 1.; }
+    // holds previous old update (init to 0)
+    std::vector<double> dx(grad.size()); // stores momentum updates
 
     //begin the minimization loop
     int cont = 0;
@@ -49,7 +38,7 @@ void DynamicDescent::_findMin()
         if (this->_shouldStop(&grad)) { break; }
 
         // find the next position
-        this->findNextX(grad);
+        this->findNextX(grad, dx);
     }
 
     LogManager::logNoisyIOPair(_last, LogLevel::NORMAL, "Final position and target value");
@@ -58,36 +47,14 @@ void DynamicDescent::_findMin()
 
 // --- Internal methods
 
-void DynamicDescent::findNextX(const std::vector<NoisyValue> &grad)
+void DynamicDescent::findNextX(const std::vector<NoisyValue> &grad, std::vector<double> &dx)
 {
-    // compute the normalized gradection vector
-    std::vector<double> norm_grad(static_cast<size_t>(_ndim));
-    for (int i = 0; i< _ndim; ++i) { norm_grad[i] = grad[i].value; }
-    const double gsum = sqrt(std::inner_product(norm_grad.begin(), norm_grad.end(), norm_grad.begin(), 0.0));
-    if (gsum != 0.) {
-        for (double &ngi : norm_grad) { ngi /= gsum; }
-    }
-    else {
-        for (double &ngi : norm_grad) { ngi = 0.; }
-    }
-
-    // update the inertia
+    // update momenta and _last
     for (int i = 0; i < _ndim; ++i) {
-        const double iniUpdate = std::max(0., _old_norm_dir[i]*norm_grad[i]); // > 0 if the direction stays similar
-        _inertia[i] *= 0.9 + 0.1*_ndim*iniUpdate; // exponential update of normalized inertia
-    }
-    // report it in the log
-    this->_writeInertiaToLog();
-
-    // update _last
-    std::vector<double> dx(static_cast<size_t>(_ndim));
-    for (int i = 0; i < _ndim; ++i) {
-        dx[i] = -_stepSize*_inertia[i]*grad[i].value;
+        dx[i] = _alpha*dx[i] - _stepSize*grad[i].value;
         _last.x[i] += dx[i];
     }
+    // report to the log
     this->_writeXUpdateToLog(dx);
-
-    // store the grad for the next iteration
-    _old_norm_dir = norm_grad;
 }
 } // namespace nfm

@@ -14,8 +14,8 @@ int main()
     cout << "    (x-1)^2 + (y+2)^2" << endl;
     cout << "whose min is in (1, -2)." << endl << endl << endl;
 
-    //LogManager::setLoggingOn(); // use this to enable log printout
-    LogManager::setLoggingOn(true); // use this for verbose printout of the CG method
+    LogManager::setLoggingOn(); // use this to enable log printout
+    //LogManager::setLoggingOn(true); // use this for verbose printout of the CG method
 
     cout << "we first minimize it, supposing to have no noise at all" << endl;
 
@@ -35,8 +35,12 @@ int main()
 
     Noisy2DParabola np;
     ConjGrad cg2(&np);
-
     cg2.setX(initpos);
+
+    // In such a noisy case we might want to increase
+    // the tolerances / decrease target precision.
+    cg2.setEpsX(0.01);
+    cg2.setEpsF(0.01);
 
     cg2.findMin();
 

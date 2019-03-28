@@ -1,10 +1,10 @@
 #include "nfm/NoisyFunMin.hpp"
 #include "nfm/LogManager.hpp"
 
-#include <cmath>
-#include <sstream>
 #include <algorithm>
+#include <cmath>
 #include <numeric>
+#include <sstream>
 
 
 namespace nfm
@@ -24,7 +24,7 @@ NFM::NFM(NoisyFunction * targetfun, const int max_n_const_values):
 bool NFM::_isConverged() const
 {
     const auto max_nold = static_cast<size_t>(_max_n_const_values);
-    if (max_nold < 2) { return false; }
+    if (max_nold < 2) { return false; } // we need at least two values for this check
 
     if (_old_values.size() >= max_nold) {
         for (auto it = _old_values.begin(); it != _old_values.end(); ++it) {
@@ -81,8 +81,8 @@ void NFM::_storeLastValue()
 bool NFM::_meaningfulGradient(const std::vector<NoisyValue> &grad) const
 {
     if (_flag_graderr) {
-        for (auto &gi : grad) {
-            if (fabs(gi.value) > gi.error) { return true; }
+        for (const NoisyValue &gi : grad) {
+            if (gi != 0.) { return true; } // use noisy value overload
         }
         LogManager::logString("\nGradient seems to be meaningless, i.e. its error is too large.\n");
         return false;

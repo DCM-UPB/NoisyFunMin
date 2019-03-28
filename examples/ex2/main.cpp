@@ -15,7 +15,7 @@ int main()
     cout << "    (x-1)^2 + (y+2)^2" << endl;
     cout << "whose min is in (1, -2)." << endl << endl << endl;
 
-    //LogManager::setLoggingOn(); // use this to enable log printout
+    LogManager::setLoggingOn(); // use this to enable log printout
     //LogManager::setLoggingOn(true); // use this for verbose printout of the DD method
 
     cout << "we first minimize it, supposing to have no noise at all" << endl;
@@ -26,6 +26,10 @@ int main()
     double initpos[2] {-1., 1.};
     dd.setX(initpos);
 
+    // in the case without noise we change settings
+    dd.setStepSize(0.5); // the magic step size
+
+    // and now find the min
     dd.findMin();
 
     cout << "The found minimum is: ";
@@ -36,7 +40,6 @@ int main()
 
     Noisy2DParabola np;
     DynamicDescent dd2(&np);
-
     dd2.setX(initpos);
 
     dd2.findMin();

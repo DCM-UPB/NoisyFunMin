@@ -13,7 +13,17 @@ int main()
     using namespace std;
     using namespace nfm;
 
-    //LogManager::setLoggingOn(true);
+    LogManager::setLogLevel(LogLevel::VERBOSE);
+    assert(LogManager::isLoggingOn());
+    assert(LogManager::isVerbose());
+    LogManager::setLogLevel(LogLevel::NORMAL);
+    assert(LogManager::isLoggingOn());
+    assert(!LogManager::isVerbose());
+    LogManager::setLogLevel(LogLevel::OFF);
+    assert(!LogManager::isLoggingOn());
+    assert(!LogManager::isVerbose());
+
+    //LogManager::setLoggingOn(true); // uncomment if you actually want printout
 
     // define bracket of 3 noisy function input/output pairs
     NoisyBracket bracket{};

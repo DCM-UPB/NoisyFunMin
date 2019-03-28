@@ -29,8 +29,8 @@ protected:
 private: // optimizers don't need to and shouldn't directly use the following
     const int _max_n_const_values; // stop after this number of target values have been constant within error bounds
     std::list<NoisyIOPair> _old_values; // list of previous target values
-    double _lastDeltaX; // change in x by last step (updated on storeLastValue)
-    double _lastDeltaF; // change in f by last step (updated on storeLastalue)
+    double _lastDeltaX{}; // change in x by last step (updated on storeLastValue)
+    double _lastDeltaF{}; // change in f by last step (updated on storeLastalue)
 
     void _clearOldValues() { _old_values.clear(); } // reset old values list
     bool _isConverged() const; // check if the target function has stabilized

@@ -2,8 +2,8 @@
 
 #include <fstream>
 #include <iostream>
-#include <sstream>
 #include <nfm/LogManager.hpp>
+#include <sstream>
 
 
 namespace nfm

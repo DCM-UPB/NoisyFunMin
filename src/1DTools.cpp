@@ -1,12 +1,10 @@
 #include "nfm/1DTools.hpp"
 #include "nfm/LogManager.hpp"
 
-#include <string>
-#include <sstream>
 #include <cmath>
-#include <iostream>
 #include <functional>
-
+#include <iostream>
+#include <sstream>
 
 
 // --- Internal Functions
@@ -25,8 +23,7 @@ inline void checkBracketX(const double ax, const double bx, const double cx, con
     if (ax >= cx) {
         throw std::invalid_argument("[" + callerName + "->checkBracketX] Bracket violates (a.x < c.x).");
     }
-    if (bx >= cx || bx <= ax)
-    {
+    if (bx >= cx || bx <= ax) {
         throw std::invalid_argument("[" + callerName + "->checkBracketX] Bracket violates (a.x < b.x < c.x).");
     }
 }
@@ -35,8 +32,7 @@ inline void checkBracketX(const double ax, const double bx, const double cx, con
 inline void checkBracket(const nfm::NoisyBracket &bracket, const std::string &callerName)
 {
     checkBracketX(bracket.a.x, bracket.b.x, bracket.c.x, callerName);
-    if (bracket.b.f >= bracket.a.f || bracket.b.f >= bracket.c.f)
-    {
+    if (bracket.b.f >= bracket.a.f || bracket.b.f >= bracket.c.f) {
         throw std::invalid_argument("[" + callerName + "->checkBracket] Bracket violates (a.f > b.f < c.x).");
     }
 }
@@ -117,13 +113,13 @@ bool findBracket(NoisyFunction &f1d, NoisyBracket &bracket /*inout*/, const doub
 
     // Main findBracket loop. If bracket OK, returns true.
     // If false is returned, no valid bracket could be found.
-    while(true) {
+    while (true) {
         if (b.f < a.f) {
             if (b.f < c.f) {
                 writeBracketToLog("findBracket final", bracket);
                 return true;
             }
-            else if (b.f > c.f) {
+            if (b.f > c.f) {
                 shiftABC(a.x, b.x, c.x, (b.x - a.x)/GOLDEN + a.x);
                 shiftABC(a.f, b.f, c.f, F(c.x));
             }
@@ -211,7 +207,6 @@ bool findBracket(NoisyFunction &f1d, NoisyBracket &bracket /*inout*/, const doub
     return sortedBracket(bracket); // return ascending-x bracket
 */
 }
-
 
 
 NoisyIOPair1D brentMinimization(NoisyFunction &f1d, NoisyBracket bracket, const double epsx, const double epsf)
@@ -318,22 +313,22 @@ NoisyIOPair1D brentMinimization(NoisyFunction &f1d, NoisyBracket bracket, const 
             writeBracketToLog("brentMin step", bracket);
             continue;
         }
-        else {
-            if (u.x < m.x) { lb = u; }
-            else { ub = u; }
 
-            if (u.f <= w.f || w.x == m.x) {
-                v = w;
-                w = u;
-                writeBracketToLog("brentMin step", bracket);
-                continue;
-            }
-            else if (u.f <= v.f || v.x == m.x || v.x == w.x) {
-                v = u;
-                writeBracketToLog("brentMin step", bracket);
-                continue;
-            }
+        if (u.x < m.x) { lb = u; }
+        else { ub = u; }
+
+        if (u.f <= w.f || w.x == m.x) {
+            v = w;
+            w = u;
+            writeBracketToLog("brentMin step", bracket);
+            continue;
         }
+        if (u.f <= v.f || v.x == m.x || v.x == w.x) {
+            v = u;
+            writeBracketToLog("brentMin step", bracket);
+            continue;
+        }
+
         writeBracketToLog("brentMin step", bracket);
     }
 
@@ -348,9 +343,9 @@ NoisyIOPair multiLineMinimization(NoisyFunction &mdf, NoisyIOPair p0Pair, const 
     FunProjection1D proj1d(&mdf, p0Pair.x, dir);
 
     // prepare bracket boundaries (allow a bit of backstep)
-    NoisyBracket bracket {{-0.25*initWidth, proj1d(-initWidth)},
-                          {0., p0Pair.f},
-                          {initWidth, proj1d(initWidth)}};
+    NoisyBracket bracket{{-0.25*initWidth, proj1d(-initWidth)},
+                         {0.,              p0Pair.f},
+                         {initWidth,       proj1d(initWidth)}};
 
     // find initial bracket and then the minimum in the bracket
     if (findBracket(proj1d, bracket, epsx)) { // valid bracket was stored in bracket

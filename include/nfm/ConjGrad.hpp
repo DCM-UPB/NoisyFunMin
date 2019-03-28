@@ -22,8 +22,7 @@ protected:
 
 public:
     explicit ConjGrad(NoisyFunctionWithGradient * targetfun, const int &max_n_const_values = 20):
-            NFM(targetfun, max_n_const_values), _use_conjgrad(true)
-    {}
+            NFM(targetfun, max_n_const_values), _use_conjgrad(true) {}
     ~ConjGrad() final = default;
 
 

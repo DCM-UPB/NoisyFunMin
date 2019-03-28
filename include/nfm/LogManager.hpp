@@ -1,12 +1,12 @@
 #ifndef NFM_LOGMANAGER_HPP
 #define NFM_LOGMANAGER_HPP
 
-#include "nfm/NoisyValue.hpp"
 #include "nfm/NoisyFunction.hpp"
+#include "nfm/NoisyValue.hpp"
 
 #include <string>
-#include <vector>
 #include <tuple>
+#include <vector>
 
 namespace nfm
 {
@@ -31,7 +31,7 @@ public:
     static std::string log_file_path;  // if the path is not given, the log uses the cout
 
     static void setLoggingOn(bool verbose = false); // set loglevel to NORMAL or VERBOSE
-    static void setLogLevel(LogLevel level = LogLevel::NORMAL); // passing ints should work too
+    static void setLogLevel(LogLevel logLvl = LogLevel::NORMAL); // passing ints should work too
     static void setLoggingOff();
     static LogLevel getLogLevel();
     static bool isLoggingOn();
