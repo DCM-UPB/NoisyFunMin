@@ -10,12 +10,10 @@ namespace nfm
 
 // --- Minimization
 
-void Adam::findMin()
+void Adam::_findMin()
 {
     LogManager::logString("\nBegin Adam::findMin() procedure\n");
 
-    // clear old values
-    _clearOldValues();
 
     //initialize the gradient & moments
     auto nd = static_cast<size_t>(_ndim);
@@ -30,18 +28,16 @@ void Adam::findMin()
     double beta2t = 1.; // stores beta2^t
     int step = 0;
     while (true) {
+        LogManager::logString("\n\nAdam::findMin() Step " + std::to_string(step) + "\n");
         ++step;
 
         // compute current gradient and target value
         _last.f = _gradfun->fgrad(_last.x, grad);
-
-        _storeOldValue();
+        _storeLastValue();
+        _writeGradientToLog(grad);
         if (_shouldStop(&grad)) { break; }
 
-        LogManager::logString("\n\nAdam::findMin() Step " + std::to_string(step) + "\n");
-        _writeCurrentXToLog();
-        _writeGradientToLog(grad);
-
+        // update factors
         beta1t = beta1t*_beta1; // update beta1 power
         beta2t = beta2t*_beta2; // update beat2 power
         const double afac = _alpha*sqrt(1. - beta2t)/(1. - beta1t);

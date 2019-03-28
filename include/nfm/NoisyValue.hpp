@@ -5,12 +5,11 @@
 // For the meaning of sigma level, see below.
 
 #include <ostream>
-#include <istream>
 
 // You can define this externally to force a different default sigma level
 // already at compile time. For the meaning of sigma level, see below.
 #ifndef DEFAULT_SIGMA_LEVEL
-#define DEFAULT_SIGMA_LEVEL 2.
+#define DEFAULT_SIGMA_LEVEL 1.
 #endif
 
 namespace nfm

@@ -14,7 +14,7 @@ int main()
     using namespace nfm;
 
     LogManager::setLogLevel(LogLevel::VERBOSE);
-    //LogManager::setLoggingPathFile("log.txt");
+    LogManager::setLoggingPathFile("log.txt");
 
     double x1 = 0., x2 = 3.;
     double f1 = 5., f2 = 4., df1 = 1.1, df2 = 0.2;

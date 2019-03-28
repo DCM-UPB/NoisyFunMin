@@ -23,15 +23,13 @@ private:
 protected:
     // --- Internal methods
     void findNextX(const std::vector<NoisyValue> &grad);
+    void _findMin() override;
 
 public:
     explicit DynamicDescent(NoisyFunctionWithGradient * targetfun, double stepSize = 0.01, int max_n_const_values = 20);
 
     double getStepSize() const { return _stepSize; }
     void setStepSize(double stepSize) { _stepSize = stepSize; }
-
-    // --- Minimization
-    void findMin() override;
 };
 } // namespace nfm
 

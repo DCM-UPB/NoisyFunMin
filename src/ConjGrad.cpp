@@ -20,20 +20,16 @@ void ConjGrad::_writeCGDirectionToLog(const std::vector<double> &dir, const std:
 
 // --- Minimization
 
-void ConjGrad::findMin()
+void ConjGrad::_findMin()
 {
     using namespace std;
 
     LogManager::logString("\nBegin ConjGrad::findMin() procedure\n");
 
-    // clear old values
-    this->_clearOldValues();
-
     //initialize the gradients
     std::vector<NoisyValue> gradh(static_cast<size_t>(_ndim));
     _last.f = _gradfun->fgrad(_last.x, gradh);
-    this->_storeOldValue();
-    this->_writeCurrentXToLog();
+    this->_storeLastValue();
     this->_writeGradientToLog(gradh);
 
     if (this->_meaningfulGradient(gradh)) {
@@ -51,17 +47,13 @@ void ConjGrad::findMin()
         this->_writeCGDirectionToLog(conjv, "Conjugated Vectors");
 
         //find new position
-        double deltatargetfun, deltax; // to store step deltas
-        this->_findNextX(conjv, deltatargetfun, deltax);
-        this->_storeOldValue();
-        this->_writeCurrentXToLog();
+        this->_findNextX(conjv);
 
         //begin the minimization loop
-        //cout << "deltatargetfunction = " << deltatargetfun << "   " << _epsf << endl;
-        //cout << "deltax = " << deltax << "   " << _epsx << endl << endl;
         int cont = 0;
-        while ((deltatargetfun >= _epsf) && (deltax >= _epsx)) {
-            LogManager::logString("\n\nConjGrad::findMin() Step " + std::to_string(cont + 1) + "\n");
+        while (!this->_shouldStop()) {
+            ++cont;
+            LogManager::logString("\n\nConjGrad::findMin() Step " + std::to_string(cont) + "\n");
             //cout << "x is in " << getX(0) << "   " << getX(1) << "   " << getX(2) << endl << endl;
             //evaluate the new gradient
             _gradfun->grad(_last.x, gradh);
@@ -75,7 +67,7 @@ void ConjGrad::findMin()
             if (_use_conjgrad) {
                 //determine the new conjugate vector (with Fletcher-Reeves step)
                 const double scalprodnew = std::inner_product(gradnew.begin(), gradnew.end(), gradnew.begin(), 0.);
-                const double ratio = scalprodnew/scalprodold;
+                const double ratio = scalprodold != 0 ? scalprodnew/scalprodold : 0.;
                 scalprodold = scalprodnew;
                 for (int i = 0; i < _ndim; ++i) {
                     conjv[i] = gradnew[i] + conjv[i]*ratio;
@@ -88,14 +80,7 @@ void ConjGrad::findMin()
             this->_writeCGDirectionToLog(conjv, "Conjugated vectors");
 
             //find new position
-            this->_findNextX(conjv, deltatargetfun, deltax);
-            this->_storeOldValue();
-            this->_writeCurrentXToLog();
-            //cout << "deltatargetfunction = " << deltatargetfun << "   " << _epsf << endl;
-            //cout << "deltax = " << deltax << "   " << _epsx << endl << endl;
-
-            if (this->_isConverged()) { break; }
-            cont++;
+            this->_findNextX(conjv);
         }
     }
 
@@ -105,18 +90,10 @@ void ConjGrad::findMin()
 
 // --- Internal methods
 
-void ConjGrad::_findNextX(const std::vector<double> &dir, double &deltatargetfun, double &deltax)
+void ConjGrad::_findNextX(const std::vector<double> &dir)
 {
-    using namespace std;
-
-    NoisyIOPair old = _last; // on the last gradient calculation f was stored as well
-    _last = nfm::multiLineMinimization(*_targetfun, _last, dir, 1., _epsf); // store line-minimization result in last
-
-    //compute the two deltas
-    deltatargetfun = std::max(0., fabs(_last.f.value - old.f.value) - _last.f.error - old.f.error);
-    std::transform (old.x.begin(), old.x.end(), _last.x.begin(), old.x.begin(), std::minus<>()); // old.x = old.x-last.x
-    deltax = std::inner_product(old.x.begin(), old.x.end(), old.x.begin(), 0.); // delta = old.x . old.x
-    deltax = sqrt(deltax); // distance from (original) old.x to last.x
-    //cout << "x is in " << this->getX(0) << "   " << this->getX(1) << "   " << this->getX(2) << endl;
+    // do line-minimization and store result in last
+    _last = nfm::multiLineMinimization(*_targetfun, _last, dir, 1.0, std::max(_epsx, 1.e-8), std::max(_epsf, 1.e-8)); // keep non-zero tol for line-search algos
+    this->_storeLastValue();
 }
 } // namespace nfm

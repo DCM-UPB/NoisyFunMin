@@ -17,31 +17,43 @@ protected:
     NoisyFunction * const _targetfun;  //target function to minimize
 
     NoisyFunctionWithGradient * const _gradfun;  //gradient of the target function
-    const bool _flag_gradfun;  //has the gradient been provided?
-    const bool _flag_graderr; // use a provided gradient error for printout / stopping criteria
+    const bool _flag_gradfun; // has the gradient been provided?
+    const bool _flag_graderr; // does the gradfun provide gradient errors?
 
-    const int _max_n_const_values; //stop after this number of target values have been constant within error bounds
-    std::list<NoisyValue> _old_values; // list of previous target values
+    // Tolerance (may also be used by child to auto-set own tolerances)
+    double _epsx; // changes in the position x smaller than this value will stop the minimization
+    double _epsf; // changes in the function smaller than this value will stop the minimization
 
-    NoisyIOPair _last;  //last position and its corresponding function value
+    NoisyIOPair _last;  // last position and its function value, to be updated by child
 
-    double _epsf; //changes in the function smaller than this value will stop the minimization
-    double _epsx; //changes in the position x smaller than this value will stop the minimization
+private: // optimizers don't need to and shouldn't directly use the following
+    const int _max_n_const_values; // stop after this number of target values have been constant within error bounds
+    std::list<NoisyIOPair> _old_values; // list of previous target values
+    double _lastDeltaX; // change in x by last step (updated on storeLastValue)
+    double _lastDeltaF; // change in f by last step (updated on storeLastalue)
 
     void _clearOldValues() { _old_values.clear(); } // reset old values list
-    void _storeOldValue(); // store last value in old values list
     bool _isConverged() const; // check if the target function has stabilized
+    void _updateDeltas(); // calculate deltaX and deltaF between _last and _old_values.front()
+    bool _checkDeltas() const; // check deltas against epsx and epsf
+
+    void _writeCurrentXToLog() const; // write current x on log on storeLastValue
+    void _writeOldValuesToLog() const; // stopping criterium debug logger
+
+protected: // methods for derived optimizers
+    // use this after every position&function update
+    void _storeLastValue(); // store last value in old values list (updates deltax/deltaf)
+
+    // check stopping criteria (shouldStop contains meaningfulGradient, if grad!=nullptr)
     bool _meaningfulGradient(const std::vector<NoisyValue> &grad) const; //check if the gradient is meaningful. i.e. if its values are greater than the statistical errors
-    bool _shouldStop(const std::vector<NoisyValue> * grad) const; // check for all stopping criteria
+    bool _shouldStop(const std::vector<NoisyValue> * grad = nullptr) const; // check for all stopping criteria
 
     // "Mandatory" logging routines
-    // CurrentX and XUpdate should be logged by all optimizers and also GradientInLog if a gradient is used
-    void _writeCurrentXToLog() const;
+    // XUpdate should be logged by all optimizers and also GradientInLog if a gradient is used
     void _writeGradientToLog(const std::vector<NoisyValue> &grad) const;
     void _writeXUpdateToLog(const std::vector<double> &xu) const;
 
-    // Stopping criterium debug logger
-    void _writeOldValuesToLog();
+    virtual void _findMin() = 0; // child minimization implementation, result to be stored in _last
 
 public:
     explicit NFM(NoisyFunction * targetfun, int max_n_const_values = 20);
@@ -51,8 +63,8 @@ public:
     void setX(int i, double x) { _last.x[i] = x; } // set per element
     void setX(const double x[]); // set via c-style array
     void setX(const std::vector<double> &x) { this->setX(x.data()); } // set via vector
-    void setEpsF(double epsf) { _epsf = epsf; }
     void setEpsX(double epsx) { _epsx = epsx; }
+    void setEpsF(double epsf) { _epsf = epsf; }
 
     // --- Getters
 
@@ -68,11 +80,11 @@ public:
     double getDf() const { return _last.f.error; }
     NoisyValue getFDf() const { return _last.f; }
 
-    double getEpsF() const { return _epsf; }
     double getEpsX() const { return _epsx; }
+    double getEpsF() const { return _epsf; }
 
     // --- Minimization
-    virtual void findMin() = 0;
+    void findMin();
 };
 } // namespace nfm
 

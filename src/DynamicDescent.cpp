@@ -26,12 +26,9 @@ void DynamicDescent::_writeInertiaToLog()
 
 // --- Minimization
 
-void DynamicDescent::findMin()
+void DynamicDescent::_findMin()
 {
     LogManager::logString("\nBegin DynamicDescent::findMin() procedure\n");
-
-    // clear old values
-    this->_clearOldValues();
 
     //arrays to hold the gradient and (possibly) error
     std::vector<NoisyValue> grad(static_cast<size_t>(_ndim));
@@ -42,19 +39,17 @@ void DynamicDescent::findMin()
     //begin the minimization loop
     int cont = 0;
     while (true) {
+        ++cont;
+        LogManager::logString("\n\nDynamicDescent::findMin() Step " + std::to_string(cont) + "\n");
+
         // compute the gradient and current target
         _last.f = _gradfun->fgrad(_last.x, grad);
-        this->_storeOldValue();
-        if (this->_shouldStop(&grad)) { break; }
-
-        LogManager::logString("\n\nDynamicDescent::findMin() Step " + std::to_string(cont + 1) + "\n");
-        this->_writeCurrentXToLog();
+        this->_storeLastValue();
         this->_writeGradientToLog(grad);
+        if (this->_shouldStop(&grad)) { break; }
 
         // find the next position
         this->findNextX(grad);
-
-        cont++;
     }
 
     LogManager::logNoisyIOPair(_last, LogLevel::NORMAL, "Final position and target value");

@@ -11,8 +11,16 @@
 
 // --- Internal Functions
 
+// Line Minimization Accuracy (noisy version)
+inline double getBracketEpsF(const nfm::NoisyBracket &bracket)
+{
+    return (bracket.a.f < bracket.c.f)
+           ? (fabs(bracket.a.f.value - bracket.b.f.value) - bracket.a.f.error - bracket.b.f.error)
+           : (fabs(bracket.c.f.value - bracket.b.f.value) - bracket.c.f.error - bracket.b.f.error);
+}
+
 // check for valid bracket X
-void checkBracketX(const double ax, const double bx, const double cx, const std::string &callerName)
+inline void checkBracketX(const double ax, const double bx, const double cx, const std::string &callerName)
 {
     if (ax >= cx) {
         throw std::invalid_argument("[" + callerName + "->checkBracketX] Bracket violates (a.x < c.x).");
@@ -24,7 +32,7 @@ void checkBracketX(const double ax, const double bx, const double cx, const std:
 }
 
 // check for valid bracket
-void checkBracket(const nfm::NoisyBracket &bracket, const std::string &callerName)
+inline void checkBracket(const nfm::NoisyBracket &bracket, const std::string &callerName)
 {
     checkBracketX(bracket.a.x, bracket.b.x, bracket.c.x, callerName);
     if (bracket.b.f >= bracket.a.f || bracket.b.f >= bracket.c.f)
@@ -64,7 +72,7 @@ void writeBracketToLog(const std::string &key, const NoisyBracket &bracket)
     LogManager::logString(s.str(), LogLevel::VERBOSE);
 }
 
-bool findBracket(NoisyFunction &f1d, NoisyBracket &bracket /*inout*/)
+bool findBracket(NoisyFunction &f1d, NoisyBracket &bracket /*inout*/, const double epsx)
 {
     //
     // GNU Scientific Libraries's findBracket ( gsl/min/bracketing.c ), adapted for NoisyValues
@@ -74,7 +82,6 @@ bool findBracket(NoisyFunction &f1d, NoisyBracket &bracket /*inout*/)
     }
 
     constexpr double GOLDEN = 0.3819660; // stretch factor for successive steps
-    constexpr double CAXTOL = 1.5e-08; // tolerance factor for minimal distance between A and C positions
     constexpr int NEVAL_LIMIT = 100; // how many function evaluations to allow until throwing
 
     NoisyIOPair1D &a = bracket.a;
@@ -135,7 +142,7 @@ bool findBracket(NoisyFunction &f1d, NoisyBracket &bracket /*inout*/)
         writeBracketToLog("findBracket step", bracket);
         if (++ieval > NEVAL_LIMIT) { return false; }
 
-        if ((c.x - a.x) < CAXTOL*((c.x + a.x)*0.5) + CAXTOL) { // bracket too small, return without success
+        if ((c.x - a.x) < epsx*((c.x + a.x)*0.5) + epsx) { // bracket too small, return without success
             return false;
         }
     }
@@ -207,7 +214,7 @@ bool findBracket(NoisyFunction &f1d, NoisyBracket &bracket /*inout*/)
 
 
 
-NoisyIOPair1D brentMinimization(NoisyFunction &f1d, NoisyBracket bracket, const double epsf)
+NoisyIOPair1D brentMinimization(NoisyFunction &f1d, NoisyBracket bracket, const double epsx, const double epsf)
 {
     //
     // GNU Scientific Libraries's Brent minimization ( gsl/min/brent.c ), adapted for NoisyValues
@@ -242,10 +249,8 @@ NoisyIOPair1D brentMinimization(NoisyFunction &f1d, NoisyBracket bracket, const 
 
     // main brent loop
     for (int it = 0; it < MAX_NITERATIONS; ++it) {
-        const double present_eps = (lb.f > ub.f)
-                                   ? (lb.f.value - m.f.value - lb.f.error - m.f.error)
-                                   : (ub.f.value - m.f.value - ub.f.error - m.f.error);
-        if (present_eps < epsf) { break; } // terminate on tolerance check (noisy version)
+        if ((ub.x - lb.x) < epsx*((ub.x + lb.x)*0.5) + epsx) { break; }// bracket too small, return without success
+        if (getBracketEpsF(bracket) < epsf) { break; } // terminate on tolerance check (noisy version)
 
         const double mtolb = m.x - lb.x;
         const double mtoub = ub.x - m.x;
@@ -342,15 +347,15 @@ NoisyIOPair multiLineMinimization(NoisyFunction &mdf, NoisyIOPair p0Pair, const 
     // project the original multi-dim function into a one-dim function
     FunProjection1D proj1d(&mdf, p0Pair.x, dir);
 
-    // prepare bracket boundaries
-    NoisyBracket bracket {{-initWidth, proj1d(-initWidth)},
+    // prepare bracket boundaries (allow a bit of backstep)
+    NoisyBracket bracket {{-0.25*initWidth, proj1d(-initWidth)},
                           {0., p0Pair.f},
                           {initWidth, proj1d(initWidth)}};
 
     // find initial bracket and then the minimum in the bracket
-    if (findBracket(proj1d, bracket)) { // valid bracket was stored in bracket
+    if (findBracket(proj1d, bracket, epsx)) { // valid bracket was stored in bracket
         // line-minmization via brent
-        NoisyIOPair1D min1D = brentMinimization(proj1d, bracket, epsf);
+        NoisyIOPair1D min1D = brentMinimization(proj1d, bracket, epsx, epsf);
 
         // return NoisyIOPair
         p0Pair.f = min1D.f; // store the minimal f value

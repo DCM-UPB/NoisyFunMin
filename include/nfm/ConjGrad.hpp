@@ -14,8 +14,11 @@ private:
 
 protected:
     // --- Internal methods
-    void _findNextX(const std::vector<double> &dir, double &deltatargetfun, double &deltax); // do line-search
+    void _findNextX(const std::vector<double> &dir); // do line-search
     void _writeCGDirectionToLog(const std::vector<double> &dir, const std::string &name) const;
+
+    // --- Minimization
+    void _findMin() final; // perform noisy CG minimization
 
 public:
     explicit ConjGrad(NoisyFunctionWithGradient * targetfun, const int &max_n_const_values = 20):
@@ -27,9 +30,6 @@ public:
     // Configuration
     void useSimpleGradient() { _use_conjgrad = false; }  // make ConjGrad a Steepest Descent
     void useConjugateGradient() { _use_conjgrad = true; }  // reset to normal
-
-    // --- Minimization
-    void findMin() final; // perform noisy CG minimization
 };
 } // namespace nfm
 

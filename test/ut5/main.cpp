@@ -13,10 +13,11 @@ int main()
     using namespace std;
     using namespace nfm;
 
-    LogManager::setLogLevel(LogLevel::VERBOSE);
+    //LogManager::setLogLevel(LogLevel::VERBOSE);
 
     // define 3D function that I want to minimise
-    auto * f3d = new F3D();
+    F3D f3d;
+
     // introduce array with the initial position
     double x[3];
 
@@ -30,7 +31,7 @@ int main()
             // cout << "useGradientError " << useGradientError << " useAveraging " << useAveraging << endl;
 
             // test Adam
-            Adam adam = Adam(f3d, 20, useAveraging, 0.1, 0.1, 0.1); // since the gradient is exact we chose very high decay (0 would actually be ideal)
+            Adam adam = Adam(&f3d, 20, useAveraging, 0.1, 0.1, 0.1); // since the gradient is exact we chose very high decay (0 would actually be ideal)
             x[0] = -2.;
             x[1] = 1.0;
             x[2] = 0.0;
@@ -43,7 +44,6 @@ int main()
         }
     }
 
-    delete f3d;
 
     return 0;
 }

@@ -48,7 +48,7 @@ protected:
     const bool _flag_gradErr; // will the function provide gradient errors?
 
 public:
-    explicit NoisyFunctionWithGradient(int ndim, bool flag_gradErr = false):
+    explicit NoisyFunctionWithGradient(int ndim, bool flag_gradErr):
             NoisyFunction(ndim), _flag_gradErr(flag_gradErr) {}
 
     bool hasGradErr() const { return _flag_gradErr; }

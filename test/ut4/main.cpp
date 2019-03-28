@@ -17,13 +17,13 @@ int main()
     LogManager::setLoggingOn(true);
 
     // define 3D function that I want to minimise
-    auto * f3d = new F3D();
+    F3D f3d;
     // introduce array with the initial position
     double x[3];
 
 
     // test DynamicDescent
-    DynamicDescent dyndesc(f3d, 0.03);
+    DynamicDescent dyndesc(&f3d, 0.03);
     x[0] = -2.;
     x[1] = 1.0;
     x[2] = 0.0;
@@ -35,6 +35,5 @@ int main()
     assert(fabs(dyndesc.getX(2) - 0.5) < 0.1);
 
 
-    delete f3d;
     return 0;
 }

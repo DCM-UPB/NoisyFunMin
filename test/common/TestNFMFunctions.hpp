@@ -1,3 +1,6 @@
+#ifndef NFM_TESTNFMFUNCTIONS_HPP
+#define NFM_TESTNFMFUNCTIONS_HPP
+
 #include "nfm/NoisyFunction.hpp"
 #include <cmath>
 
@@ -61,7 +64,7 @@ public:
 class F3D: public nfm::NoisyFunctionWithGradient
 {
 public:
-    F3D(): NoisyFunctionWithGradient(3) {}
+    F3D(): NoisyFunctionWithGradient(3, true) {}
 
     nfm::NoisyValue f(const std::vector<double> &in) override   // f = (x-1)^4 + (y+1.5)^4 + (z-0.5)^4
     {
@@ -77,3 +80,5 @@ public:
         grad[2].set(4.*pow(in[2] - 0.5, 3), 0.000001);
     }
 };
+
+#endif

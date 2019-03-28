@@ -13,7 +13,7 @@ int main()
     using namespace std;
     using namespace nfm;
 
-    LogManager::setLoggingOn(true);
+    //LogManager::setLoggingOn(true);
 
     // define bracket of 3 noisy function input/output pairs
     NoisyBracket bracket{};

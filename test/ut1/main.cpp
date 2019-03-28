@@ -24,7 +24,7 @@ int main()
     using namespace std;
     using namespace nfm;
 
-    LogManager::setLoggingOn(true);
+    //LogManager::setLoggingOn(true);
 
     // a noisy function input/output pair and a bracket
     NoisyIOPair p(1);
