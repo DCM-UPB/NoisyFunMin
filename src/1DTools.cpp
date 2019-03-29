@@ -27,6 +27,12 @@ inline bool checkBracketFTol(const nfm::NoisyBracket &bracket, const double epsf
     return fdist > epsf;
 }
 
+// does bracket fulfill the bracketing condition a.f. > b.f < c.f
+inline bool isBracketed(const nfm::NoisyBracket &bracket)
+{
+    return (bracket.a.f > bracket.b.f && bracket.b.f < bracket.c.f);
+}
+
 // throw on invalid bracket X
 inline void checkBracketX(const double ax, const double bx, const double cx, const std::string &callerName)
 {
@@ -42,7 +48,7 @@ inline void checkBracketX(const double ax, const double bx, const double cx, con
 inline void checkBracket(const nfm::NoisyBracket &bracket, const std::string &callerName)
 {
     checkBracketX(bracket.a.x, bracket.b.x, bracket.c.x, callerName);
-    if (bracket.b.f >= bracket.a.f || bracket.b.f >= bracket.c.f) {
+    if (!isBracketed(bracket)) {
         throw std::invalid_argument("[" + callerName + "->checkBracket] Bracket violates (a.f > b.f < c.f).");
     }
 }
@@ -80,9 +86,8 @@ void writeBracketToLog(const std::string &key, const NoisyBracket &bracket)
 
 bool findBracket(NoisyFunction &f1d, NoisyBracket &bracket /*inout*/, double epsx)
 {
-    //
-    // Adaption of GNU Scientific Libraries's findBracket ( gsl/min/bracketing.c )
-    //
+    // Noisy findBracket Algorithm
+    // Inspired by GNU Scientific Libraries's findBracket ( gsl/min/bracketing.c )
 
     // Sanity
     if (f1d.getNDim() != 1) {
@@ -94,7 +99,7 @@ bool findBracket(NoisyFunction &f1d, NoisyBracket &bracket /*inout*/, double eps
 
     // Initialization
     constexpr double GOLDEN = 0.3819660; // stretch factor for successive steps
-    constexpr int NEVAL_LIMIT = m1d_default::MAX_NEVAL; // how many function evaluations to allow until throwing
+    constexpr int NEVAL_LIMIT = 10; // how many function evaluations to allow until throwing
 
     NoisyIOPair1D &a = bracket.a;
     NoisyIOPair1D &b = bracket.b;
@@ -108,25 +113,28 @@ bool findBracket(NoisyFunction &f1d, NoisyBracket &bracket /*inout*/, double eps
         return f1d(xvec);
     };
 
-    // Adaption of GSL's findBracket algorithm
+    // findBracket algorithm
 
     // initial step
-    int ieval = 1; // keeps track of number of function evaluations ( we count the initial one already)
-    if (c.f.value >= a.f.value) { // don't consider errors here
-        b.x = (c.x - a.x)*GOLDEN + a.x;
-        b.f = F(b.x);
+    if (isBracketed(bracket)) { // return early with success
+        writeBracketToLog("findBracket final", bracket);
+        return true;
     }
-    else {
+    if (c.f < a.f || a.f == b.f || b.f == c.f) { // increase interval
         b = c;
         c.x = (b.x - a.x)/GOLDEN + a.x;
         c.f = F(c.x);
     }
-    writeBracketToLog("findBracket init", bracket);
+    else { // keep interval (choose new b)
+        b.x = (c.x - a.x)*GOLDEN + a.x;
+        b.f = F(b.x);
+    }
 
     // Main findBracket loop. If bracket OK, returns true.
     // If false is returned, no valid bracket could be found.
+    int ieval = 1; // keeps track of number of function evaluations ( we count one already)
     while (true) {
-        if (a.f > b.f && b.f < c.f) { // return with success
+        if (isBracketed(bracket)) { // return with success
             writeBracketToLog("findBracket final", bracket);
             return true;
         }
@@ -166,7 +174,7 @@ NoisyIOPair1D brentMin(NoisyFunction &f1d, NoisyBracket bracket, double epsx, do
     epsf = std::max(0., epsf);
 
     // Initialization
-    constexpr int MAX_NITERATIONS = m1d_default::MAX_NEVAL;
+    constexpr int MAX_NITERATIONS = 100;
     constexpr double GOLDEN = 0.3819660;
 
     // we reuse the bracket
@@ -219,17 +227,14 @@ NoisyIOPair1D brentMin(NoisyFunction &f1d, NoisyBracket bracket, double epsx, do
             else {
                 q = -q;
             }
-
             r = e;
             e = d;
         }
 
         if (fabs(p) < fabs(0.5*q*r) && p < q*mtolb && p < q*mtoub) {
             double t2 = 2*tol;
-
             d = p/q;
             u.x = m.x + d;
-
             if ((u.x - lb.x) < t2 || (ub.x - u.x) < t2) {
                 d = (m.x < xm) ? tol : -tol;
             }
@@ -283,6 +288,7 @@ NoisyIOPair1D brentMin(NoisyFunction &f1d, NoisyBracket bracket, double epsx, do
     if (lb.f.getUBound() < m.f.getUBound() || ub.f.getUBound() < m.f.getUBound()) {
         return lb.f.getUBound() < ub.f.getUBound() ? lb : ub;
     }
+    writeBracketToLog("brentMin final", bracket);
     return m;
 }
 

@@ -36,6 +36,8 @@ int main()
 
     xvec[0] = p1.x;
     p1.f = f1d.f(xvec);
+    xvec[0] = p2.x;
+    p2.f = f1d.f(xvec);
     xvec[0] = p3.x = 10.1;
     p3.f = f1d.f(xvec);
     NoisyBracket brk{p1, p2, p3};

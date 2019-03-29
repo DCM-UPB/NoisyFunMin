@@ -15,10 +15,25 @@ nfm::NoisyBracket prepareBracket(nfm::NoisyFunction &fun, const double ax, const
     std::vector<double> xvec(1);
     xvec[0] = bracket.a.x;
     bracket.a.f = fun(xvec);
-    // we don't need to calculate the b function value
+    xvec[0] = bracket.b.x;
+    bracket.b.f = fun(xvec);
     xvec[0] = bracket.c.x;
     bracket.c.f = fun(xvec);
     return bracket;
+}
+
+void assertBracket(const nfm::NoisyBracket &bracket, const double maxax, const double mincx)
+{
+    const nfm::NoisyIOPair1D &a = bracket.a;
+    const nfm::NoisyIOPair1D &b = bracket.b;
+    const nfm::NoisyIOPair1D &c = bracket.c;
+
+    assert(a.x < maxax);
+    assert(c.x > mincx);
+    assert(a.x != b.x);
+    assert(c.x != b.x);
+    assert(a.f > b.f);
+    assert(c.f > b.f);
 }
 
 int main()
@@ -40,10 +55,7 @@ int main()
     //LogManager::setLoggingOn(true); // uncomment if you actually want printout
 
     // a noisy function input/output pair and a bracket
-    NoisyIOPair p(1);
     NoisyBracket bracket{};
-    NoisyIOPair1D &a = bracket.a;
-    NoisyIOPair1D &c = bracket.c;
     bool flag_success;
 
     // check parabola   x^2   ...
@@ -53,24 +65,21 @@ int main()
     bracket = prepareBracket(parabola, -1000., 1.);
     flag_success = nfm::findBracket(parabola, bracket);
     assert(flag_success);
-    assert(a.x < 0.);
-    assert(c.x > 0.);
+    assertBracket(bracket, 0., 0.);
 
     // ... starting from interval [-5, 1000]
     LogManager::logString("\n\n=========================================================================\n\n");
     bracket = prepareBracket(parabola, 1000., -5.); // should be sorted in findBracket
     flag_success = nfm::findBracket(parabola, bracket);
     assert(flag_success);
-    assert(a.x < 0.);
-    assert(c.x > 0.);
+    assertBracket(bracket, 0., 0.);
 
     // ... starting from interval [-1.5,10]
     LogManager::logString("\n\n=========================================================================\n\n");
     bracket = prepareBracket(parabola, -1.5, 10.);
     flag_success = nfm::findBracket(parabola, bracket);
     assert(flag_success);
-    assert(a.x < 0.);
-    assert(c.x > 0.);
+    assertBracket(bracket, 0., 0.);
 
 
     // check well function   -1 if (-1 < x < 1) else +1   ...
@@ -81,8 +90,7 @@ int main()
     bracket = prepareBracket(well, -1.25, 5.5);
     flag_success = nfm::findBracket(well, bracket);
     assert(flag_success);
-    assert(a.x < -1.);
-    assert(c.x > 1.);
+    assertBracket(bracket, -1., 1.);
 
     // ... starting from interval [-1000, 500]
     LogManager::logString("\n\n=========================================================================\n\n");
@@ -95,8 +103,7 @@ int main()
     bracket = prepareBracket(well, -1.1, 3.);
     flag_success = nfm::findBracket(well, bracket);
     assert(flag_success);
-    assert(a.x < -1.);
-    assert(c.x > 1.);
+    assertBracket(bracket, -1., 1.);
 
     return 0;
 }

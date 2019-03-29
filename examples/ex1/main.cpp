@@ -37,10 +37,8 @@ int main()
     ConjGrad cg2(&np);
     cg2.setX(initpos);
 
-    // For noisy CG we might want to increase
-    // the tolerances / decrease target precision.
-    cg2.setEpsX(0.01);
-    cg2.setEpsF(0.01);
+    // For noisy CG we might want to increase the x tolerances
+    cg2.setEpsX(0.05);
 
     cg2.findMin();
 

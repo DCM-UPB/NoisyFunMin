@@ -20,7 +20,9 @@ namespace nfm
 //   - findBracket : Find a suitable bracket a,b,c, such that f(a)>f(b) and f(c)>(fb), while a<b<c.
 //     Note 1: Adapted from GNU Scientific Libraries's bracketing code ( gsl/min/bracketing.c ),
 //             with some modifications and use of NoisyValue overloads.
-//     Note 2: The method is not guaranteed to succeed, in pathologic cases even when there is
+//     Note 2: The algorithm requires an initial "bracket" with valid values. It will never go below
+//             the given "a" boundary, but might increase the upper "c" boundary initially.
+//     Note 3: The method is not guaranteed to succeed, in some cases even when there is
 //             actually a minimum in the given initial interval. Check for the returned boolean.
 //
 //   - brentMin: Find x such that f(x) is minimal, given a valid initial bracket.
@@ -56,7 +58,6 @@ namespace m1d_default
 {
 static constexpr double XTOL = 1.e-8;
 static constexpr double FTOL = 1.e-8;
-static constexpr int MAX_NEVAL = 100;
 } // namespace m1d_default
 
 // Function used for writing NoisyBracket to the log
