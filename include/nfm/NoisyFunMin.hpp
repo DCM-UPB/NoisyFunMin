@@ -18,25 +18,28 @@ protected:
     static constexpr double DEFAULT_EPSX = 1.e-5; // stop on minimal position change
     static constexpr double DEFAULT_EPSF = 0.; // stop on minimal target function change
 
-    // Protected members
+    // Const members
     const int _ndim;  //dimensionality of the space where the target function is embedded
     NoisyFunction * const _targetfun;  //target function to minimize
-
     NoisyFunctionWithGradient * const _gradfun;  //gradient of the target function
     const bool _flag_gradfun; // has the gradient been provided?
-    const bool _flag_graderr; // does the gradfun provide gradient errors?
 
-    // Tolerance (may also be used by child to auto-set own tolerances)
+    // Stopping Tolerances (may also be used by child to auto-set own tolerances, e.g. for line search)
     double _epsx; // changes in the position x smaller than this value will stop the minimization
     double _epsf; // changes in the function smaller than this value will stop the minimization
+    bool _flag_graderr; // should we consider gradient errors for stopping? (if targetfun supports it)
 
-    NoisyIOPair _last;  // last position and its function value, to be updated by child
+    // Members to be updated by child
+    NoisyIOPair _last; // last position and its function value
 
-private: // private methods used by base class
-    const int _max_n_const_values; // stop after this number of target values have been constant within error bounds
-    std::list<NoisyIOPair> _old_values; // list of previous target values
+private: // Base class only
+    int _max_n_iterations; // hard stop after this amount of iterations (if 0, disabled)
+    int _max_n_const_values; // stop after this number of target values have been constant within error bounds (if <= 1, disabled)
+    std::list<NoisyIOPair> _old_values; // list of previous target values and positions
+
     double _lastDeltaX{}; // change in x by last step (updated on storeLastValue)
     double _lastDeltaF{}; // change in f by last step (updated on storeLastalue)
+    int _istep{}; // counts the calls to _storeLastValue()
 
     void _clearOldValues() { _old_values.clear(); } // reset old values list
     bool _isConverged() const; // check if the target function has stabilized
@@ -46,7 +49,7 @@ private: // private methods used by base class
     void _writeCurrentXToLog() const; // write current x on log on storeLastValue
     void _writeOldValuesToLog() const; // stopping criterium debug logger
 
-protected: // protected methods for derived optimizers
+protected: // Protected methods for child optimizers
     // use this after every position&function update
     void _storeLastValue(); // store last value in old values list (updates deltax/deltaf)
 
@@ -62,15 +65,19 @@ protected: // protected methods for derived optimizers
     virtual void _findMin() = 0; // child minimization implementation, result to be stored in _last
 
 public:
-    explicit NFM(NoisyFunction * targetfun, int max_n_const_values = 20);
+    explicit NFM(NoisyFunction * targetfun);
     virtual ~NFM() = default;
 
     // --- Setters
     void setX(int i, double x) { _last.x[i] = x; } // set per element
     void setX(const double x[]); // set via c-style array
     void setX(const std::vector<double> &x) { this->setX(x.data()); } // set via vector
+
     void setEpsX(double epsx) { _epsx = epsx; }
     void setEpsF(double epsf) { _epsf = epsf; }
+    void setGradErrStop(bool flag_graderr) { _flag_graderr = flag_graderr; }
+    void setMaxNIterations(int maxn_iterations) { _max_n_iterations = std::max(0, maxn_iterations); }
+    void setMaxNConstValues(int maxn_const_values) { _max_n_const_values = std::max(1, maxn_const_values); }
 
     // --- Getters
 
@@ -88,6 +95,9 @@ public:
 
     double getEpsX() const { return _epsx; }
     double getEpsF() const { return _epsf; }
+    bool getGradErrStop() const { return _flag_graderr; }
+    int getMaxNIterations() const { return _max_n_iterations; }
+    int getMaxNConstValues() const { return _max_n_const_values; }
 
     // --- Minimization
     void findMin();

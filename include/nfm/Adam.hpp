@@ -22,8 +22,8 @@ private:
     void _findMin() final;
 
 public:
-    explicit Adam(NoisyFunctionWithGradient * targetfun, int max_n_const_values = DEFAULT_MAX_N_CONST,
-                  bool useAveraging = false, double alpha = 0.001, double beta1 = 0.9, double beta2 = 0.999, double epsilon = 10e-8);
+    explicit Adam(NoisyFunctionWithGradient * targetfun, bool useAveraging = false,
+                  double alpha = 0.001, double beta1 = 0.9, double beta2 = 0.999, double epsilon = 10e-8);
 
     // Getters
     bool useAveraging() const { return _useAveraging; }

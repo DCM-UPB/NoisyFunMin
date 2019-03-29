@@ -12,10 +12,8 @@ namespace nfm
 
 // --- Constructor
 
-ConjGrad::ConjGrad(NoisyFunctionWithGradient * targetfun, const int max_n_const_values,
-                   const double stepSize, const int max_n_bracketing):
-        NFM(targetfun, max_n_const_values), _stepSize(stepSize),
-        _max_n_bracketing(std::max(1, max_n_bracketing)), _cgmode(CGMode::CGFR) {}
+ConjGrad::ConjGrad(NoisyFunctionWithGradient * targetfun, const double stepSize, const int max_n_bracketing):
+        NFM(targetfun), _stepSize(stepSize), _max_n_bracketing(std::max(1, max_n_bracketing)), _cgmode(CGMode::CGFR) {}
 
 // --- Logging
 

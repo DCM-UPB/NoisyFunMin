@@ -23,8 +23,7 @@ private:
     void _findMin() final;
 
 public:
-    explicit DynamicDescent(NoisyFunctionWithGradient * targetfun, int max_n_const_values = DEFAULT_MAX_N_CONST,
-                            double stepSize = 0.01, double alpha = 0.9);
+    explicit DynamicDescent(NoisyFunctionWithGradient * targetfun, double stepSize = 0.01, double alpha = 0.9);
     ~DynamicDescent() final = default;
 
     double getStepSize() const { return _stepSize; }

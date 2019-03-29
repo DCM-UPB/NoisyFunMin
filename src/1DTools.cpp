@@ -13,8 +13,8 @@
 // - epsx: Minimum bracket size / numerical tolerance
 inline bool checkBracketXTol(const nfm::NoisyBracket &bracket, const double epsx)
 {
-    if (bracket.c.x - bracket.b.x <= epsx || bracket.b.x - bracket.a.x <= epsx) { return false; } // simply check for the position distances
-    return bracket.c.x - bracket.a.x >= epsx*((bracket.c.x + bracket.a.x)*0.5) + epsx; // standard tolerance check
+    if (fabs(bracket.c.x - bracket.b.x) <= epsx || fabs(bracket.b.x - bracket.a.x) <= epsx) { return false; } // simply check for the position distances
+    return fabs(bracket.c.x - bracket.a.x) >= epsx*((bracket.c.x + bracket.a.x)*0.5) + epsx; // standard tolerance check
 }
 
 // check bracket for function value tolerances (noisy version)
@@ -43,7 +43,7 @@ inline void checkBracket(const nfm::NoisyBracket &bracket, const std::string &ca
 {
     checkBracketX(bracket.a.x, bracket.b.x, bracket.c.x, callerName);
     if (bracket.b.f >= bracket.a.f || bracket.b.f >= bracket.c.f) {
-        throw std::invalid_argument("[" + callerName + "->checkBracket] Bracket violates (a.f > b.f < c.x).");
+        throw std::invalid_argument("[" + callerName + "->checkBracket] Bracket violates (a.f > b.f < c.f).");
     }
 }
 
@@ -112,7 +112,7 @@ bool findBracket(NoisyFunction &f1d, NoisyBracket &bracket /*inout*/, double eps
 
     // initial step
     int ieval = 1; // keeps track of number of function evaluations ( we count the initial one already)
-    if (c.f.value >= a.f.value) { // no reason to involve errors in this decision
+    if (c.f.value >= a.f.value) { // don't consider errors here
         b.x = (c.x - a.x)*GOLDEN + a.x;
         b.f = F(b.x);
     }
@@ -136,15 +136,9 @@ bool findBracket(NoisyFunction &f1d, NoisyBracket &bracket /*inout*/, double eps
 
         // continue with the iteration
         if (b.f < a.f) {
-            if (b.f > c.f) {
-                shiftABC(a.x, b.x, c.x, (b.x - a.x)/GOLDEN + a.x);
-                shiftABC(a.f, b.f, c.f, F(c.x));
-            }
-            else { // b.f == c.f
-                c = b;
-                b.x = (c.x - a.x)*GOLDEN + a.x;
-                b.f = F(b.x);
-            }
+            // b.f >= c.f (else we would have returned above)
+            shiftABC(a.x, b.x, c.x, (c.x - a.x)/GOLDEN + a.x);
+            shiftABC(a.f, b.f, c.f, F(c.x));
         }
         else { // b.f >= a.f
             c = b;
@@ -314,7 +308,7 @@ NoisyIOPair multiLineMin(NoisyFunction &mdf, NoisyIOPair p0Pair, const std::vect
         bracket.a = {-scale*stepLeft, proj1d(-scale*stepLeft)};
         bracket.b = {0., p0Pair.f};
         bracket.c = {scale*stepRight, proj1d(scale*stepRight)};
-        bracket_found = findBracket(proj1d, bracket, epsf);
+        bracket_found = findBracket(proj1d, bracket, epsx);
         if (bracket_found) { break; } // we are fine
         scale *= 2.; // try with larger interval
     }

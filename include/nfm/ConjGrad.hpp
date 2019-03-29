@@ -31,8 +31,7 @@ private:
     void _findMin() final; // perform noisy CG minimization
 
 public:
-    explicit ConjGrad(NoisyFunctionWithGradient * targetfun, int max_n_const_values = DEFAULT_MAX_N_CONST,
-                      double stepSize = 1., int max_n_bracketing = 3);
+    explicit ConjGrad(NoisyFunctionWithGradient * targetfun, double stepSize = 1., int max_n_bracketing = 3);
     ~ConjGrad() final = default;
 
     // CG Configuration

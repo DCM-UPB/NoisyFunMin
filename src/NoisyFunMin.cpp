@@ -12,12 +12,11 @@ namespace nfm
 
 // --- Constructor
 
-NFM::NFM(NoisyFunction * targetfun, const int max_n_const_values):
+NFM::NFM(NoisyFunction * targetfun):
         _ndim(targetfun->getNDim()), _targetfun(targetfun),
         _gradfun(dynamic_cast<NoisyFunctionWithGradient *>(_targetfun)), _flag_gradfun(_gradfun != nullptr),
-        _flag_graderr(_flag_gradfun ? _gradfun->hasGradErr() : false), _epsx(DEFAULT_EPSX), _epsf(DEFAULT_EPSF),
-        _last(NoisyIOPair(_ndim)), _max_n_const_values(std::max(1, max_n_const_values)) /*<=1 means check disabled*/
-{}
+        _epsx(DEFAULT_EPSX), _epsf(DEFAULT_EPSF), _flag_graderr(_flag_gradfun ? _gradfun->hasGradErr() : false),
+        _last(NoisyIOPair(_ndim)), _max_n_iterations(0), _max_n_const_values(DEFAULT_MAX_N_CONST) {}
 
 // --- Private methods
 
@@ -68,19 +67,19 @@ bool NFM::_checkDeltas() const
 
 void NFM::_storeLastValue()
 {
-    const auto max_nold = static_cast<size_t>(_max_n_const_values);
+    ++_istep; // count step
     this->_writeCurrentXToLog();
     this->_updateDeltas(); // update step deltas
 
     _old_values.emplace_front(_last);
-    if (_old_values.size() > max_nold) {
+    while (_old_values.size() > static_cast<size_t>(_max_n_const_values)) {
         _old_values.pop_back();
     }
 }
 
 bool NFM::_meaningfulGradient(const std::vector<NoisyValue> &grad) const
 {
-    if (_flag_graderr) {
+    if (_flag_graderr && _gradfun->hasGradErr()) {
         for (const NoisyValue &gi : grad) {
             if (gi != 0.) { return true; } // use noisy value overload
         }
@@ -92,7 +91,7 @@ bool NFM::_meaningfulGradient(const std::vector<NoisyValue> &grad) const
 
 bool NFM::_shouldStop(const std::vector<NoisyValue> * grad) const
 {   // check all stopping criteria
-    bool answer = (_isConverged() || !_checkDeltas());
+    bool answer = (_isConverged() || !_checkDeltas() || (_max_n_iterations > 0 && _istep >= _max_n_iterations));
     if (grad != nullptr) {
         answer = answer || !_meaningfulGradient(*grad);
     }
@@ -157,6 +156,7 @@ void NFM::getX(double x[]) const
 void NFM::findMin()
 {
     this->_clearOldValues();
+    _istep = 0;
     this->_findMin();
 }
 } // namespace nfm

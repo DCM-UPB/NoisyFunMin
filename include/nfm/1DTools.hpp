@@ -19,7 +19,7 @@ namespace nfm
 // Functions:
 //   - findBracket : Find a suitable bracket a,b,c, such that f(a)>f(b) and f(c)>(fb), while a<b<c.
 //     Note 1: Adapted from GNU Scientific Libraries's bracketing code ( gsl/min/bracketing.c ),
-//             but making use of NoisyValue overloads.
+//             with some modifications and use of NoisyValue overloads.
 //     Note 2: The method is not guaranteed to succeed, in pathologic cases even when there is
 //             actually a minimum in the given initial interval. Check for the returned boolean.
 //

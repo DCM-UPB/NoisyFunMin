@@ -42,11 +42,9 @@ int main()
 
     Noisy2DParabola np;
 
-    // in noisy-target low-dim cases like this we often need to change adam parameters from default (in brackets)
-    Adam adam2(&np, 20 /* max n constant (within error) values before stopping */,
-               true /* use averaging to calculate final parameters */, 1.0 /* step size factor (0.001) */);
+    Adam adam2(&np, true /* use averaging to calculate final parameters */, 1.0 /* step size factor */);
     adam2.setX({-1., -1.});
-
+    adam2.setGradErrStop(false); // Adam works better without stopping on noisy/small gradients
     adam2.findMin();
 
     cout << "The found minimum is: ";

@@ -15,7 +15,7 @@ int main()
     cout << "whose min is in (1, -2)." << endl << endl << endl;
 
     LogManager::setLoggingOn(); // use this to enable log printout
-    //LogManager::setLoggingOn(true); // use this for verbose printout of the CG method
+    LogManager::setLoggingOn(true); // use this for verbose printout of the CG method
 
     cout << "we first minimize it, supposing to have no noise at all" << endl;
 
@@ -37,10 +37,11 @@ int main()
     ConjGrad cg2(&np);
     cg2.setX(initpos);
 
-    // In such a noisy case we might want to increase
+    // For noisy CG we might want to increase
     // the tolerances / decrease target precision.
     cg2.setEpsX(0.01);
     cg2.setEpsF(0.01);
+
     cg2.findMin();
 
     cout << "The found minimum is: ";
