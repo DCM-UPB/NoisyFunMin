@@ -38,6 +38,8 @@ int main()
 
     Noisy2DParabola np;
     DynamicDescent dd2(&np);
+    dd2.setGradErrStop(false); // works fine without stopping on noisy/small gradients
+    dd2.setAveraging(true); // especially with this option
     dd2.setX(initpos);
 
     dd2.findMin();

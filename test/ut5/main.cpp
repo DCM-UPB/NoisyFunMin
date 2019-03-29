@@ -3,6 +3,7 @@
 #include <iostream>
 
 #include "nfm/Adam.hpp"
+#include "nfm/LogManager.hpp"
 
 #include "TestNFMFunctions.hpp"
 
@@ -12,6 +13,7 @@ int main()
     using namespace std;
     using namespace nfm;
 
+    LogManager::setLoggingOff();
     //LogManager::setLogLevel(LogLevel::VERBOSE);
 
     // define 3D function that I want to minimise
@@ -28,6 +30,7 @@ int main()
 
             // test Adam
             Adam adam = Adam(&f3d, useAveraging, 0.1, 0.1, 0.1); // since the gradient is exact we chose very high decay
+            adam.setGradErrStop(useGradientError);
             adam.setX(0, -2.);
             adam.setX(1, 1.);
             adam.setX(2, 0.);

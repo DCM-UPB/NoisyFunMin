@@ -2,8 +2,8 @@
 #include <cmath>
 #include <iostream>
 
-#include "nfm/1DTools.hpp"
 #include "nfm/ConjGrad.hpp"
+#include "nfm/LogManager.hpp"
 
 #include "TestNFMFunctions.hpp"
 
@@ -13,6 +13,7 @@ int main()
     using namespace std;
     using namespace nfm;
 
+    LogManager::setLoggingOff();
     //LogManager::setLoggingOn(true);
 
     // define 3D function that I want to minimise
@@ -24,8 +25,8 @@ int main()
     x[2] = 0.0;
 
     const double XTOL = 0.10;
-    const double YTOL = 0.15;
-    const double ZTOL = 0.05;
+    const double YTOL = 0.10;
+    const double ZTOL = 0.10;
 
 
     // test ConjGrad (Fletcher-Reeves)

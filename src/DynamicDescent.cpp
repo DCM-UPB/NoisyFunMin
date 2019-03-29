@@ -7,8 +7,13 @@
 namespace nfm
 {
 
-DynamicDescent::DynamicDescent(NoisyFunctionWithGradient * targetfun, const double stepSize, const double alpha):
-        NFM(targetfun), _stepSize(stepSize), _alpha(alpha) {}
+DynamicDescent::DynamicDescent(NoisyFunctionWithGradient * targetfun, const bool useAveraging, const double stepSize, const double alpha):
+        NFM(targetfun), _useAveraging(useAveraging), _stepSize(stepSize), _alpha(alpha)
+{
+    if (!_flag_gradfun) {
+        throw std::invalid_argument("[DynamicDescent] Dynamic Descent optimization requires a target function with gradient.");
+    }
+}
 
 // --- Minimization
 
@@ -38,7 +43,10 @@ void DynamicDescent::_findMin()
         this->_findNextX(grad, dx);
     }
 
-    LogManager::logNoisyIOPair(_last, LogLevel::NORMAL, "Final position and target value");
+    if (_useAveraging) { // calculate the old value average as end result
+        this->_averageOldValues(); // perform average and store it in last
+    }
+
     LogManager::logString("\nEnd DynamicDescent::findMin() procedure\n");
 }
 

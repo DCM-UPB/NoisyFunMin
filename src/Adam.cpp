@@ -12,7 +12,12 @@ namespace nfm
 
 Adam::Adam(NoisyFunctionWithGradient * targetfun, const bool useAveraging,
            const double alpha, const double beta1, const double beta2, const double epsilon):
-        NFM(targetfun), _useAveraging(useAveraging), _alpha(alpha), _beta1(beta1), _beta2(beta2), _epsilon(epsilon) {}
+        NFM(targetfun), _useAveraging(useAveraging), _alpha(alpha), _beta1(beta1), _beta2(beta2), _epsilon(epsilon)
+{
+    if (!_flag_gradfun) {
+        throw std::invalid_argument("[Adam] Adam optimization requires a target function with gradient.");
+    }
+}
 
 // --- Minimization
 
@@ -67,9 +72,9 @@ void Adam::_findMin()
         for (int i = 0; i < _ndim; ++i) {
             _last.x[i] = xavg[i]/(1. - beta2t); // bias corrected average
         }
+        _last.f = _gradfun->f(_last.x); // evaluate new final function value
     }
 
-    LogManager::logNoisyIOPair(_last, LogLevel::NORMAL, "Final position and target value");
     LogManager::logString("\nEnd Adam::findMin() procedure\n");
 }
 } // namespace nfm

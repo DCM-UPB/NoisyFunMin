@@ -15,6 +15,7 @@ namespace nfm
 class DynamicDescent: public NFM
 {
 private:
+    bool _useAveraging; // use the averaged positions of the old value list (length max_n_const_values) as end result
     double _stepSize; // step size factor / learning rate
     double _alpha; // momenta update step-size
 
@@ -23,12 +24,17 @@ private:
     void _findMin() final;
 
 public:
-    explicit DynamicDescent(NoisyFunctionWithGradient * targetfun, double stepSize = 0.01, double alpha = 0.9);
+    explicit DynamicDescent(NoisyFunctionWithGradient * targetfun, bool useAveraging = false, double stepSize = 0.01, double alpha = 0.9);
     ~DynamicDescent() final = default;
 
+    // Getters
+    bool usesAveraging() const { return _useAveraging; }
     double getStepSize() const { return _stepSize; }
-    void setStepSize(double stepSize) { _stepSize = std::max(0., stepSize); }
     double getAlpha() const { return _alpha; }
+
+    // Setters
+    void setAveraging(bool useAveraging) { _useAveraging = useAveraging; }
+    void setStepSize(double stepSize) { _stepSize = std::max(0., stepSize); }
     void setAlpha(double alpha) { _alpha = std::max(0., alpha); }
 };
 } // namespace nfm

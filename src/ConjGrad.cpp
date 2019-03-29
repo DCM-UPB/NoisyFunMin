@@ -13,7 +13,12 @@ namespace nfm
 // --- Constructor
 
 ConjGrad::ConjGrad(NoisyFunctionWithGradient * targetfun, const double stepSize, const int max_n_bracketing):
-        NFM(targetfun), _stepSize(stepSize), _max_n_bracketing(std::max(1, max_n_bracketing)), _cgmode(CGMode::CGFR) {}
+        NFM(targetfun), _stepSize(stepSize), _max_n_bracketing(std::max(1, max_n_bracketing)), _cgmode(CGMode::CGFR)
+{
+    if (!_flag_gradfun) {
+        throw std::invalid_argument("[ConjGrad] Conjugate Gradient optimization requires a target function with gradient.");
+    }
+}
 
 // --- Logging
 
@@ -62,6 +67,8 @@ void ConjGrad::_findMin()
     // the denominator of CG update ratio
     double gdot_old = std::inner_product(gradnew.begin(), gradnew.end(), gradnew.begin(), 0.);
 
+
+    LogManager::logString("\n\nConjGrad::findMin() Initial Step\n");
     // find initial new position
     this->_findNextX(conjv);
 
@@ -92,7 +99,7 @@ void ConjGrad::_findMin()
             }
             else { // Polak-Ribiere CG
                 double prprod = 0.;
-                for (int i = 0; i < _ndim; ++i) { prprod += pow(gradnew[i] - gradold[i], 2); }
+                for (int i = 0; i < _ndim; ++i) { prprod += gradnew[i]*(gradnew[i] - gradold[i]); }
                 ratio = gdot_old != 0 ? prprod/gdot_old : 0.;
                 if (_cgmode == CGMode::CGPR0) { ratio = std::max(0., ratio); } // CG reset
                 gradold = gradnew; // gradient old to new

@@ -26,11 +26,9 @@ bool NFM::_isConverged() const
     if (max_nold < 2) { return false; } // we need at least two values for this check
 
     if (_old_values.size() >= max_nold) {
-        for (auto it = _old_values.begin(); it != _old_values.end(); ++it) {
-            if (it != _old_values.begin()) {
-                if (!((*it).f == (*_old_values.begin()).f)) {
-                    return false;
-                }
+        for (auto &oldp : _old_values) {
+            if (oldp.f != _old_values.front().f) {
+                return false;
             }
         }
         LogManager::logString("\nCost function has stabilised, interrupting minimization procedure.\n");
@@ -77,6 +75,17 @@ void NFM::_storeLastValue()
     }
 }
 
+void NFM::_averageOldValues()
+{
+    std::fill(_last.x.begin(), _last.x.end(), 0.);
+    for (auto &oldp : _old_values) {
+        std::transform(_last.x.begin(), _last.x.end(), oldp.x.begin(), _last.x.begin(), std::plus<>());
+    }
+    for (double &x : _last.x) { x /= _old_values.size(); } // get proper averages
+    _last.f = _targetfun->f(_last.x); // evaluate final function value
+}
+
+
 bool NFM::_meaningfulGradient(const std::vector<NoisyValue> &grad) const
 {
     if (_flag_graderr && _gradfun->hasGradErr()) {
@@ -122,18 +131,10 @@ void NFM::_writeXUpdateToLog(const std::vector<double> &xu) const
 void NFM::_writeOldValuesToLog() const
 {
     using namespace std;
-
     stringstream s;
     s << endl << "last values:    ";
     for (const NoisyIOPair &oldv : _old_values) {
         s << oldv.f << "    ";
-    }
-    s << endl;
-    s << "equal to first element? ";
-    for (auto it = _old_values.begin(); it != _old_values.end(); ++it) {
-        if (it != _old_values.begin()) {
-            s << ((*it).f == (*_old_values.begin()).f) << "    ";
-        }
     }
     s << endl;
     LogManager::logString(s.str());
@@ -158,5 +159,6 @@ void NFM::findMin()
     this->_clearOldValues();
     _istep = 0;
     this->_findMin();
+    LogManager::logNoisyIOPair(_last, LogLevel::NORMAL, "Final position and target value");
 }
 } // namespace nfm

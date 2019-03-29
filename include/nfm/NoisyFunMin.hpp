@@ -31,11 +31,11 @@ protected:
 
     // Members to be updated by child
     NoisyIOPair _last; // last position and its function value
+    std::list<NoisyIOPair> _old_values; // list of previous target values and positions
 
 private: // Base class only
     int _max_n_iterations; // hard stop after this amount of iterations (if 0, disabled)
     int _max_n_const_values; // stop after this number of target values have been constant within error bounds (if <= 1, disabled)
-    std::list<NoisyIOPair> _old_values; // list of previous target values and positions
 
     double _lastDeltaX{}; // change in x by last step (updated on storeLastValue)
     double _lastDeltaF{}; // change in f by last step (updated on storeLastalue)
@@ -52,6 +52,9 @@ private: // Base class only
 protected: // Protected methods for child optimizers
     // use this after every position&function update
     void _storeLastValue(); // store last value in old values list (updates deltax/deltaf)
+
+    // use this before terminating, if averaging is desired
+    void _averageOldValues(); // compute average x of old value list, store it with the corresponding function value in last
 
     // check stopping criteria (shouldStop contains meaningfulGradient, if grad!=nullptr)
     bool _meaningfulGradient(const std::vector<NoisyValue> &grad) const; //check if the gradient is meaningful. i.e. if its values are greater than the statistical errors

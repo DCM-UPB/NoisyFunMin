@@ -30,7 +30,7 @@ public:
 class Noisy2DParabola: public nfm::NoisyFunctionWithGradient
 {
 private:
-    const double _sigma = 0.1;
+    const double _sigma = 0.25;
     std::random_device _rdev;
     std::mt19937_64 _rgen;
     std::uniform_real_distribution<double> _rd;  //after initialization (done in the constructor) can be used with _rd(_rgen)

@@ -26,15 +26,14 @@ public:
                   double alpha = 0.001, double beta1 = 0.9, double beta2 = 0.999, double epsilon = 10e-8);
 
     // Getters
-    bool useAveraging() const { return _useAveraging; }
+    bool usesAveraging() const { return _useAveraging; }
     double getAlpha() const { return _alpha; }
     double getBeta1() const { return _beta1; }
     double getBeta2() const { return _beta2; }
     double get_epsilon() const { return _epsilon; }
 
     // Setters
-    void enableAveraging() { _useAveraging = true; }
-    void disableAveraging() { _useAveraging = false; }
+    void setAveraging(bool useAveraging) { _useAveraging = useAveraging; }
     void setAlpha(double alpha) { _alpha = std::max(0., alpha); }
     void setBeta1(double beta1) { _beta1 = std::max(0., std::min(1., beta1)); }
     void setBeta2(double beta2) { _beta2 = std::max(0., std::min(1., beta2)); }

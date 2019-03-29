@@ -15,7 +15,7 @@ int main()
     cout << "whose min is in (1, -2)." << endl << endl << endl;
 
     LogManager::setLoggingOn(); // use this to enable log printout
-    LogManager::setLoggingOn(true); // use this for verbose printout of the CG method
+    //LogManager::setLoggingOn(true); // use this for verbose printout of the CG method
 
     cout << "we first minimize it, supposing to have no noise at all" << endl;
 
