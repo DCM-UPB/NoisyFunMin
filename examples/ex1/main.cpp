@@ -45,12 +45,20 @@ int main()
     cout << "Now we try a larger amount of noise:" << endl;
     Noisy2DParabola np2(0.25); // sigma = 0.25
     ConjGrad cg3(&np2);
+
+    // Let's change some settings for this very noisy CG
     cg3.setStepSize(0.5);
+    cg3.setBackStep(0.2); // allow small backstep
     cg3.setX(initpos);
 
     cg3.findMin();
     cout << "The found minimum is: ";
     cout << cg3.getX(0) << "    " << cg3.getX(1) << endl << endl;
+
+    cout << endl << "As we can see, the CG method still converges to the true minimum,";
+    cout << endl << "within the error due to noise. But the method will not improve the";
+    cout << endl << "result any further. So in many cases, regular stochastic optimizers";
+    cout << endl << "will achieve a better final result (but not in 2 steps!)." << endl;
 
     // end
     return 0;

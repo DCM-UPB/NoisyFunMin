@@ -26,15 +26,19 @@ namespace nfm
 // how many standard errors a given (exact) value is considered equal to
 // a NoisyValue. Comparisons of two NoisyValues take both errors into account.
 //
-// NOTE 1: It was made sure that NoisyValue is an aggregate type. Among many other things,
-// this means you can simply use aggregate initialization: NoisyValue x{.value = 1., .error = 0.5}
+// NOTE 1: It was made sure that NoisyValue is an aggregate type. Among some other things,
+//         this means you can simply use aggregate initialization. Examples:
+//         i) NoisyValue x{.value = 1., .error = 0.5} or just NoisyValue x{1., 0.5};
+//         ii) void MyFunc(NoisyValue x){...} -> may be called as MyFunc({1., 0.5});
+//
 // NOTE 2: Because having only two double fields makes NoisyValues very cheap to copy, they can
 //         and should simply be passed by value where a const reference would be used otherwise.
+//
 struct NoisyValue
 {
 private:
     // Error width factor, accessed only via get/set methods.
-    // This static value is initially DEFAULT_SIGMA_LEVEL.
+    // This class-wide value is initially DEFAULT_SIGMA_LEVEL.
     static double _sigmaLevel;
 
 public:
@@ -42,13 +46,13 @@ public:
     double error; // standard error (sigma)
 
     // Static methods
-    static void setSigmaLevel(double sigmaLevel = DEFAULT_SIGMA_LEVEL); // will set 0. if sigmaLevel <= 0
+    static void setSigmaLevel(double sigmaLevel = DEFAULT_SIGMA_LEVEL); // will set 0, if sigmaLevel <= 0
     static double getSigmaLevel() { return _sigmaLevel; };
 
-    //Setters
+    // Setters
     void set(double val, double err); // set both fields at once
 
-    //Getters
+    // Getters
     double getUBound() const { return value + error*_sigmaLevel; }
     double getLBound() const { return value - error*_sigmaLevel; }
 

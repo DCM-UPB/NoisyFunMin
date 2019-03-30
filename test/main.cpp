@@ -1,7 +1,7 @@
 #include <cmath>
 #include <iostream>
 
-#include "nfm/1DTools.hpp"
+#include "nfm/LineSearch.hpp"
 #include "nfm/ConjGrad.hpp"
 #include "nfm/LogManager.hpp"
 
@@ -61,8 +61,7 @@ int main()
     x[1] = 1.0;
     x[2] = 0.0;
     cjgrad.setX(x);
-    cjgrad.setEpsX(0.01);
-    cjgrad.setEpsF(0.01);
+//    cjgrad.setEpsF(0.01);
     cjgrad.findMin();
     cout << "Minimum of f3d is in " << cjgrad.getX(0) << "   " << cjgrad.getX(1) << "   " << cjgrad.getX(2) << endl;
     cout << "Value of the minimum is " << cjgrad.getF() << " +- " << cjgrad.getDf() << endl << endl;

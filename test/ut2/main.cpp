@@ -1,7 +1,7 @@
 #include <cassert>
 #include <iostream>
 
-#include "nfm/1DTools.hpp"
+#include "nfm/LineSearch.hpp"
 #include "nfm/ConjGrad.hpp"
 #include "nfm/LogManager.hpp"
 
@@ -44,7 +44,7 @@ int main()
     p3.x = inp[0] = 5.;
     p3.f = pwr4.f(inp);
 
-    p2 = nfm::brentMin(pwr4, bracket, 0.);
+    p2 = nfm::brentMin(pwr4, bracket, 20, 1e-5, 1e-10);
     assert(p2.x < 0.1);
     assert(p2.x > -0.1);
     assert(p2.f.value < 0.00001);

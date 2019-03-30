@@ -3,6 +3,7 @@
 
 #include "nfm/NoisyFunMin.hpp"
 #include "nfm/NoisyFunction.hpp"
+#include "nfm/LineSearch.hpp"
 
 namespace nfm
 {
@@ -16,11 +17,12 @@ enum class CGMode
 };
 
 // Noisy Conjugate-Gradient Minimization
+// Works when target/gradient noisy is small,
+// otherwise use a proper stochastic optimizer.
 class ConjGrad: public NFM
 {
 private:
-    double _stepSize; // initial search interval size factor
-    int _max_n_bracketing; // maximal amount of iterations in findBracket()
+    MLMParams _mlmParams;  // line search configuration
     CGMode _cgmode; // which gradients to use
 
     // --- Internal methods
@@ -31,7 +33,7 @@ private:
     void _findMin() final; // perform noisy CG minimization
 
 public:
-    explicit ConjGrad(NoisyFunctionWithGradient * targetfun, double stepSize = 1., int max_n_bracketing = 10);
+    explicit ConjGrad(NoisyFunctionWithGradient * targetfun, MLMParams params = defaultMLMParams());
     ~ConjGrad() final = default;
 
     // CG Configuration
@@ -43,12 +45,19 @@ public:
     CGMode getCGMode() const { return _cgmode; }
 
     // Setters
-    void setStepSize(double stepSize) { _stepSize = stepSize; }
-    void setMaxNBracketing(int maxn_bracket) { _max_n_bracketing = std::max(1, maxn_bracket); }
+    void setMLMParams(MLMParams params) { _mlmParams = params; }
+    void setStepSize(double stepSize) { _mlmParams.stepRight = stepSize; }
+    void setBackStep(double backStep) { _mlmParams.stepLeft = backStep; }
+    void setMaxNBracket(int maxn_bracket) { _mlmParams.maxNBracket = maxn_bracket; }
+    void setMaxNMin1D(int maxn_min1d) { _mlmParams.maxNMinimize = maxn_min1d; }
 
     // Getters
-    double getStepSize() const { return _stepSize; }
-    int getMaxNBracketing() const { return _max_n_bracketing; }
+    MLMParams & getMLMParams() { return _mlmParams; }
+    const MLMParams & getMLMParams() const { return _mlmParams; }
+    double getStepSize() const { return _mlmParams.stepRight; }
+    double getBackStep() const { return _mlmParams.stepLeft; }
+    int getMaxNBracket() const { return _mlmParams.maxNBracket; }
+    int setMaxNMin1D() const { return _mlmParams.maxNMinimize; }
 };
 } // namespace nfm
 

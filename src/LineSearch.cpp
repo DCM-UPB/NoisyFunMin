@@ -1,4 +1,4 @@
-#include "nfm/1DTools.hpp"
+#include "nfm/LineSearch.hpp"
 #include "nfm/LogManager.hpp"
 
 #include <cmath>
@@ -15,8 +15,8 @@
 // - epsx: Minimum bracket size / numerical tolerance
 inline bool checkBracketXTol(const nfm::NoisyBracket &bracket, const double epsx)
 {
-    if (fabs(bracket.c.x - bracket.b.x) <= epsx || fabs(bracket.b.x - bracket.a.x) <= epsx) { return false; } // simply check for the position distances
-    return fabs(bracket.c.x - bracket.a.x) >= epsx*((bracket.c.x + bracket.a.x)*0.5) + epsx; // standard tolerance check
+    return (fabs(bracket.c.x - bracket.b.x) > epsx && fabs(bracket.b.x - bracket.a.x) > epsx); // simply check for the position distances
+    //return fabs(bracket.c.x - bracket.a.x) > epsx*0.5*fabs(bracket.c.x + bracket.a.x) + epsx; // standard tolerance check
 }
 
 // check bracket for function value tolerances (noisy version)
@@ -98,8 +98,10 @@ bool findBracket(NoisyFunction &f1d, NoisyBracket &bracket /*inout*/, const int 
 {
     // Noisy findBracket Algorithm
     // Mix of own ideas and GSL's findBracket ( gsl/min/bracketing.c )
+    // Returns true when valid bracket found, else false.
+    using namespace m1d_detail;
 
-    // Sanity
+    // --- Sanity
     if (f1d.getNDim() != 1) {
         throw std::invalid_argument("[nfm::findBracket] The NoisyFunction is not 1D. Ndim=" + std::to_string(f1d.getNDim()));
     }
@@ -107,9 +109,7 @@ bool findBracket(NoisyFunction &f1d, NoisyBracket &bracket /*inout*/, const int 
     validateBracketX(bracket.a.x, bracket.b.x, bracket.c.x, "nfm::findBracket"); // ensure valid bracket (else throw)
     epsx = std::max(0., epsx);
 
-    // Initialization
-    constexpr double IGOLD2 = 0.3819660; // 1/(GOLDEN RATIO)^2
-
+    // --- Initialization
     NoisyIOPair1D &a = bracket.a;
     NoisyIOPair1D &b = bracket.b;
     NoisyIOPair1D &c = bracket.c;
@@ -123,12 +123,10 @@ bool findBracket(NoisyFunction &f1d, NoisyBracket &bracket /*inout*/, const int 
         return f1d(xvec);
     };
 
-    // Noisy Find Bracket algorithm
-    // Returns true when valid bracket found, else false.
-
-    writeBracketToLog("findBracket init", bracket);
+    // --- Bracketing
 
     // Pre-Processing
+    writeBracketToLog("findBracket init", bracket);
     while (hasEquals(bracket)) { // we need larger interval
         // check stopping conditions
         if (!checkBracketXTol(bracket, epsx)) { return false; }
@@ -147,9 +145,8 @@ bool findBracket(NoisyFunction &f1d, NoisyBracket &bracket /*inout*/, const int 
     }
 
     // Main Loop
-    while (true) {
-        // check stopping conditions
-        if (hasEquals(bracket)) { return false; } // we have equal function values again
+    while (!hasEquals(bracket)) { // stop if we have equal function values again
+        // check other stopping conditions
         if (!checkBracketXTol(bracket, epsx)) { return false; } // bracket violates tolerances
         if (isBracketed(bracket)) {
             writeBracketToLog("findBracket final", bracket);
@@ -172,14 +169,16 @@ bool findBracket(NoisyFunction &f1d, NoisyBracket &bracket /*inout*/, const int 
 
         writeBracketToLog("findBracket step", bracket);
     }
+    return false;
 }
 
 
-NoisyIOPair1D brentMin(NoisyFunction &f1d, NoisyBracket bracket, double epsx, double epsf)
+NoisyIOPair1D brentMin(NoisyFunction &f1d, NoisyBracket bracket, const int maxNIter, double epsx, double epsf)
 {
     //
     // Adaption of GNU Scientific Libraries's Brent minimization ( gsl/min/brent.c )
     //
+    using namespace m1d_detail;
 
     // Sanity
     if (f1d.getNDim() != 1) {
@@ -189,9 +188,7 @@ NoisyIOPair1D brentMin(NoisyFunction &f1d, NoisyBracket bracket, double epsx, do
     epsx = std::max(0., epsx);
     epsf = std::max(0., epsf);
 
-    // Initialization
-    constexpr int MAX_NITERATIONS = 100; // hard limit
-    constexpr double IGOLD2 = 0.3819660; // 1/(GOLDEN RATIO)^2
+    // --- Initialization
 
     // we reuse the bracket
     NoisyIOPair1D &lb = bracket.a; // lower bound
@@ -213,15 +210,15 @@ NoisyIOPair1D brentMin(NoisyFunction &f1d, NoisyBracket bracket, double epsx, do
     v.f = F(v.x);
     w = v;
 
-    // main brent loop
-    for (int it = 0; it < MAX_NITERATIONS; ++it) {
+    // --- Main Brent Loop
+    for (int it = 0; it < maxNIter; ++it) {
         if (!checkBracketXTol(bracket, epsx)) { break; } // bracket size too small, return early
         if (!checkBracketFTol(bracket, epsf)) { break; } // values too close, return early (noisy version)
 
         const double mtolb = m.x - lb.x;
         const double mtoub = ub.x - m.x;
         const double xm = 0.5*(lb.x + ub.x);
-        const double tol = 1.5e-08*fabs(m.x); // numeric tolerance
+        const double tol = 1.5e-08*fabs(m.x); // tolerance for strategy choice
 
         std::swap(d, e); // not sure why though
         NoisyIOPair1D u{};
@@ -248,7 +245,7 @@ NoisyIOPair1D brentMin(NoisyFunction &f1d, NoisyBracket bracket, double epsx, do
         }
 
         if (fabs(p) < fabs(0.5*q*r) && p < q*mtolb && p < q*mtoub) {
-            double t2 = 2*tol;
+            double t2 = 2.*tol;
             d = p/q;
             u.x = m.x + d;
             if ((u.x - lb.x) < t2 || (ub.x - u.x) < t2) {
@@ -300,36 +297,40 @@ NoisyIOPair1D brentMin(NoisyFunction &f1d, NoisyBracket bracket, double epsx, do
         writeBracketToLog("brentMin step", bracket);
     }
 
-    // return position with best noisy upper bound
+    // return best available position (decide by upper bound)
     writeBracketToLog("brentMin final", bracket);
-    if (lb.f.getUBound() < m.f.getUBound() || ub.f.getUBound() < m.f.getUBound()) {
-        return lb.f.getUBound() < ub.f.getUBound() ? lb : ub;
-    }
-    return m;
+    NoisyIOPair1D * pairs[5]{&m, &w, &v, &ub, &lb};
+    return **(std::min_element(pairs, pairs + 5, [](NoisyIOPair1D * a, NoisyIOPair1D * b) { return a->f.getUBound() < b->f.getUBound(); }));
 }
 
-NoisyIOPair multiLineMin(NoisyFunction &mdf, NoisyIOPair p0Pair, const std::vector<double> &dir,
-                         double stepLeft, double stepRight, const int maxNBracket, double epsx, double epsf)
+NoisyIOPair multiLineMin(NoisyFunction &mdf, NoisyIOPair p0Pair, const std::vector<double> &dir, MLMParams params)
 {
+    using namespace m1d_detail;
     // Sanity
     if (static_cast<size_t>(mdf.getNDim()) != p0Pair.x.size() || p0Pair.x.size() != dir.size()) {
         throw std::invalid_argument("[nfm::multiLineMin] The passed function and positions are inconsistent in size.");
     }
-    if (stepLeft <= 0. || stepRight <= 0.) {
-        throw std::invalid_argument("[nfm::multiLineMin] stepLeft and stepRight must be positive numbers.");
+    if (params.stepLeft < 0. || params.stepRight <= 0.) {
+        throw std::invalid_argument("[nfm::multiLineMin] stepLeft and stepRight must be non-negative (stepRight strictly positive).");
     }
+    // these should be non-zero
+    params.epsx = (params.epsx > 0) ? params.epsx : STD_XTOL;
+    params.epsf = (params.epsf > 0) ? params.epsf : STD_FTOL;
 
     // project the original multi-dim function into a one-dim function
     FunProjection1D proj1d(&mdf, p0Pair.x, dir);
 
     // prepare initial bracket (allow backstep via stepLeft)
-    NoisyBracket bracket{{-stepLeft, proj1d(-stepLeft)},
-                         {0.,        p0Pair.f},
-                         {stepRight, proj1d(stepRight)}};
+    const double ax = -params.stepLeft;
+    const double cx = params.stepRight;
+    const double bx = ax + (cx - ax)*IGOLD2; // golden section
+    NoisyBracket bracket{{ax, (fabs(ax) == 0.) ? p0Pair.f : proj1d(ax)}, // avoid recomputation
+                         {bx, proj1d(bx)},
+                         {cx, proj1d(cx)}};
 
-    if (findBracket(proj1d, bracket, maxNBracket, epsx)) { // valid bracket was stored in bracket
+    if (findBracket(proj1d, bracket, params.maxNBracket, params.epsx)) { // valid bracket was stored in bracket
         // now do line-minimization via brent
-        NoisyIOPair1D min1D = brentMin(proj1d, bracket, epsx, epsf);
+        NoisyIOPair1D min1D = brentMin(proj1d, bracket, params.maxNMinimize, params.epsx, params.epsf);
 
         if (min1D.f < p0Pair.f) { // reject new values that are not truly smaller
             // return new NoisyIOPair

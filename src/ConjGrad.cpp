@@ -1,6 +1,5 @@
 #include "nfm/ConjGrad.hpp"
 
-#include "nfm/1DTools.hpp"
 #include "nfm/LogManager.hpp"
 
 #include <cmath>
@@ -12,8 +11,8 @@ namespace nfm
 
 // --- Constructor
 
-ConjGrad::ConjGrad(NoisyFunctionWithGradient * targetfun, const double stepSize, const int max_n_bracketing):
-        NFM(targetfun), _stepSize(stepSize), _max_n_bracketing(std::max(1, max_n_bracketing)), _cgmode(CGMode::CGFR)
+ConjGrad::ConjGrad(NoisyFunctionWithGradient * targetfun, const MLMParams params):
+        NFM(targetfun), _mlmParams(params), _cgmode(CGMode::CGFR)
 {
     if (!_flag_gradfun) {
         throw std::invalid_argument("[ConjGrad] Conjugate Gradient optimization requires a target function with gradient.");
@@ -125,9 +124,12 @@ void ConjGrad::_findMin()
 
 void ConjGrad::_findNextX(const std::vector<double> &dir)
 {
+    // use NFM tolerances for MLM
+    _mlmParams.epsx = _epsx;
+    _mlmParams.epsf = _epsf;
+
     // do line-minimization and store result in last
-    _last = nfm::multiLineMin(*_targetfun, _last, dir, 0.5*_stepSize /*backstep*/, _stepSize/*fwdstep*/, _max_n_bracketing,
-                              std::max(_epsx, m1d_default::XTOL), std::max(_epsf, m1d_default::FTOL)); // keep non-zero tol for line-search algos
+    _last = nfm::multiLineMin(*_targetfun, _last, dir, _mlmParams);
     this->_storeLastValue();
 }
 } // namespace nfm

@@ -1,7 +1,7 @@
 #include <cassert>
 #include <iostream>
 
-#include "nfm/1DTools.hpp"
+#include "nfm/LineSearch.hpp"
 #include "nfm/ConjGrad.hpp"
 #include "nfm/LogManager.hpp"
 
