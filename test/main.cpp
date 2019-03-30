@@ -41,7 +41,7 @@ int main()
     xvec[0] = p3.x = 10.1;
     p3.f = f1d.f(xvec);
     NoisyBracket brk{p1, p2, p3};
-    nfm::findBracket(f1d, brk);
+    nfm::findBracket(f1d, brk, 10);
     cout << "a=" << brk.a.x << "     b=" << brk.b.x << "     c=" << brk.c.x << endl;
     cout << "fa=" << brk.a.f << "      fb=" << brk.b.f << "      fc=" << brk.c.f << endl << endl;
     LogManager::logString("\n\n=========================================================================\n\n");

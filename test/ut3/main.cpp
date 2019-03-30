@@ -24,7 +24,7 @@ int main()
     x[1] = 1.0;
     x[2] = 0.0;
 
-    const double XTOL = 0.10;
+    const double XTOL = 0.15;
     const double YTOL = 0.10;
     const double ZTOL = 0.10;
 

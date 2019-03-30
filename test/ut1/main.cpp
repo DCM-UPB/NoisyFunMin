@@ -56,28 +56,29 @@ int main()
 
     // a noisy function input/output pair and a bracket
     NoisyBracket bracket{};
+    const int nbracket = 10; // max bracketing attempts
     bool flag_success;
 
     // check parabola   x^2   ...
     Parabola parabola;
 
-    // ... starting from interval [-1000, 1]
-    bracket = prepareBracket(parabola, -1000., 1.);
-    flag_success = nfm::findBracket(parabola, bracket);
+    // ... starting from interval [-1000, -1]
+    bracket = prepareBracket(parabola, -1000., -1.);
+    flag_success = nfm::findBracket(parabola, bracket, nbracket);
     assert(flag_success);
     assertBracket(bracket, 0., 0.);
 
     // ... starting from interval [-5, 1000]
     LogManager::logString("\n\n=========================================================================\n\n");
     bracket = prepareBracket(parabola, 1000., -5.); // should be sorted in findBracket
-    flag_success = nfm::findBracket(parabola, bracket);
+    flag_success = nfm::findBracket(parabola, bracket, nbracket);
     assert(flag_success);
     assertBracket(bracket, 0., 0.);
 
-    // ... starting from interval [-1.5,10]
+    // ... starting from interval [-1.1,-0.9]
     LogManager::logString("\n\n=========================================================================\n\n");
-    bracket = prepareBracket(parabola, -1.5, 10.);
-    flag_success = nfm::findBracket(parabola, bracket);
+    bracket = prepareBracket(parabola, -1.1, -0.9);
+    flag_success = nfm::findBracket(parabola, bracket, nbracket);
     assert(flag_success);
     assertBracket(bracket, 0., 0.);
 
@@ -85,23 +86,37 @@ int main()
     // check well function   -1 if (-1 < x < 1) else +1   ...
     Well well;
 
-    // ... starting from interval [-1.25, 3.5]
+    // ... starting from interval [-1.1, 0.9]
     LogManager::logString("\n\n=========================================================================\n\n");
-    bracket = prepareBracket(well, -1.25, 5.5);
-    flag_success = nfm::findBracket(well, bracket);
+    bracket = prepareBracket(well, -1.1, 0.9);
+    flag_success = nfm::findBracket(well, bracket, nbracket);
     assert(flag_success);
     assertBracket(bracket, -1., 1.);
 
-    // ... starting from interval [-1000, 500]
+    // ... starting from interval [-1.1, -1]
     LogManager::logString("\n\n=========================================================================\n\n");
-    bracket = prepareBracket(well, -1000., 100.);
-    flag_success = nfm::findBracket(well, bracket);
+    bracket = prepareBracket(well, -1.1, -1.);
+    flag_success = nfm::findBracket(well, bracket, nbracket);
+    assert(flag_success);
+    assertBracket(bracket, -1., 1.);
+
+    // ... starting from interval [-5, -0]
+    LogManager::logString("\n\n=========================================================================\n\n");
+    bracket = prepareBracket(well, -5, 0.);
+    flag_success = nfm::findBracket(well, bracket, nbracket);
+    assert(flag_success);
+    assertBracket(bracket, -1., 1.);
+
+    // ... starting from interval [1, 2] ( this will fail )
+    LogManager::logString("\n\n=========================================================================\n\n");
+    bracket = prepareBracket(well, 1., 2.);
+    flag_success = nfm::findBracket(well, bracket, nbracket);
     assert(!flag_success);
 
-    // ... starting from interval [-1, 3]
+    // ... starting from interval [-1.5, 1.5] (should be fine immediately)
     LogManager::logString("\n\n=========================================================================\n\n");
-    bracket = prepareBracket(well, -1.1, 3.);
-    flag_success = nfm::findBracket(well, bracket);
+    bracket = prepareBracket(well, -1.1, 1.1);
+    flag_success = nfm::findBracket(well, bracket, nbracket);
     assert(flag_success);
     assertBracket(bracket, -1., 1.);
 

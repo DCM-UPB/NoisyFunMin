@@ -40,7 +40,7 @@ int main()
 
     cout << "Now we repeat the minimisation adding a noise to the function and its gradient." << endl;
 
-    Noisy2DParabola np;
+    Noisy2DParabola np(0.25); // sigma 0.25
 
     Adam adam2(&np, true /* use averaging to calculate final parameters */, 1.0 /* step size factor */);
     adam2.setX({-1., -1.});
@@ -54,3 +54,4 @@ int main()
     // end
     return 0;
 }
+

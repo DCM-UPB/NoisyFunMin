@@ -33,17 +33,24 @@ int main()
 
     cout << "Now we repeat the minimisation adding a noise to the function and its gradient." << endl;
 
-    Noisy2DParabola np;
-    ConjGrad cg2(&np);
+    cout << "First we try a small amount of noise:" << endl;
+    Noisy2DParabola np1(0.05); // sigma = 0.05
+    ConjGrad cg2(&np1);
     cg2.setX(initpos);
 
-    // For noisy CG we might want to increase the x tolerances
-    cg2.setEpsX(0.05);
-
     cg2.findMin();
-
     cout << "The found minimum is: ";
     cout << cg2.getX(0) << "    " << cg2.getX(1) << endl << endl;
+
+    cout << "Now we try a larger amount of noise:" << endl;
+    Noisy2DParabola np2(0.25); // sigma = 0.25
+    ConjGrad cg3(&np2);
+    cg3.setStepSize(0.5);
+    cg3.setX(initpos);
+
+    cg3.findMin();
+    cout << "The found minimum is: ";
+    cout << cg3.getX(0) << "    " << cg3.getX(1) << endl << endl;
 
     // end
     return 0;

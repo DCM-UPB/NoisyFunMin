@@ -20,7 +20,7 @@ class ConjGrad: public NFM
 {
 private:
     double _stepSize; // initial search interval size factor
-    int _max_n_bracketing; // maximal amount of findBracket() attempts (with 2x increased search area per try)
+    int _max_n_bracketing; // maximal amount of iterations in findBracket()
     CGMode _cgmode; // which gradients to use
 
     // --- Internal methods
@@ -31,7 +31,7 @@ private:
     void _findMin() final; // perform noisy CG minimization
 
 public:
-    explicit ConjGrad(NoisyFunctionWithGradient * targetfun, double stepSize = 1., int max_n_bracketing = 3);
+    explicit ConjGrad(NoisyFunctionWithGradient * targetfun, double stepSize = 1., int max_n_bracketing = 10);
     ~ConjGrad() final = default;
 
     // CG Configuration

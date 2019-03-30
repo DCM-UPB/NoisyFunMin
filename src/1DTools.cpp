@@ -9,6 +9,8 @@
 
 // --- Internal Functions
 
+// - Non-throwing checks
+
 // check bracket for position tolerances:
 // - epsx: Minimum bracket size / numerical tolerance
 inline bool checkBracketXTol(const nfm::NoisyBracket &bracket, const double epsx)
@@ -27,33 +29,41 @@ inline bool checkBracketFTol(const nfm::NoisyBracket &bracket, const double epsf
     return fdist > epsf;
 }
 
+// are there neighbouring values that are equal (within error) ?
+inline bool hasEquals(const nfm::NoisyBracket &bracket)
+{
+    return ((bracket.a.f == bracket.b.f) || (bracket.b.f == bracket.c.f));
+}
+
 // does bracket fulfill the bracketing condition a.f. > b.f < c.f
 inline bool isBracketed(const nfm::NoisyBracket &bracket)
 {
     return (bracket.a.f > bracket.b.f && bracket.b.f < bracket.c.f);
 }
 
+// - Throwing checks
+
 // throw on invalid bracket X
-inline void checkBracketX(const double ax, const double bx, const double cx, const std::string &callerName)
+inline void validateBracketX(const double ax, const double bx, const double cx, const std::string &callerName)
 {
     if (ax >= cx) {
-        throw std::invalid_argument("[" + callerName + "->checkBracketX] Bracket violates (a.x < c.x).");
+        throw std::invalid_argument("[" + callerName + "->validateBracketX] Bracket violates (a.x < c.x).");
     }
     if (bx >= cx || bx <= ax) {
-        throw std::invalid_argument("[" + callerName + "->checkBracketX] Bracket violates (a.x < b.x < c.x).");
+        throw std::invalid_argument("[" + callerName + "->validateBracketX] Bracket violates (a.x < b.x < c.x).");
     }
 }
 
 // throw on invalid bracket
-inline void checkBracket(const nfm::NoisyBracket &bracket, const std::string &callerName)
+inline void validateBracket(const nfm::NoisyBracket &bracket, const std::string &callerName)
 {
-    checkBracketX(bracket.a.x, bracket.b.x, bracket.c.x, callerName);
+    validateBracketX(bracket.a.x, bracket.b.x, bracket.c.x, callerName);
     if (!isBracketed(bracket)) {
-        throw std::invalid_argument("[" + callerName + "->checkBracket] Bracket violates (a.f > b.f < c.f).");
+        throw std::invalid_argument("[" + callerName + "->validateBracket] Bracket violates (a.f > b.f < c.f).");
     }
 }
 
-// other helper functions
+// Other helper functions
 template <class T>
 inline void shiftABC(T &a, T &b, T &c, const T d)
 {
@@ -84,28 +94,28 @@ void writeBracketToLog(const std::string &key, const NoisyBracket &bracket)
     LogManager::logString(s.str(), LogLevel::VERBOSE);
 }
 
-bool findBracket(NoisyFunction &f1d, NoisyBracket &bracket /*inout*/, double epsx)
+bool findBracket(NoisyFunction &f1d, NoisyBracket &bracket /*inout*/, const int maxNIter, double epsx)
 {
     // Noisy findBracket Algorithm
-    // Inspired by GNU Scientific Libraries's findBracket ( gsl/min/bracketing.c )
+    // Mix of own ideas and GSL's findBracket ( gsl/min/bracketing.c )
 
     // Sanity
     if (f1d.getNDim() != 1) {
         throw std::invalid_argument("[nfm::findBracket] The NoisyFunction is not 1D. Ndim=" + std::to_string(f1d.getNDim()));
     }
     bracket = sortedBracket(bracket); // ensure proper ordering
-    checkBracketX(bracket.a.x, bracket.b.x, bracket.c.x, "nfm::findBracket"); // ensure valid bracket
+    validateBracketX(bracket.a.x, bracket.b.x, bracket.c.x, "nfm::findBracket"); // ensure valid bracket (else throw)
     epsx = std::max(0., epsx);
 
     // Initialization
-    constexpr double GOLDEN = 0.3819660; // stretch factor for successive steps
-    constexpr int NEVAL_LIMIT = 10; // how many function evaluations to allow until throwing
+    constexpr double IGOLD2 = 0.3819660; // 1/(GOLDEN RATIO)^2
 
     NoisyIOPair1D &a = bracket.a;
     NoisyIOPair1D &b = bracket.b;
     NoisyIOPair1D &c = bracket.c;
 
     // shortcut lambda
+    int iter = 0; // keeps track of loop iteration count (overall)
     std::vector<double> xvec(1); // helper array to invoke noisy function
     std::function<NoisyValue(double x)> F = [&](const double x)
     {
@@ -113,44 +123,50 @@ bool findBracket(NoisyFunction &f1d, NoisyBracket &bracket /*inout*/, double eps
         return f1d(xvec);
     };
 
-    // findBracket algorithm
+    // Noisy Find Bracket algorithm
+    // Returns true when valid bracket found, else false.
 
-    // initial step
-    if (isBracketed(bracket)) { // return early with success
-        writeBracketToLog("findBracket final", bracket);
-        return true;
-    }
-    if (c.f < a.f || a.f == b.f || b.f == c.f) { // increase interval
-        b = c;
-        c.x = (b.x - a.x)/GOLDEN + a.x;
-        c.f = F(c.x);
-    }
-    else { // keep interval (choose new b)
-        b.x = (c.x - a.x)*GOLDEN + a.x;
-        b.f = F(b.x);
-    }
+    writeBracketToLog("findBracket init", bracket);
 
-    // Main findBracket loop. If bracket OK, returns true.
-    // If false is returned, no valid bracket could be found.
-    int ieval = 1; // keeps track of number of function evaluations ( we count one already)
-    while (true) {
-        if (isBracketed(bracket)) { // return with success
+    // Pre-Processing
+    while (hasEquals(bracket)) { // we need larger interval
+        // check stopping conditions
+        if (!checkBracketXTol(bracket, epsx)) { return false; }
+        if (isBracketed(bracket)) {
             writeBracketToLog("findBracket final", bracket);
-            return true;
+            return true; // return with early success
         }
-        // check tolerances, if fail return without success
-        if (ieval++ > NEVAL_LIMIT) { return false; } // evaluation limit
-        if (!checkBracketXTol(bracket, epsx)) { return false; } // bracket violates tolerances
+        if (iter++ > maxNIter) { return false; } // evaluation limit
 
-        // continue with the iteration
-        if (b.f < a.f) {
-            // b.f >= c.f (else we would have returned above)
-            shiftABC(a.x, b.x, c.x, (c.x - a.x)/GOLDEN + a.x);
+        // scale up
+        b = c;
+        c.x = a.x + (b.x - a.x)/IGOLD2;
+        c.f = F(c.x);
+
+        writeBracketToLog("findBracket pre-step", bracket);
+    }
+
+    // Main Loop
+    while (true) {
+        // check stopping conditions
+        if (hasEquals(bracket)) { return false; } // we have equal function values again
+        if (!checkBracketXTol(bracket, epsx)) { return false; } // bracket violates tolerances
+        if (isBracketed(bracket)) {
+            writeBracketToLog("findBracket final", bracket);
+            return true; // return with success (i.e. a.f > b.f < c.f ruled out below)
+        }
+        if (iter++ > maxNIter) { return false; } // evaluation limit
+
+        // regular iteration (equals ruled out)
+        if (b.f < a.f) { // -> a.f > b.f > c.f (else we would have returned successful)
+            // move up
+            shiftABC(a.x, b.x, c.x, (c.x - b.x)/IGOLD2 + b.x);
             shiftABC(a.f, b.f, c.f, F(c.x));
         }
-        else { // b.f >= a.f
+        else { // -> a.f < b.f < c.f || a.f < b.f > c.f
+            // contract
             c = b;
-            b.x = (c.x - a.x)*GOLDEN + a.x;
+            b.x = (c.x - a.x)*IGOLD2 + a.x;
             b.f = F(b.x);
         }
 
@@ -169,13 +185,13 @@ NoisyIOPair1D brentMin(NoisyFunction &f1d, NoisyBracket bracket, double epsx, do
     if (f1d.getNDim() != 1) {
         throw std::invalid_argument("[nfm::brentMin] The NoisyFunction is not 1D. Ndim=" + std::to_string(f1d.getNDim()));
     }
-    checkBracket(bracket, "nfm::brentMin"); // check for valid bracket
+    validateBracket(bracket, "nfm::brentMin"); // check for valid bracket
     epsx = std::max(0., epsx);
     epsf = std::max(0., epsf);
 
     // Initialization
-    constexpr int MAX_NITERATIONS = 100;
-    constexpr double GOLDEN = 0.3819660;
+    constexpr int MAX_NITERATIONS = 100; // hard limit
+    constexpr double IGOLD2 = 0.3819660; // 1/(GOLDEN RATIO)^2
 
     // we reuse the bracket
     NoisyIOPair1D &lb = bracket.a; // lower bound
@@ -193,7 +209,7 @@ NoisyIOPair1D brentMin(NoisyFunction &f1d, NoisyBracket bracket, double epsx, do
     // initialize helpers
     double d = 0., e = 0.;
     NoisyIOPair1D v{}, w{};
-    v.x = lb.x + GOLDEN*(ub.x - lb.x);
+    v.x = lb.x + IGOLD2*(ub.x - lb.x);
     v.f = F(v.x);
     w = v;
 
@@ -207,7 +223,7 @@ NoisyIOPair1D brentMin(NoisyFunction &f1d, NoisyBracket bracket, double epsx, do
         const double xm = 0.5*(lb.x + ub.x);
         const double tol = 1.5e-08*fabs(m.x); // numeric tolerance
 
-        std::swap(d, e); // not sure why this is in the original
+        std::swap(d, e); // not sure why though
         NoisyIOPair1D u{};
 
         double p = 0.;
@@ -241,7 +257,7 @@ NoisyIOPair1D brentMin(NoisyFunction &f1d, NoisyBracket bracket, double epsx, do
         }
         else {
             e = (m.x < xm) ? ub.x - m.x : -(m.x - lb.x);
-            d = GOLDEN*e;
+            d = IGOLD2*e;
         }
 
         if (fabs(d) >= tol) {
@@ -285,15 +301,15 @@ NoisyIOPair1D brentMin(NoisyFunction &f1d, NoisyBracket bracket, double epsx, do
     }
 
     // return position with best noisy upper bound
+    writeBracketToLog("brentMin final", bracket);
     if (lb.f.getUBound() < m.f.getUBound() || ub.f.getUBound() < m.f.getUBound()) {
         return lb.f.getUBound() < ub.f.getUBound() ? lb : ub;
     }
-    writeBracketToLog("brentMin final", bracket);
     return m;
 }
 
 NoisyIOPair multiLineMin(NoisyFunction &mdf, NoisyIOPair p0Pair, const std::vector<double> &dir,
-                         double stepLeft, double stepRight, const int maxNTries, double epsx, double epsf)
+                         double stepLeft, double stepRight, const int maxNBracket, double epsx, double epsf)
 {
     // Sanity
     if (static_cast<size_t>(mdf.getNDim()) != p0Pair.x.size() || p0Pair.x.size() != dir.size()) {
@@ -307,29 +323,22 @@ NoisyIOPair multiLineMin(NoisyFunction &mdf, NoisyIOPair p0Pair, const std::vect
     FunProjection1D proj1d(&mdf, p0Pair.x, dir);
 
     // prepare initial bracket (allow backstep via stepLeft)
-    double scale = 1.; // factor to increase initial stepLeft/Right
-    bool bracket_found = false;
-    NoisyBracket bracket{};
-    for (int i = 0; i < maxNTries; ++i) {
-        bracket.a = {-scale*stepLeft, proj1d(-scale*stepLeft)};
-        bracket.b = {0., p0Pair.f};
-        bracket.c = {scale*stepRight, proj1d(scale*stepRight)};
-        bracket_found = findBracket(proj1d, bracket, epsx);
-        if (bracket_found) { break; } // we are fine
-        scale *= 2.; // try with larger interval
-    }
+    NoisyBracket bracket{{-stepLeft, proj1d(-stepLeft)},
+                         {0.,        p0Pair.f},
+                         {stepRight, proj1d(stepRight)}};
 
-    // now brent the minimum in the bracket
-    if (bracket_found) { // valid bracket was stored in bracket
-        // line-minmization via brent
+    if (findBracket(proj1d, bracket, maxNBracket, epsx)) { // valid bracket was stored in bracket
+        // now do line-minimization via brent
         NoisyIOPair1D min1D = brentMin(proj1d, bracket, epsx, epsf);
 
-        // return NoisyIOPair
-        p0Pair.f = min1D.f; // store the minimal f value
-        proj1d.getVecFromX(min1D.x, p0Pair.x); // get the true x position
+        if (min1D.f < p0Pair.f) { // reject new values that are not truly smaller
+            // return new NoisyIOPair
+            p0Pair.f = min1D.f; // store the minimal f value
+            proj1d.getVecFromX(min1D.x, p0Pair.x); // get the true x position
+            return p0Pair;
+        }
     }
-
-    // return the new state (unchanged if bracketing failed)
+    // return the old state unchanged
     return p0Pair;
 }
 } // namespace nfm

@@ -36,7 +36,7 @@ int main()
 
     cout << "Now we repeat the minimisation adding a noise to the function and its gradient." << endl;
 
-    Noisy2DParabola np;
+    Noisy2DParabola np(0.25); // sigma 0.25
     DynamicDescent dd2(&np);
     dd2.setGradErrStop(false); // works fine without stopping on noisy/small gradients
     dd2.setAveraging(true); // especially with this option
