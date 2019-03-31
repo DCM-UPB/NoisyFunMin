@@ -26,7 +26,8 @@ int main()
     dd.setX(initpos);
 
     // in the case without noise we change settings
-    dd.setStepSize(0.5); // a larger step size
+    dd.setStepSize(0.5); // the magic step size
+    dd.setBeta(0.); // disable momentum
     dd.setEpsF(0.001); // we should enable stopping on too small function changes
 
     // and now find the min
@@ -38,6 +39,7 @@ int main()
 
     cout << "Now we repeat the minimisation adding a noise to the function and its gradient." << endl;
 
+    // here we use different settings
     NoisyWrapper np(&nlp, 0.25); // sigma 0.25
     DynamicDescent dd2(&np);
     dd2.setStepSize(0.01); // a smaller step size

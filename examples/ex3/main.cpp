@@ -26,11 +26,12 @@ int main()
     Adam adam(&nlp);
     adam.setX({2.5, 1., -1.});
 
-    // make sure that the noiseless case converges quickly
-    adam.setAlpha(0.1);
+    // Make sure that the noiseless case converges quickly
+    // Note that using Adam for noiseless optimization is abuse
+    adam.setAlpha(0.5);
     adam.setBeta1(0.1);
     adam.setBeta2(0.5);
-    adam.setEpsF(0.001);
+    adam.setEpsF(0.01); // stop on too small function changes
     adam.findMin();
 
     cout << "The found minimum is: ";

@@ -10,22 +10,25 @@ namespace nfm
 
 enum class CGMode
 {
-    NOCG, /* use raw gradients */
-    CGFR, /* use Fletcher-Reeves CG */
-    CGPR, /* use Polak-Ribiere CG */
-    CGPR0  /* use PR-CG with reset */
+    NOCG, /* use raw gradients (i.e. steepest descent) */
+    CGFR, /* Fletcher-Reeves CG */
+    CGPR, /* Polak-Ribiere CG */
+    CGPR0 /* PR-CG with reset */
 };
 
 // Noisy Conjugate-Gradient Minimization
-// Use when gradients are expensive to compute and the noise is relatively small.
 //
+// Useful when gradients are expensive to compute
+// and the noise is moderate. In such cases it might
+// be the fastest optimization method in this library.
 class ConjGrad: public NFM
 {
 private:
-    MLMParams _mlmParams;  // line search configuration
     CGMode _cgmode; // which gradients to use
+    MLMParams _mlmParams;  // line search configuration (see LineSearch.hpp)
 
     // --- Internal methods
+    bool _computeGradient(std::vector<NoisyValue> &grad, bool flag_value);
     void _findNextX(const std::vector<double> &dir); // do line-search
     void _writeCGDirectionToLog(const std::vector<double> &dir, const std::string &name) const;
 
@@ -33,7 +36,7 @@ private:
     void _findMin() final; // perform noisy CG minimization
 
 public:
-    explicit ConjGrad(NoisyFunctionWithGradient * targetfun, MLMParams params = defaultMLMParams());
+    explicit ConjGrad(NoisyFunctionWithGradient * targetfun, CGMode cgmode = CGMode::CGFR, MLMParams params = defaultMLMParams());
     ~ConjGrad() final = default;
 
     // CG Configuration

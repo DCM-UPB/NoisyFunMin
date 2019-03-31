@@ -11,8 +11,8 @@ namespace nfm
 
 // --- Constructor
 
-ConjGrad::ConjGrad(NoisyFunctionWithGradient * targetfun, const MLMParams params):
-        NFM(targetfun), _mlmParams(params), _cgmode(CGMode::CGFR)
+ConjGrad::ConjGrad(NoisyFunctionWithGradient * targetfun, const CGMode cgmode, const MLMParams params):
+        NFM(targetfun), _cgmode(cgmode), _mlmParams(params)
 {
     if (!_flag_gradfun) {
         throw std::invalid_argument("[ConjGrad] Conjugate Gradient optimization requires a target function with gradient.");
@@ -34,23 +34,15 @@ void ConjGrad::_writeCGDirectionToLog(const std::vector<double> &dir, const std:
 
 void ConjGrad::_findMin()
 {
-    using namespace std;
-
     // --- Starting Position
 
     LogManager::logString("\nBegin ConjGrad::findMin() procedure\n");
 
     // obtain the initial function value and gradient (uphill)
     std::vector<NoisyValue> gradh(static_cast<size_t>(_ndim));
-    _last.f = _gradfun->fgrad(_last.x, gradh);
-    this->_storeLastValue();
-    this->_writeGradientToLog(gradh);
+    bool flag_cont = this->_computeGradient(gradh, true); // compute grad and value
+    if (!flag_cont) { return; } // return early
 
-    // initial sanity check
-    if (this->_isGradNoisySmall(gradh)) {
-        LogManager::logString("\nEnd ConjGrad::findMin() procedure\n");
-        return;
-    }
 
     // --- Initialize CG
 
@@ -70,9 +62,8 @@ void ConjGrad::_findMin()
     // the denominator of CG update ratio
     double gdot_old = std::inner_product(gradnew.begin(), gradnew.end(), gradnew.begin(), 0.);
 
-
-    LogManager::logString("\nConjGrad::findMin() Initial Step\n");
     // find initial new position
+    LogManager::logString("\nConjGrad::findMin() Init Step\n");
     this->_findNextX(conjv);
 
 
@@ -84,10 +75,9 @@ void ConjGrad::_findMin()
         LogManager::logString("\nConjGrad::findMin() Step " + std::to_string(cont) + "\n");
 
         // evaluate the new gradient
-        _gradfun->grad(_last.x, gradh);
-        this->_writeGradientToLog(gradh);
-        if (this->_isGradNoisySmall(gradh)) { break; }
-        for (int i = 0; i < _ndim; ++i) { gradnew[i] = -gradh[i].value; } // negative gradient
+        flag_cont = this->_computeGradient(gradh, false); // compute only gradients
+        if (!flag_cont) { return; } // gradient is only noise
+        for (int i = 0; i < _ndim; ++i) { gradnew[i] = -gradh[i].value; } // store negative gradient
 
         // compute the next direction to follow
         if (_cgmode == CGMode::NOCG) { // use raw gradient (i.e. steepest descent)
@@ -125,6 +115,23 @@ void ConjGrad::_findMin()
 
 
 // --- Internal methods
+
+bool ConjGrad::_computeGradient(std::vector<NoisyValue> &grad, const bool flag_value)
+{
+    if (flag_value) { // also compute and store value
+        _last.f = _gradfun->fgrad(_last.x, grad);
+        this->_storeLastValue();
+    }
+    else { // only gradient
+        _gradfun->grad(_last.x, grad);
+    }
+    this->_writeGradientToLog(grad);
+    if (this->_isGradNoisySmall(grad)) { // we directly check and print the exit message here
+        LogManager::logString("\nEnd ConjGrad::findMin() procedure\n");
+        return false;
+    }
+    return true;
+}
 
 void ConjGrad::_findNextX(const std::vector<double> &dir)
 {

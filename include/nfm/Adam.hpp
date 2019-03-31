@@ -10,6 +10,12 @@
 namespace nfm
 {
 
+// Adam algorithm, based on https://arxiv.org/abs/1412.6980
+//
+// This method is similar in principle to the optimization
+// methods provided by the DynamicDescent class. However,
+// Adam has a more complex update scheme involving second
+// order momentum and it provides an inherent averaging method.
 class Adam: public NFM
 {
 private:
