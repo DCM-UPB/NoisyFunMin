@@ -16,7 +16,7 @@ NFM::NFM(NoisyFunction * targetfun):
         _ndim(targetfun->getNDim()), _targetfun(targetfun),
         _gradfun(dynamic_cast<NoisyFunctionWithGradient *>(_targetfun)), _flag_gradfun(_gradfun != nullptr),
         _epsx(DEFAULT_EPSX), _epsf(DEFAULT_EPSF), _flag_graderr(_flag_gradfun ? _gradfun->hasGradErr() : false),
-        _last(NoisyIOPair(_ndim)), _max_n_iterations(0), _max_n_const_values(DEFAULT_MAX_N_CONST) {}
+        _max_n_iterations(0), _max_n_const_values(DEFAULT_MAX_N_CONST), _last(NoisyIOPair(_ndim)) {}
 
 // --- Private methods
 
@@ -31,7 +31,7 @@ bool NFM::_isConverged() const
                 return false;
             }
         }
-        LogManager::logString("\nCost function has stabilised, interrupting minimization procedure.\n");
+        LogManager::logString("\nStopping Reason: Target function list has stabilized.\n");
         return true;
     }
 
@@ -56,9 +56,26 @@ void NFM::_updateDeltas()
     }
 }
 
-bool NFM::_checkDeltas() const
+bool NFM::_changedEnough() const
 {
-    return ((_epsx <= 0. || _lastDeltaX >= _epsx) && (_epsf <= 0. || _lastDeltaF >= _epsf));
+    if (_epsx > 0. && _lastDeltaX < _epsx) {
+        LogManager::logString("\nStopping Reason: Position did not change enough.\n");
+        return false;
+    }
+    if (_epsf > 0. && _lastDeltaF < _epsf) {
+        LogManager::logString("\nStopping Reason: Target function did not change enough.\n");
+        return false;
+    }
+    return true;
+}
+
+bool NFM::_stepLimitReached() const
+{
+    if (_max_n_iterations > 0 && _istep >= _max_n_iterations) {
+        LogManager::logString("\nStopping Reason: Maximal iteration count reached.\n");
+        return true;
+    }
+    return false;
 }
 
 // --- Protected methods
@@ -86,23 +103,23 @@ void NFM::_averageOldValues()
 }
 
 
-bool NFM::_meaningfulGradient(const std::vector<NoisyValue> &grad) const
+bool NFM::_isGradNoisySmall(const std::vector<NoisyValue> &grad, const bool flag_log) const
 {
     if (_flag_graderr && _gradfun->hasGradErr()) {
         for (const NoisyValue &gi : grad) {
-            if (gi != 0.) { return true; } // use noisy value overload
+            if (gi != 0.) { return false; } // use noisy value overload
         }
-        LogManager::logString("\nGradient seems to be meaningless, i.e. its error is too large.\n");
-        return false;
+        if (flag_log) { LogManager::logString("\nStopping Reason: Gradient is dominated by noise.\n"); }
+        return true;
     }
-    return true;
+    return false;
 }
 
 bool NFM::_shouldStop(const std::vector<NoisyValue> * grad) const
 {   // check all stopping criteria
-    bool answer = (_isConverged() || !_checkDeltas() || (_max_n_iterations > 0 && _istep >= _max_n_iterations));
+    bool answer = (_isConverged() || !_changedEnough() || _stepLimitReached());
     if (grad != nullptr) {
-        answer = answer || !_meaningfulGradient(*grad);
+        answer = answer || _isGradNoisySmall(*grad);
     }
     return answer;
 }

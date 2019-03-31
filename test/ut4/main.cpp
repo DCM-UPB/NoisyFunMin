@@ -33,7 +33,7 @@ int main()
     assert(fabs(dyndesc.getX(2) - 0.5) < 0.1);
 
     // also with averaging
-    dyndesc.setAveraging(true);
+    dyndesc.setAveraging(false);
     dyndesc.setMaxNConstValues(5);
     dyndesc.setX(x);
     dyndesc.findMin();

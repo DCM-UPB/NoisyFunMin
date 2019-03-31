@@ -7,56 +7,62 @@
 #include <random>
 
 
-class Noiseless2DParabola: public nfm::NoisyFunctionWithGradient
+class Noiseless3DParabola: public nfm::NoisyFunctionWithGradient
 {
 public:
-    Noiseless2DParabola(): nfm::NoisyFunctionWithGradient(2, true) {}
+    Noiseless3DParabola(): nfm::NoisyFunctionWithGradient(3, true) {}
 
     nfm::NoisyValue f(const std::vector<double> &in) override
     {
         nfm::NoisyValue y{};
-        y.value = pow(in[0] - 1., 2) + pow(in[1] + 2., 2);   // minimum in (1, -2)
+        y.value = pow(in[0], 2) + pow(in[1] + 1., 2) + pow(in[2] - 2., 2);   // minimum in (0, -1, 2)
         return y;
     }
 
     void grad(const std::vector<double> &in, std::vector<nfm::NoisyValue> &grad) override
     {
-        grad[0].value = 2.*(in[0] - 1.);
-        grad[1].value = 2.*(in[1] + 2.);
+        grad[0].value = 2*in[0];
+        grad[1].value = 2.*(in[1] + 1.);
+        grad[2].value = 2.*(in[2] - 2.);
     }
 };
 
-
-class Noisy2DParabola: public nfm::NoisyFunctionWithGradient
+class NoisyWrapper: public nfm::NoisyFunctionWithGradient
 {
 private:
-    const double _sigma;
+    nfm::NoisyFunctionWithGradient * const _nlfun; // the noiseless function to wrap
+    double _sigma;
     std::random_device _rdev;
     std::mt19937_64 _rgen;
-    std::uniform_real_distribution<double> _rd;  //after initialization (done in the constructor) can be used with _rd(_rgen)
+    std::normal_distribution<double> _rd; // this returns random doubles when called as_rd(_rgen)
 
 public:
-    Noisy2DParabola(double sigma = 0.2): nfm::NoisyFunctionWithGradient(2, true), _sigma(sigma)
+    explicit NoisyWrapper(nfm::NoisyFunctionWithGradient * fun, double sigma = 1.):
+    nfm::NoisyFunctionWithGradient(fun->getNDim(), fun->hasGradErr()), _nlfun(fun), _sigma(sigma)
     {
         // initialize random generator
         _rgen = std::mt19937_64(_rdev());
-        _rd = std::uniform_real_distribution<double>(-_sigma, _sigma);
+        _rd = std::normal_distribution<double>(0., _sigma);
     }
 
-    nfm::NoisyValue f(const std::vector<double> &in) override
+    nfm::NoisyValue makeValueNoisy(nfm::NoisyValue nv, double sigfac = 1.) // a factor to increase error
     {
-        nfm::NoisyValue y{_rd(_rgen), _sigma};
-        y.value += pow(in[0] - 1., 2) + pow(in[1] + 2., 2);   // minimum in (1, -2)
-        return y;
+        nv.value += sigfac*_rd(_rgen);
+        nv.error = sigfac*_sigma;
+        return nv;
     }
 
-    void grad(const std::vector<double> &in, std::vector<nfm::NoisyValue> &grad) override
+    nfm::NoisyValue f(const std::vector<double> &in) final
     {
-        grad[0].value = 2.*(in[0] - 1.) + 2.*_rd(_rgen);
-        grad[1].value = 2.*(in[1] + 2.) + 2.*_rd(_rgen);
-        grad[0].error = 2.*_sigma;
-        grad[1].error = 2.*_sigma;
+        return makeValueNoisy(_nlfun->f(in)); // use helper function above
+    }
+
+    void grad(const std::vector<double> &in, std::vector<nfm::NoisyValue> &grad) final
+    {
+        _nlfun->grad(in, grad);
+        for (auto & gi : grad) { gi = makeValueNoisy(gi, 2.); } // gradients have larger error
     }
 };
+
 
 #endif

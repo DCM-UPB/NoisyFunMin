@@ -297,11 +297,13 @@ NoisyIOPair1D brentMin(NoisyFunction &f1d, NoisyBracket bracket, const int maxNI
         writeBracketToLog("brentMin step", bracket);
     }
 
-    // return best available position (decide by upper bound)
+    // Return pair with best upper error bound (out of all stored pairs)
+    // This might seem inconsistent, but has proven worthy in practice.
     writeBracketToLog("brentMin final", bracket);
-    NoisyIOPair1D * pairs[5]{&m, &w, &v, &ub, &lb};
-    return **(std::min_element(pairs, pairs + 5, [](NoisyIOPair1D * a, NoisyIOPair1D * b) { return a->f.getUBound() < b->f.getUBound(); }));
+    NoisyIOPair1D *pairs[5]{&m, &v, &w, &ub, &lb};
+    return **std::min_element(pairs, pairs + 5, [](NoisyIOPair1D * a, NoisyIOPair1D * b) { return a->f.getUBound() < b->f.getUBound(); });
 }
+
 
 NoisyIOPair multiLineMin(NoisyFunction &mdf, NoisyIOPair p0Pair, const std::vector<double> &dir, MLMParams params)
 {
@@ -332,7 +334,7 @@ NoisyIOPair multiLineMin(NoisyFunction &mdf, NoisyIOPair p0Pair, const std::vect
         // now do line-minimization via brent
         NoisyIOPair1D min1D = brentMin(proj1d, bracket, params.maxNMinimize, params.epsx, params.epsf);
 
-        if (min1D.f < p0Pair.f) { // reject new values that are not truly smaller
+        if (min1D.f <= p0Pair.f) { // reject new values that are truly larger
             // return new NoisyIOPair
             p0Pair.f = min1D.f; // store the minimal f value
             proj1d.getVecFromX(min1D.x, p0Pair.x); // get the true x position

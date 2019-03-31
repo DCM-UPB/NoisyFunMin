@@ -17,8 +17,8 @@ enum class CGMode
 };
 
 // Noisy Conjugate-Gradient Minimization
-// Works when target/gradient noisy is small,
-// otherwise use a proper stochastic optimizer.
+// Use when gradients are expensive to compute and the noise is relatively small.
+//
 class ConjGrad: public NFM
 {
 private:

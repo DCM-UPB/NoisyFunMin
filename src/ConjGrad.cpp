@@ -17,6 +17,10 @@ ConjGrad::ConjGrad(NoisyFunctionWithGradient * targetfun, const MLMParams params
     if (!_flag_gradfun) {
         throw std::invalid_argument("[ConjGrad] Conjugate Gradient optimization requires a target function with gradient.");
     }
+    // overwrite defaults
+    _max_n_const_values = 1; // don't use the check by default
+    _epsx = m1d_detail::STD_XTOL; // because this means we stop on reject line search
+    _epsf = m1d_detail::STD_FTOL; // and this means we stop if it didn't improve target significantly (beyond tol+errors)
 }
 
 // --- Logging
@@ -43,7 +47,7 @@ void ConjGrad::_findMin()
     this->_writeGradientToLog(gradh);
 
     // initial sanity check
-    if (!this->_meaningfulGradient(gradh)) {
+    if (this->_isGradNoisySmall(gradh)) {
         LogManager::logString("\nEnd ConjGrad::findMin() procedure\n");
         return;
     }
@@ -67,7 +71,7 @@ void ConjGrad::_findMin()
     double gdot_old = std::inner_product(gradnew.begin(), gradnew.end(), gradnew.begin(), 0.);
 
 
-    LogManager::logString("\n\nConjGrad::findMin() Initial Step\n");
+    LogManager::logString("\nConjGrad::findMin() Initial Step\n");
     // find initial new position
     this->_findNextX(conjv);
 
@@ -77,12 +81,12 @@ void ConjGrad::_findMin()
     int cont = 0;
     while (!this->_shouldStop()) {
         ++cont;
-        LogManager::logString("\n\nConjGrad::findMin() Step " + std::to_string(cont) + "\n");
+        LogManager::logString("\nConjGrad::findMin() Step " + std::to_string(cont) + "\n");
 
         // evaluate the new gradient
         _gradfun->grad(_last.x, gradh);
         this->_writeGradientToLog(gradh);
-        if (!this->_meaningfulGradient(gradh)) { break; }
+        if (this->_isGradNoisySmall(gradh)) { break; }
         for (int i = 0; i < _ndim; ++i) { gradnew[i] = -gradh[i].value; } // negative gradient
 
         // compute the next direction to follow

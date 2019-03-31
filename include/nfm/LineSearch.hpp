@@ -50,7 +50,7 @@ namespace m1d_detail
 {
 static constexpr double GOLDEN = 1.618033988749895; // Golden Ratio
 static constexpr double IGOLD2 = 1/(GOLDEN*GOLDEN); // 0.38196601125010515
-static constexpr double STD_XTOL = 1.e-8; // default x tolerance
+static constexpr double STD_XTOL = 1.e-5; // default x tolerance
 static constexpr double STD_FTOL = 1.e-8; // default f tolerance
 } // namespace m1d_detail
 

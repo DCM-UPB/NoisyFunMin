@@ -13,8 +13,8 @@ namespace nfm
 class NFM
 {
 protected:
-    // Default values for general NFM parameters
-    static constexpr int DEFAULT_MAX_N_CONST = 20; // stop on maximal number of constant values
+    // Default values for general NFM parameters (childs may use different defaults)
+    static constexpr int DEFAULT_MAX_N_CONST = 20; // stop on maximal number of noisy-constant values
     static constexpr double DEFAULT_EPSX = 1.e-5; // stop on minimal position change
     static constexpr double DEFAULT_EPSF = 0.; // stop on minimal target function change
 
@@ -25,18 +25,17 @@ protected:
     const bool _flag_gradfun; // has the gradient been provided?
 
     // Stopping Tolerances (may also be used by child to auto-set own tolerances, e.g. for line search)
-    double _epsx; // changes in the position x smaller than this value will stop the minimization
-    double _epsf; // changes in the function smaller than this value will stop the minimization
+    double _epsx; // changes in the position x smaller than this value will stop the minimization (if 0, disabled)
+    double _epsf; // changes in the function smaller than this value will stop the minimization (if 0, disabled)
     bool _flag_graderr; // should we consider gradient errors for stopping? (if targetfun supports it)
+    int _max_n_iterations; // hard stop after this amount of iterations (if 0, disabled (the default!))
+    int _max_n_const_values; // stop after this number of target values have been constant within error bounds (if <= 1, disabled)
 
     // Members to be updated by child
     NoisyIOPair _last; // last position and its function value
     std::list<NoisyIOPair> _old_values; // list of previous target values and positions
 
 private: // Base class only
-    int _max_n_iterations; // hard stop after this amount of iterations (if 0, disabled)
-    int _max_n_const_values; // stop after this number of target values have been constant within error bounds (if <= 1, disabled)
-
     double _lastDeltaX{}; // change in x by last step (updated on storeLastValue)
     double _lastDeltaF{}; // change in f by last step (updated on storeLastalue)
     int _istep{}; // counts the calls to _storeLastValue()
@@ -44,7 +43,8 @@ private: // Base class only
     void _clearOldValues() { _old_values.clear(); } // reset old values list
     bool _isConverged() const; // check if the target function has stabilized
     void _updateDeltas(); // calculate deltaX and deltaF between _last and _old_values.front()
-    bool _checkDeltas() const; // check deltas against epsx and epsf
+    bool _changedEnough() const; // check deltas against epsx and epsf
+    bool _stepLimitReached() const; // is the set maximum amount of iteration reached
 
     void _writeCurrentXToLog() const; // write current x on log on storeLastValue
     void _writeOldValuesToLog() const; // stopping criterium debug logger
@@ -57,7 +57,7 @@ protected: // Protected methods for child optimizers
     void _averageOldValues(); // compute average x of old value list, store it with the corresponding function value in last
 
     // check stopping criteria (shouldStop contains meaningfulGradient, if grad!=nullptr)
-    bool _meaningfulGradient(const std::vector<NoisyValue> &grad) const; //check if the gradient is meaningful. i.e. if its values are greater than the statistical errors
+    bool _isGradNoisySmall(const std::vector<NoisyValue> &grad, bool flag_log = true) const; //check if any gradient element is greater than its statistical error
     bool _shouldStop(const std::vector<NoisyValue> * grad = nullptr) const; // check for all stopping criteria
 
     // "Mandatory" logging routines

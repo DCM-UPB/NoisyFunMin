@@ -17,6 +17,8 @@ Adam::Adam(NoisyFunctionWithGradient * targetfun, const bool useAveraging,
     if (!_flag_gradfun) {
         throw std::invalid_argument("[Adam] Adam optimization requires a target function with gradient.");
     }
+    // overwrite defaults
+    _flag_graderr = false; // don't stop on noisy-low gradients, by default
 }
 
 // --- Minimization
@@ -39,7 +41,7 @@ void Adam::_findMin()
     double beta2t = 1.; // stores beta2^t
     int step = 0;
     while (true) {
-        LogManager::logString("\n\nAdam::findMin() Step " + std::to_string(step) + "\n");
+        LogManager::logString("\nAdam::findMin() Step " + std::to_string(step) + "\n");
         ++step;
 
         // compute current gradient and target value

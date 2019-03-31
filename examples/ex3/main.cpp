@@ -11,21 +11,20 @@ int main()
     using namespace std;
     using namespace nfm;
 
-    cout << "We want to minimize the 2D function" << endl;
-    cout << "    (x-1)^2 + (y+2)^2" << endl;
-    cout << "whose min is in (1, -2)." << endl << endl << endl;
+    cout << "We want to minimize the 3D function" << endl;
+    cout << "    x^2 + (y+1)^2 + (z-2)^2" << endl;
+    cout << "whose min is in (0, -1, 2)." << endl << endl;
+    cout << "We will always start at (2.5, 1, -1)." << endl << endl;
 
     LogManager::setLoggingOn(); // use this to enable log printout
     //LogManager::setLoggingOn(true); // use this for verbose printout of the Adam method
 
-    cout << "we first minimize it, supposing to have no noise at all" << endl;
+    cout << "We first minimize it, supposing to have no noise at all" << endl;
 
-    Noiseless2DParabola nlp;
+    Noiseless3DParabola nlp;
 
     Adam adam(&nlp);
-
-    adam.setX(0, -1.);
-    adam.setX(1, -1.);
+    adam.setX({2.5, 1., -1.});
 
     // make sure that the noiseless case converges quickly
     adam.setAlpha(0.1);
@@ -35,20 +34,19 @@ int main()
     adam.findMin();
 
     cout << "The found minimum is: ";
-    cout << adam.getX(0) << "    " << adam.getX(1) << endl << endl << endl;
+    cout << adam.getX(0) << "    " << adam.getX(1) << "    " << adam.getX(2) << endl << endl;
 
 
     cout << "Now we repeat the minimisation adding a noise to the function and its gradient." << endl;
 
-    Noisy2DParabola np(0.25); // sigma 0.25
+    NoisyWrapper np(&nlp, 0.25); // sigma 0.25
 
-    Adam adam2(&np, true /* use averaging to calculate final parameters */, 1.0 /* step size factor */);
-    adam2.setX({-1., -1.});
-    adam2.setGradErrStop(false); // Adam works better without stopping on noisy/small gradients
+    Adam adam2(&np, true /* use averaging to calculate final parameters */, 0.5 /* step size factor */);
+    adam2.setX({2.5, 1., -1.});
     adam2.findMin();
 
     cout << "The found minimum is: ";
-    cout << adam2.getX(0) << "    " << adam2.getX(1) << endl << endl;
+    cout << adam2.getX(0) << "    " << adam2.getX(1) << "    " << adam2.getX(2) << endl << endl;
 
 
     // end

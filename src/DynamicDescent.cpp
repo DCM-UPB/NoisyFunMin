@@ -13,6 +13,8 @@ DynamicDescent::DynamicDescent(NoisyFunctionWithGradient * targetfun, const bool
     if (!_flag_gradfun) {
         throw std::invalid_argument("[DynamicDescent] Dynamic Descent optimization requires a target function with gradient.");
     }
+    // overwrite defaults
+    _flag_graderr = false; // don't stop on noisy-low gradients, by default
 }
 
 // --- Minimization
@@ -31,7 +33,7 @@ void DynamicDescent::_findMin()
     int cont = 0;
     while (true) {
         ++cont;
-        LogManager::logString("\n\nDynamicDescent::findMin() Step " + std::to_string(cont) + "\n");
+        LogManager::logString("\nDynamicDescent::findMin() Step " + std::to_string(cont) + "\n");
 
         // compute the gradient and current target
         _last.f = _gradfun->fgrad(_last.x, grad);
