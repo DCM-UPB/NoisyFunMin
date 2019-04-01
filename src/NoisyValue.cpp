@@ -145,11 +145,18 @@ bool NoisyValue::operator==(const NoisyValue other) const
     return !(*this < other || *this > other);
 }
 
-// --- Stream I/O
+// --- Other
 
+// Stream I/O
 std::ostream &operator<<(std::ostream &os, const NoisyValue nv)
 {   // write NoisyValue to ostream
     os << nv.value << " +- " << nv.error;
     return os;
+}
+
+// Minimal Distance
+double NoisyValue::minDist(NoisyValue other) const
+{
+    return fabs(this->value - other.value) - _sigmaLevel*(this->error + other.error);
 }
 } // namespace nfm

@@ -57,7 +57,6 @@ public:
     double getLBound() const { return value - error*_sigmaLevel; }
 
     // Binary Operators (implemented based on compound assignments)
-
     NoisyValue operator+=(double rhs); // add assign with scalar value
     NoisyValue operator-=(double rhs); // sub assign with scalar value
     NoisyValue operator*=(double rhs); // mul assign with scalar value
@@ -91,6 +90,9 @@ public:
 
     // Stream Output
     friend std::ostream &operator<<(std::ostream &os, NoisyValue nv);
+
+    // Minimal distance
+    double minDist(NoisyValue other) const;
 };
 } // namespace nfm
 

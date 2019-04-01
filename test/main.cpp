@@ -1,8 +1,8 @@
 #include <cmath>
 #include <iostream>
 
-#include "nfm/LineSearch.hpp"
 #include "nfm/ConjGrad.hpp"
+#include "nfm/LineSearch.hpp"
 #include "nfm/LogManager.hpp"
 
 #include "TestNFMFunctions.hpp"

@@ -48,7 +48,7 @@ void NFM::_updateDeltas()
         _lastDeltaX = std::inner_product(diff.begin(), diff.end(), diff.begin(), 0.); // delta = diff.diff
         _lastDeltaX = sqrt(_lastDeltaX); // distance from (original) old.x to last.x
         // deltaF
-        _lastDeltaF = std::max(0., fabs(_last.f.value - old.f.value) - _last.f.error - old.f.error);
+        _lastDeltaF = std::max(0., _last.f.minDist(old.f));
     }
     else { // is first step, initialize deltas
         _lastDeltaX = _epsx; // check will pass

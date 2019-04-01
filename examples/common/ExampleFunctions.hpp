@@ -38,7 +38,7 @@ private:
 
 public:
     explicit NoisyWrapper(nfm::NoisyFunctionWithGradient * fun, double sigma = 1.):
-    nfm::NoisyFunctionWithGradient(fun->getNDim(), fun->hasGradErr()), _nlfun(fun), _sigma(sigma)
+            nfm::NoisyFunctionWithGradient(fun->getNDim(), fun->hasGradErr()), _nlfun(fun), _sigma(sigma)
     {
         // initialize random generator
         _rgen = std::mt19937_64(_rdev());
@@ -60,7 +60,7 @@ public:
     void grad(const std::vector<double> &in, std::vector<nfm::NoisyValue> &grad) final
     {
         _nlfun->grad(in, grad);
-        for (auto & gi : grad) { gi = makeValueNoisy(gi, 2.); } // gradients have larger error
+        for (auto &gi : grad) { gi = makeValueNoisy(gi, 2.); } // gradients have larger error
     }
 };
 

@@ -7,8 +7,8 @@
 namespace nfm
 {
 
-DynamicDescent::DynamicDescent(NoisyFunctionWithGradient * targetfun, const DDMode ddmode, const bool useAveraging, const double stepSize, const double beta):
-        NFM(targetfun), _ddmode(ddmode), _useAveraging(useAveraging), _stepSize(std::max(0., stepSize)), _beta(std::max(0., std::min(1., beta)))
+DynamicDescent::DynamicDescent(NoisyFunctionWithGradient * targetfun, const DDMode ddmode, const bool useAveraging, const double stepSize, const double beta, const double epsilon):
+        NFM(targetfun), _ddmode(ddmode), _useAveraging(useAveraging), _stepSize(std::max(0., stepSize)), _beta(std::max(0., std::min(1., beta))), _epsilon(std::max(0., epsilon))
 {
     if (!_flag_gradfun) {
         throw std::invalid_argument("[DynamicDescent] Dynamic Descent optimization requires a target function with gradient.");
@@ -72,11 +72,19 @@ void DynamicDescent::_findNextX(const std::vector<NoisyValue> &grad, std::vector
             dx[i] = _beta*dx[i] - _stepSize*grad[i].value;
         }
         break;
-    }
-    /*case DDMode::ADAG:
-        for
+    case DDMode::ADAG:
+        for (int i = 0; i < _ndim; ++i) {
+            h[i] += grad[i].value*grad[i].value;
+            dx[i] = -_stepSize/(sqrt(h[i]) + _epsilon)*grad[i].value;
+        }
+        break;
     case DDMode::RMSP:
-*/
+        for (int i = 0; i < _ndim; ++i) {
+            h[i] = _beta*h[i] + (1. - _beta)*(grad[i].value*grad[i].value);
+            dx[i] = -_stepSize*grad[i].value/(sqrt(h[i]) + _epsilon);
+        }
+    }
+
     //update x
     for (int i = 0; i < _ndim; ++i) {
         _last.x[i] += dx[i];

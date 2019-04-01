@@ -23,10 +23,10 @@ inline bool checkBracketXTol(const nfm::NoisyBracket &bracket, const double epsx
 // - epsf: Minimal noisy value distance between a<->b or b<->c
 inline bool checkBracketFTol(const nfm::NoisyBracket &bracket, const double epsf)
 {
-    const double fdist = (bracket.a.f < bracket.c.f)
-                         ? (fabs(bracket.a.f.value - bracket.b.f.value) - bracket.a.f.error - bracket.b.f.error)
-                         : (fabs(bracket.c.f.value - bracket.b.f.value) - bracket.c.f.error - bracket.b.f.error);
-    return fdist > epsf;
+    //return (bracket.a.f.getLBound() > bracket.c.f.getLBound()) // use hard values here to not bias one side
+    const bool checkLeft = bracket.a.f.minDist(bracket.b.f) > epsf;
+    const bool checkRight = bracket.c.f.minDist(bracket.b.f) > epsf;
+    return checkLeft && checkRight;
 }
 
 // are there neighbouring values that are equal (within error) ?
@@ -268,7 +268,7 @@ NoisyIOPair1D brentMin(NoisyFunction &f1d, NoisyBracket bracket, const int maxNI
         u.f = F(u.x);
 
         // check continue conditions
-        if (u.f <= m.f) {
+        if (u.f.getUBound() < m.f.getUBound()) { // keep best ubound in m
             if (u.x < m.x) { ub = m; }
             else { lb = m; }
 
@@ -297,11 +297,12 @@ NoisyIOPair1D brentMin(NoisyFunction &f1d, NoisyBracket bracket, const int maxNI
         writeBracketToLog("brentMin step", bracket);
     }
 
-    // Return pair with best upper error bound (out of all stored pairs)
-    // This might seem inconsistent, but has proven worthy in practice.
     writeBracketToLog("brentMin final", bracket);
-    NoisyIOPair1D *pairs[5]{&m, &v, &w, &ub, &lb};
-    return **std::min_element(pairs, pairs + 5, [](NoisyIOPair1D * a, NoisyIOPair1D * b) { return a->f.getUBound() < b->f.getUBound(); });
+
+    // Return point with best upper error bound (m). To avoid any
+    // bias, we recompute the function value at the final position.
+    m.f = F(m.x);
+    return m;
 }
 
 

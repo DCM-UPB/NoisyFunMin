@@ -18,23 +18,6 @@ enum class DDMode
     RMSP  /* RMSProp */
 };
 
-/*
-// Parameters for DynDesc
-struct DDParams
-{
-    DDMode ddmode; // which update rule to use
-    double stepSize; // scale for position updates
-    double beta; // momenta update parameter (not used in AdaGrad)
-    bool useAveraging; // use averaging to obtain final position
-};
-
-inline DDParams defaultDDParams()
-{
-    return {.ddmode = DDMode::SGDM, .stepSize = 0.01, .stepRight = 1.,
-            .maxNBracket = 10, .maxNMinimize = 20,
-            .epsx = m1d_detail::STD_XTOL, .epsf = m1d_detail::STD_FTOL};
-}*/
-
 // Stochastic Gradient Descent Algorithms
 //
 // All contained algorithms provide some kind of adaptive learning rate,
@@ -46,6 +29,7 @@ private:
     bool _useAveraging; // use the averaged positions of the old value list (length max_n_const_values) as end result
     double _stepSize; // step size factor / learning rate
     double _beta; // momenta update parameter (not used in AdaGrad)
+    double _epsilon; // small value to prevent bad division (not used in SGDM)
 
     // --- Internal methods
     bool _updateTarget(std::vector<NoisyValue> &grad);
@@ -53,7 +37,7 @@ private:
     void _findMin() final;
 
 public:
-    explicit DynamicDescent(NoisyFunctionWithGradient * targetfun, DDMode ddmode = DDMode::SGDM, bool useAveraging = false, double stepSize = 0.01, double beta = 0.9);
+    explicit DynamicDescent(NoisyFunctionWithGradient * targetfun, DDMode ddmode = DDMode::SGDM, bool useAveraging = false, double stepSize = 0.01, double beta = 0.9, double epsilon = 1.e-8);
     ~DynamicDescent() final = default;
 
     // DD Configuration

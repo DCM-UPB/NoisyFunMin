@@ -1,9 +1,9 @@
 #ifndef NFM_CONJGRAD_HPP
 #define NFM_CONJGRAD_HPP
 
+#include "nfm/LineSearch.hpp"
 #include "nfm/NoisyFunMin.hpp"
 #include "nfm/NoisyFunction.hpp"
-#include "nfm/LineSearch.hpp"
 
 namespace nfm
 {
@@ -55,8 +55,8 @@ public:
     void setMaxNMin1D(int maxn_min1d) { _mlmParams.maxNMinimize = maxn_min1d; }
 
     // Getters
-    MLMParams & getMLMParams() { return _mlmParams; }
-    const MLMParams & getMLMParams() const { return _mlmParams; }
+    MLMParams &getMLMParams() { return _mlmParams; }
+    const MLMParams &getMLMParams() const { return _mlmParams; }
     double getStepSize() const { return _mlmParams.stepRight; }
     double getBackStep() const { return _mlmParams.stepLeft; }
     int getMaxNBracket() const { return _mlmParams.maxNBracket; }
