@@ -1,4 +1,4 @@
-#include "nfm/Adam.hpp"
+#include "nfm/NoisyFunMin.hpp"
 #include "nfm/LogManager.hpp"
 
 #include <iostream>
@@ -25,7 +25,7 @@ int main()
     //LogManager::setLoggingOn(true); // use this for verbose printout of the method
 
     cout << endl;
-    cout << "Adam Example" << endl << endl;
+    cout << "Example for optimizers without gradient" << endl << endl;
     cout << "We want to minimize the 3D function" << endl;
     cout << "    x^2 + (y+1)^2 + (z-2)^2" << endl;
     cout << "whose min is in (0, -1, 2)." << endl << endl;
@@ -34,28 +34,12 @@ int main()
     cout << "We first minimize it, supposing to have no noise at all" << endl;
 
     Noiseless3DParabola nlp;
-    Adam adam(&nlp);
-
-    // Make sure that the noiseless case converges quickly
-    // Note that using Adam for noiseless optimization is abuse
-    adam.setAlpha(0.5);
-    adam.setBeta1(0.1);
-    adam.setBeta2(0.5);
-    adam.setEpsF(0.01); // stop on too small function changes
-
-    adam.setX({2.5, 1., -1.});
-    adam.findMin();
-    reportMinimum(adam);
 
 
-    cout << "Now we repeat the minimisation adding a noise to the function and its gradient." << endl;
+    cout << "Now we repeat the minimisation adding a noise to the function." << endl;
 
     NoisyWrapper np(&nlp, 0.25); // sigma 0.25
-    Adam adam2(&np, true /* use averaging to calculate final parameters */, 0.5 /* step size factor */);
 
-    adam2.setX(adam.getX());
-    adam2.findMin();
-    reportMinimum(adam2);
 
     cout << "NOTE: You may enable detailed logging by uncommenting" << endl;
     cout << "      one of two lines in the beginning of the example." << endl;

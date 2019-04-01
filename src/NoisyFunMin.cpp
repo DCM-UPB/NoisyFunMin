@@ -140,11 +140,6 @@ void NFM::_writeGradientToLog(const std::vector<NoisyValue> &grad) const
     LogManager::logNoisyVector(grad, LogLevel::VERBOSE, _flag_graderr, "Raw gradient", "g");
 }
 
-void NFM::_writeXUpdateToLog(const std::vector<double> &xu) const
-{
-    LogManager::logVector(xu, LogLevel::VERBOSE, "Position update", "u");
-}
-
 void NFM::_writeOldValuesToLog() const
 {
     using namespace std;

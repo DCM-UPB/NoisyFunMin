@@ -61,11 +61,11 @@ protected: // Protected methods for child optimizers
     bool _shouldStop(const std::vector<NoisyValue> * grad = nullptr) const; // check for all stopping criteria
 
     // "Mandatory" logging routines
-    // XUpdate should be logged by all optimizers and also GradientInLog if a gradient is used
+    // If a gradient is used, it should be logged at every step
     void _writeGradientToLog(const std::vector<NoisyValue> &grad) const;
-    void _writeXUpdateToLog(const std::vector<double> &xu) const;
 
-    virtual void _findMin() = 0; // child minimization implementation, result to be stored in _last
+    // TO BE IMPLEMENTED
+    virtual void _findMin() = 0; // minimization implementation, result to be stored in _last
 
 public:
     explicit NFM(NoisyFunction * targetfun);

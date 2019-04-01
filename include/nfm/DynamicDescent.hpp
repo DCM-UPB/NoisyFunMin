@@ -15,6 +15,7 @@ enum class DDMode
 {
     SGDM, /* SGD with momentum */
     ADAG, /* AdaGrad */
+    ADAD, /* AdaDelta */
     RMSP, /* RMSProp */
     NEST  /* Nesterov */
 };
@@ -34,7 +35,7 @@ private:
 
     // --- Internal methods
     bool _updateTarget(std::vector<NoisyValue> &grad);
-    void _findNextX(const std::vector<NoisyValue> &grad, std::vector<double> &dx, std::vector<double> &h, int iter);
+    void _findNextX(int iter, const std::vector<NoisyValue> &grad, std::vector<double> &v, std::vector<double> &w);
     void _findMin() final;
 
 public:
@@ -44,6 +45,7 @@ public:
     // DD Configuration
     void useSGDM() { _ddmode = DDMode::SGDM; }
     void useAdaGrad() { _ddmode = DDMode::ADAG; }
+    void useAdaDelta() { _ddmode = DDMode::ADAD; }
     void useRMSProp() { _ddmode = DDMode::RMSP; }
     void useNesterov() { _ddmode = DDMode::NEST; }
     void setDDMode(DDMode ddmode) { _ddmode = ddmode; }

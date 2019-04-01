@@ -27,10 +27,10 @@ void DynamicDescent::_findMin()
     std::vector<NoisyValue> grad(static_cast<size_t>(_ndim));
 
     // holds previous old update (init to 0)
-    std::vector<double> dx(grad.size()); // stores momentum updates
-    std::vector<double> h; // helper vector used by all but SGDM
-    if (_ddmode != DDMode::SGDM) {
-        h = dx; // dx is all 0
+    std::vector<double> v(grad.size()); // helper vector used by all methods
+    std::vector<double> w; // only used by AdaDelta
+    if (_ddmode == DDMode::ADAD) {
+        w = v; // v is already all 0
     }
 
     //begin the minimization loop
@@ -44,7 +44,7 @@ void DynamicDescent::_findMin()
         if (!flag_cont) { break; } // we are done
 
         // find the next position
-        this->_findNextX(grad, dx, h, iter);
+        this->_findNextX(iter, grad, v, w);
     }
 
     if (_useAveraging) { // calculate the old value average as end result
@@ -63,50 +63,70 @@ bool DynamicDescent::_updateTarget(std::vector<NoisyValue> &grad)
     return !this->_shouldStop(&grad);
 }
 
-void DynamicDescent::_findNextX(const std::vector<NoisyValue> &grad, std::vector<double> &dx, std::vector<double> &h, const int iter)
+void DynamicDescent::_findNextX(const int iter, const std::vector<NoisyValue> &grad, std::vector<double> &v, std::vector<double> &w)
 {
     // compute update
     switch (_ddmode) {
     case DDMode::SGDM:
         for (int i = 0; i < _ndim; ++i) {
-            dx[i] = _beta*dx[i] - _stepSize*grad[i].value;
+            v[i] = _beta*v[i] - _stepSize*grad[i].value;
+            _last.x[i] += v[i];
         }
         break;
+
     case DDMode::ADAG:
         for (int i = 0; i < _ndim; ++i) {
-            h[i] += grad[i].value*grad[i].value;
-            dx[i] = -_stepSize/(sqrt(h[i]) + _epsilon)*grad[i].value;
+            v[i] += grad[i].value*grad[i].value;
+            _last.x[i] -= _stepSize/(sqrt(v[i]) + _epsilon)*grad[i].value;
         }
         break;
-    case DDMode::RMSP: // standard RMSProp with first step as grad desc
-        for (int i = 0; i < _ndim; ++i) {
-            if (iter > 1) {
-                h[i] = _beta*h[i] + (1. - _beta)*(grad[i].value*grad[i].value);
-                dx[i] = -_stepSize*grad[i].value/(sqrt(h[i]) + _epsilon);
-            }
-            else { // first step
-                h[i] = grad[i].value*grad[i].value;
-                dx[i] = -_stepSize*grad[i].value;
-            }
-        }
-        break;
-    case DDMode::NEST: // Bengio-like update with first step as grad desc
-        for (int i = 0; i < _ndim; ++i) {
-            if (iter > 1) {
-                dx[i] = _beta*_beta*h[i] - (1. + _beta)*_stepSize*grad[i].value;
-                h[i] = _beta*h[i] - _stepSize*grad[i].value;
-            }
-            else { // first step
-                dx[i] = -_stepSize*grad[i].value;
-            }
-        }
-    }
 
-    //update x
-    for (int i = 0; i < _ndim; ++i) {
-        _last.x[i] += dx[i];
+    case DDMode::ADAD:
+        if (iter > 1) {
+            for (int i = 0; i < _ndim; ++i) {
+                v[i] = _beta*v[i] + (1. - _beta)*(grad[i].value*grad[i].value);
+                const double dx = -grad[i].value*(sqrt(w[i]) + _epsilon)/(sqrt(v[i]) + _epsilon);
+                _last.x[i] += dx;
+                w[i] = _beta*w[i] + (1. - _beta)*(dx*dx);
+            }
+        }
+        else { // first step
+            for (int i = 0; i < _ndim; ++i) {
+                v[i] = grad[i].value*grad[i].value;
+                const double dx = -_stepSize*grad[i].value; // initially we use the stepSize
+                _last.x[i] += dx;
+                w[i] = dx*dx;
+            }
+        }
+        break;
+
+    case DDMode::RMSP: // standard RMSProp with first step as grad desc
+        if (iter > 1) {
+            for (int i = 0; i < _ndim; ++i) {
+                v[i] = _beta*v[i] + (1. - _beta)*(grad[i].value*grad[i].value);
+                _last.x[i] -= _stepSize*grad[i].value/(sqrt(v[i]) + _epsilon);
+            }
+        }
+        else { // first step
+            for (int i = 0; i < _ndim; ++i) {
+                v[i] = grad[i].value*grad[i].value;
+                _last.x[i] -= _stepSize*grad[i].value;
+            }
+        }
+        break;
+
+    case DDMode::NEST: // Bengio update with first step as grad desc
+        if (iter > 1) {
+            for (int i = 0; i < _ndim; ++i) {
+                _last.x[i] += _beta*_beta*v[i] - (1. + _beta)*_stepSize*grad[i].value;
+                v[i] = _beta*v[i] - _stepSize*grad[i].value;
+            }
+        }
+        else { // first step
+            for (int i = 0; i < _ndim; ++i) {
+                _last.x[i] -= _stepSize*grad[i].value;
+            }
+        }
     }
-    // report to the log
-    this->_writeXUpdateToLog(dx);
 }
 } // namespace nfm

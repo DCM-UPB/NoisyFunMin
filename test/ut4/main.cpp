@@ -21,6 +21,7 @@ int main()
     // introduce array with the initial position
     double x[3]{-2., 1., 0.};
 
+
     // test DynamicDescent
     DynamicDescent dyndesc(&f3d);
     dyndesc.setX(x);
@@ -29,6 +30,7 @@ int main()
     assert(fabs(dyndesc.getX(0) - 1.0) < 0.1);
     assert(fabs(dyndesc.getX(1) + 1.5) < 0.1);
     assert(fabs(dyndesc.getX(2) - 0.5) < 0.1);
+
 
     // also with averaging
     dyndesc.setAveraging(true);
@@ -40,7 +42,8 @@ int main()
     assert(fabs(dyndesc.getX(1) + 1.5) < 0.1);
     assert(fabs(dyndesc.getX(2) - 0.5) < 0.1);
 
-    // and with AdaGrad
+
+    // AdaGrad
     dyndesc.useAdaGrad();
     dyndesc.setStepSize(3.);
     dyndesc.setX(x);
@@ -50,7 +53,22 @@ int main()
     assert(fabs(dyndesc.getX(1) + 1.5) < 0.15);
     assert(fabs(dyndesc.getX(2) - 0.5) < 0.15);
 
-    // and with RMSProp
+
+    // AdaDelta
+    dyndesc.useAdaDelta();
+    dyndesc.setStepSize(0.05);
+    const double oldBeta = dyndesc.getBeta();
+    dyndesc.setBeta(0.5); // I had problems when leaving this at default
+    dyndesc.setX(x);
+    dyndesc.findMin();
+    dyndesc.setBeta(oldBeta); // set back the original value
+
+    assert(fabs(dyndesc.getX(0) - 1.0) < 0.1);
+    assert(fabs(dyndesc.getX(1) + 1.5) < 0.1);
+    assert(fabs(dyndesc.getX(2) - 0.5) < 0.1);
+
+
+    // RMSProp
     dyndesc.useRMSProp();
     dyndesc.setStepSize(0.05);
     dyndesc.setX(x);
@@ -60,7 +78,8 @@ int main()
     assert(fabs(dyndesc.getX(1) + 1.5) < 0.1);
     assert(fabs(dyndesc.getX(2) - 0.5) < 0.1);
 
-    // and with Nesterov
+
+    // Nesterov
     dyndesc.useNesterov();
     dyndesc.setStepSize(0.025);
     dyndesc.setX(x);

@@ -32,7 +32,6 @@ void Adam::_findMin()
     auto nd = static_cast<size_t>(_ndim);
     std::vector<NoisyValue> grad(nd); // gradient and (unused) error
     std::vector<double> m(nd), v(nd); // moment vectors
-    std::vector<double> dx(nd); // holds the actual updates for x
     std::vector<double> xavg; // when averaging is enabled, holds the running average
     if (_useAveraging) { xavg.assign(nd, 0.); }
 
@@ -60,14 +59,12 @@ void Adam::_findMin()
             m[i] = _beta1*m[i] + (1. - _beta1)*grad[i].value; // Update biased first moment
             v[i] = _beta2*v[i] + (1. - _beta2)*grad[i].value*grad[i].value; // Update biased second raw moment
 
-            dx[i] = -afac*m[i]/(sqrt(v[i]) + _epsilon); // calculate updates
-            _last.x[i] += dx[i]; // update _last
+            _last.x[i] -= afac*m[i]/(sqrt(v[i]) + _epsilon); // update _last
 
             if (_useAveraging) {
                 xavg[i] = _beta2*xavg[i] + (1. - _beta2)*_last.x[i];
             }
         }
-        _writeXUpdateToLog(dx);
     }
 
     if (_useAveraging) { // we need to update _last to the averaged x

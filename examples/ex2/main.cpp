@@ -1,4 +1,5 @@
 #include "nfm/DynamicDescent.hpp"
+#include "nfm/Adam.hpp"
 #include "nfm/LogManager.hpp"
 
 #include "../common/ExampleFunctions.hpp"
@@ -60,14 +61,23 @@ int main()
     dd2.findMin();
     reportMinimum(dd2);
 
-    cout << "We may also use a different Stochastic Gradient algorithm, for example AdaGrad:" << endl;
+    cout << "We may also use a different Stochastic Gradient algorithm, like AdaDelta:" << endl;
 
-    dd2.useAdaGrad();
-    dd2.setStepSize(1.); // a larger step size
+    dd2.useAdaDelta();
+    dd2.setStepSize(0.1); // the initial step size (in AdaDelta this is only used in step 1!)
 
     dd2.setX(initpos);
     dd2.findMin();
     reportMinimum(dd2);
+
+
+    cout << "Another SGD algorithm is Adam, which resides in its own class. Let's try it:" << endl;
+
+    Adam adam(&np, true /* use averaging to obtian final result */, 0.1 /* step size factor */);
+
+    adam.setX(dd2.getX());
+    adam.findMin();
+    reportMinimum(adam);
 
     cout << "NOTE: You may enable detailed logging by uncommenting" << endl;
     cout << "      one of two lines in the beginning of the example." << endl;
