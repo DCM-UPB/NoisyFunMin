@@ -60,10 +60,10 @@ int main()
     dd2.findMin();
     reportMinimum(dd2);
 
-    cout << "We may also use a different Stochastic Gradient algorithm, like AdaGrad:" << endl;
+    cout << "We may also use a different Stochastic Gradient algorithm, for example AdaGrad:" << endl;
 
     dd2.useAdaGrad();
-    dd2.setStepSize(1.0); // a big step size
+    dd2.setStepSize(1.); // a larger step size
 
     dd2.setX(initpos);
     dd2.findMin();

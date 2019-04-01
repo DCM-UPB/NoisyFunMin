@@ -69,10 +69,10 @@ void ConjGrad::_findMin()
 
     // --- Main CG Loop
 
-    int cont = 0;
+    int iter = 0;
     while (!this->_shouldStop()) {
-        ++cont;
-        LogManager::logString("\nConjGrad::findMin() Step " + std::to_string(cont) + "\n");
+        ++iter;
+        LogManager::logString("\nConjGrad::findMin() Step " + std::to_string(iter) + "\n");
 
         // evaluate the new gradient
         flag_cont = this->_computeGradient(gradh, false); // compute only gradients

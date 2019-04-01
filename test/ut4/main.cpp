@@ -23,8 +23,6 @@ int main()
 
     // test DynamicDescent
     DynamicDescent dyndesc(&f3d);
-    dyndesc.setEpsX(0.001);
-    dyndesc.setEpsF(1.e-6);
     dyndesc.setX(x);
     dyndesc.findMin();
 
@@ -49,12 +47,22 @@ int main()
     dyndesc.findMin();
 
     assert(fabs(dyndesc.getX(0) - 1.0) < 0.1);
-    assert(fabs(dyndesc.getX(1) + 1.5) < 0.2);
-    assert(fabs(dyndesc.getX(2) - 0.5) < 0.2);
+    assert(fabs(dyndesc.getX(1) + 1.5) < 0.15);
+    assert(fabs(dyndesc.getX(2) - 0.5) < 0.15);
 
     // and with RMSProp
     dyndesc.useRMSProp();
-    dyndesc.setStepSize(1.);
+    dyndesc.setStepSize(0.05);
+    dyndesc.setX(x);
+    dyndesc.findMin();
+
+    assert(fabs(dyndesc.getX(0) - 1.0) < 0.1);
+    assert(fabs(dyndesc.getX(1) + 1.5) < 0.1);
+    assert(fabs(dyndesc.getX(2) - 0.5) < 0.1);
+
+    // and with Nesterov
+    dyndesc.useNesterov();
+    dyndesc.setStepSize(0.025);
     dyndesc.setX(x);
     dyndesc.findMin();
 

@@ -39,10 +39,10 @@ void Adam::_findMin()
     //begin the minimization loop
     double beta1t = 1.; // stores beta1^t
     double beta2t = 1.; // stores beta2^t
-    int step = 0;
+    int iter = 0;
     while (true) {
-        LogManager::logString("\nAdam::findMin() Step " + std::to_string(step) + "\n");
-        ++step;
+        LogManager::logString("\nAdam::findMin() Step " + std::to_string(iter) + "\n");
+        ++iter;
 
         // compute current gradient and target value
         _last.f = _gradfun->fgrad(_last.x, grad);
@@ -52,7 +52,7 @@ void Adam::_findMin()
 
         // update factors
         beta1t = beta1t*_beta1; // update beta1 power
-        beta2t = beta2t*_beta2; // update beat2 power
+        beta2t = beta2t*_beta2; // update beta2 power
         const double afac = _alpha*sqrt(1. - beta2t)/(1. - beta1t);
 
         // compute the update

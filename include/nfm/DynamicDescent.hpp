@@ -15,7 +15,8 @@ enum class DDMode
 {
     SGDM, /* SGD with momentum */
     ADAG, /* AdaGrad */
-    RMSP  /* RMSProp */
+    RMSP, /* RMSProp */
+    NEST  /* Nesterov */
 };
 
 // Stochastic Gradient Descent Algorithms
@@ -33,7 +34,7 @@ private:
 
     // --- Internal methods
     bool _updateTarget(std::vector<NoisyValue> &grad);
-    void _findNextX(const std::vector<NoisyValue> &grad, std::vector<double> &dx, std::vector<double> &h);
+    void _findNextX(const std::vector<NoisyValue> &grad, std::vector<double> &dx, std::vector<double> &h, int iter);
     void _findMin() final;
 
 public:
@@ -41,10 +42,11 @@ public:
     ~DynamicDescent() final = default;
 
     // DD Configuration
-    void useSGDM() { _ddmode = DDMode::SGDM; }  // make ConjGrad Steepest-Descent-like
-    void useAdaGrad() { _ddmode = DDMode::ADAG; }  // reset to default
-    void useRMSProp() { _ddmode = DDMode::RMSP; } // use Polak-Ribiere CG
-    void setDDMode(DDMode cgmode) { _ddmode = cgmode; }
+    void useSGDM() { _ddmode = DDMode::SGDM; }
+    void useAdaGrad() { _ddmode = DDMode::ADAG; }
+    void useRMSProp() { _ddmode = DDMode::RMSP; }
+    void useNesterov() { _ddmode = DDMode::NEST; }
+    void setDDMode(DDMode ddmode) { _ddmode = ddmode; }
     DDMode getDDMode() const { return _ddmode; }
 
     // Getters
