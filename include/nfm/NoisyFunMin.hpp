@@ -47,7 +47,6 @@ private: // Base class only
     bool _stepLimitReached() const; // is the set maximum amount of iteration reached
 
     void _writeCurrentXToLog() const; // write current x on log on storeLastValue
-    void _writeOldValuesToLog() const; // stopping criterium debug logger
 
 protected: // Protected methods for child optimizers
     // use this after every position&function update

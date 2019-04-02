@@ -37,7 +37,9 @@ void DynamicDescent::_findMin()
     int iter = 0;
     while (true) {
         ++iter;
-        LogManager::logString("\nDynamicDescent::findMin() Step " + std::to_string(iter) + "\n");
+        if (LogManager::isLoggingOn()) { // else skip string construction
+            LogManager::logString("\nDynamicDescent::findMin() Step " + std::to_string(iter) + "\n");
+        }
 
         // compute the gradient and current target
         const bool flag_cont = this->_updateTarget(grad);

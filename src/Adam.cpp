@@ -40,8 +40,10 @@ void Adam::_findMin()
     double beta2t = 1.; // stores beta2^t
     int iter = 0;
     while (true) {
-        LogManager::logString("\nAdam::findMin() Step " + std::to_string(iter) + "\n");
         ++iter;
+        if (LogManager::isLoggingOn()) { // else skip string construction
+            LogManager::logString("\nAdam::findMin() Step " + std::to_string(iter) + "\n");
+        }
 
         // compute current gradient and target value
         _last.f = _gradfun->fgrad(_last.x, grad);

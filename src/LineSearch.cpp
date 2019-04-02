@@ -16,14 +16,12 @@
 inline bool checkBracketXTol(const nfm::NoisyBracket &bracket, const double epsx)
 {
     return (fabs(bracket.c.x - bracket.b.x) > epsx && fabs(bracket.b.x - bracket.a.x) > epsx); // simply check for the position distances
-    //return fabs(bracket.c.x - bracket.a.x) > epsx*0.5*fabs(bracket.c.x + bracket.a.x) + epsx; // standard tolerance check
 }
 
 // check bracket for function value tolerances (noisy version)
 // - epsf: Minimal noisy value distance between a<->b or b<->c
 inline bool checkBracketFTol(const nfm::NoisyBracket &bracket, const double epsf)
 {
-    //return (bracket.a.f.getLBound() > bracket.c.f.getLBound()) // use hard values here to not bias one side
     const bool checkLeft = bracket.a.f.minDist(bracket.b.f) > epsf;
     const bool checkRight = bracket.c.f.minDist(bracket.b.f) > epsf;
     return checkLeft && checkRight;
@@ -85,6 +83,7 @@ namespace nfm
 
 void writeBracketToLog(const std::string &key, const NoisyBracket &bracket)
 {
+    if (!LogManager::isLoggingOn()) { return; } // save time when loggin is off
     std::stringstream s;
     s << key << ":    " <<
       bracket.a.x << " -> " << bracket.a.f << "    " <<
