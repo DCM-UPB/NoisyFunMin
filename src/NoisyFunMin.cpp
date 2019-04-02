@@ -15,7 +15,7 @@ namespace nfm
 NFM::NFM(NoisyFunction * targetfun):
         _ndim(targetfun->getNDim()), _targetfun(targetfun),
         _gradfun(dynamic_cast<NoisyFunctionWithGradient *>(_targetfun)), _flag_gradfun(_gradfun != nullptr),
-        _epsx(DEFAULT_EPSX), _epsf(DEFAULT_EPSF), _flag_graderr(_flag_gradfun ? _gradfun->hasGradErr() : false),
+        _epsx(DEFAULT_EPSX), _epsf(DEFAULT_EPSF), _flag_gradErrStop(_flag_gradfun ? _gradfun->hasGradErr() : false),
         _max_n_iterations(0), _max_n_const_values(DEFAULT_MAX_N_CONST), _last(NoisyIOPair(_ndim)) {}
 
 // --- Private methods
@@ -42,11 +42,12 @@ void NFM::_updateDeltas()
 {
     if (!_old_values.empty()) {
         NoisyIOPair &old = _old_values.front(); // reference to last old value
-        std::vector<double> diff(_last.x.size());
         // deltaX
-        std::transform(old.x.begin(), old.x.end(), _last.x.begin(), diff.begin(), std::minus<>()); // diff = old.x-last.x
-        _lastDeltaX = std::inner_product(diff.begin(), diff.end(), diff.begin(), 0.); // delta = diff.diff
-        _lastDeltaX = sqrt(_lastDeltaX); // distance from (original) old.x to last.x
+        _lastDeltaX = 0.;
+        for (int i=0; i<_ndim; ++i) {
+            _lastDeltaX += pow(old.x[i]-_last.x[i], 2);
+        }
+        _lastDeltaX = sqrt(_lastDeltaX);
         // deltaF
         _lastDeltaF = std::max(0., _last.f.minDist(old.f));
     }
@@ -71,7 +72,7 @@ bool NFM::_changedEnough() const
 
 bool NFM::_stepLimitReached() const
 {
-    if (_max_n_iterations > 0 && _istep >= _max_n_iterations) {
+    if (_max_n_iterations > 0 && _istep > _max_n_iterations) {
         LogManager::logString("\nStopping Reason: Maximal iteration count reached.\n");
         return true;
     }
@@ -82,14 +83,20 @@ bool NFM::_stepLimitReached() const
 
 void NFM::_storeLastValue()
 {
-    ++_istep; // count step
     this->_writeCurrentXToLog();
-    this->_updateDeltas(); // update step deltas
+    this->_updateDeltas(); // changes in x and f
 
+    // update old value list
     _old_values.emplace_front(_last);
     while (_old_values.size() > static_cast<size_t>(_max_n_const_values)) {
         _old_values.pop_back();
     }
+
+    // call policy
+    if (_policy) { _policy(*this, *_targetfun); }
+
+    // count step
+    ++_istep;
 }
 
 void NFM::_averageOldValues()
@@ -105,7 +112,7 @@ void NFM::_averageOldValues()
 
 bool NFM::_isGradNoisySmall(const std::vector<NoisyValue> &grad, const bool flag_log) const
 {
-    if (_flag_graderr && _gradfun->hasGradErr()) {
+    if (_flag_gradErrStop && _gradfun->hasGradErr()) {
         for (const NoisyValue &gi : grad) {
             if (gi != 0.) { return false; } // use noisy value overload
         }
@@ -137,7 +144,7 @@ void NFM::_writeCurrentXToLog() const
 
 void NFM::_writeGradientToLog(const std::vector<NoisyValue> &grad) const
 {
-    LogManager::logNoisyVector(grad, LogLevel::VERBOSE, _flag_graderr, "Raw gradient", "g");
+    LogManager::logNoisyVector(grad, LogLevel::VERBOSE, _flag_gradErrStop, "Raw gradient", "g");
 }
 
 // --- Setters/Getters
@@ -145,6 +152,16 @@ void NFM::_writeGradientToLog(const std::vector<NoisyValue> &grad) const
 void NFM::setX(const double x[])
 {
     std::copy(x, x + _ndim, _last.x.data());
+}
+
+void NFM::setX(const std::vector<double> &x)
+{
+    if (x.size() == _last.x.size()) {
+        _last.x = x;
+    }
+    else {
+        throw std::invalid_argument("[NFM::setX] Passed vector length didn't match NFM's number of dimensions.");
+    }
 }
 
 void NFM::getX(double x[]) const
@@ -158,6 +175,8 @@ void NFM::findMin()
 {
     this->_clearOldValues();
     _istep = 0;
+
+    // find minimum
     this->_findMin();
     LogManager::logNoisyIOPair(_last, LogLevel::NORMAL, "Final position and target value");
 }

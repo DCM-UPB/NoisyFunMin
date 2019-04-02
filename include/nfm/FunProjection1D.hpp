@@ -8,7 +8,7 @@
 namespace nfm
 {
 
-class FunProjection1D: public NoisyFunction
+class FunProjection1D final: public NoisyFunction
 {
 private:
     NoisyFunction * const _mdf;  //multidimensional function that must be projected

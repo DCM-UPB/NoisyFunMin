@@ -2,7 +2,7 @@
 #define NFM_NOISYFUNMIN_HPP
 
 #include <list>
-#include <string>
+#include <functional>
 
 #include "nfm/NoisyFunction.hpp"
 #include "nfm/NoisyValue.hpp"
@@ -27,18 +27,20 @@ protected:
     // Stopping Tolerances (may also be used by child to auto-set own tolerances, e.g. for line search)
     double _epsx; // changes in the position x smaller than this value will stop the minimization (if 0, disabled)
     double _epsf; // changes in the function smaller than this value will stop the minimization (if 0, disabled)
-    bool _flag_graderr; // should we consider gradient errors for stopping? (if targetfun supports it)
+    bool _flag_gradErrStop; // should we consider gradient errors for stopping? (if targetfun supports it)
     int _max_n_iterations; // hard stop after this amount of iterations (if 0, disabled (the default!))
     int _max_n_const_values; // stop after this number of target values have been constant within error bounds (if <= 1, disabled)
 
-    // Members to be updated by child
+    // Member to be updated by child
     NoisyIOPair _last; // last position and its function value
-    std::list<NoisyIOPair> _old_values; // list of previous target values and positions
 
-private: // Base class only
+private: // set/called by base class only
+    std::list<NoisyIOPair> _old_values{}; // list of previous target values and positions
     double _lastDeltaX{}; // change in x by last step (updated on storeLastValue)
     double _lastDeltaF{}; // change in f by last step (updated on storeLastalue)
     int _istep{}; // counts the calls to _storeLastValue()
+
+    std::function< void(NFM &, NoisyFunction &) > _policy{}; // optional user provided policy function
 
     void _clearOldValues() { _old_values.clear(); } // reset old values list
     bool _isConverged() const; // check if the target function has stabilized
@@ -71,15 +73,21 @@ public:
     virtual ~NFM() = default;
 
     // --- Setters
+
     void setX(int i, double x) { _last.x[i] = x; } // set per element
     void setX(const double x[]); // set via c-style array
-    void setX(const std::vector<double> &x) { this->setX(x.data()); } // set via vector
+    void setX(const std::vector<double> &x); // set via vector (must be ndim length)
 
     void setEpsX(double epsx) { _epsx = epsx; }
     void setEpsF(double epsf) { _epsf = epsf; }
-    void setGradErrStop(bool flag_graderr) { _flag_graderr = flag_graderr; }
+    void setGradErrStop(bool flag_gradErrStop) { _flag_gradErrStop = flag_gradErrStop; }
     void setMaxNIterations(int maxn_iterations) { _max_n_iterations = std::max(0, maxn_iterations); }
     void setMaxNConstValues(int maxn_const_values) { _max_n_const_values = std::max(1, maxn_const_values); }
+
+    // Set an own policy function which may manipulate NFM and target function on each step.
+    // It will always get called after a new position pair has been stored.
+    void setPolicy(const std::function<void(NFM &, NoisyFunction &)> &policy) { _policy = policy; }
+    void clearPolicy() { _policy = nullptr; } // set empty policy
 
     // --- Getters
 
@@ -89,17 +97,24 @@ public:
 
     double getX(int i) const { return _last.x[i]; }; // elementary get
     void getX(double x[]) const; // get via c-style array
-    void getX(std::vector<double> &x) const { this->getX(x.data()); } // get via vector
-    std::vector<double> getX() const { return _last.x; } // get in new vector
+    void getX(std::vector<double> &x) const { this->getX(x.data()); } // get via passed vector
+    const std::vector<double> &getX() const { return _last.x; } // get const ref
     double getF() const { return _last.f.value; }
     double getDf() const { return _last.f.error; }
     NoisyValue getFDf() const { return _last.f; }
+    const NoisyIOPair &getLast() const { return _last; }
 
     double getEpsX() const { return _epsx; }
     double getEpsF() const { return _epsf; }
-    bool getGradErrStop() const { return _flag_graderr; }
+    bool getGradErrStop() const { return _flag_gradErrStop; }
     int getMaxNIterations() const { return _max_n_iterations; }
     int getMaxNConstValues() const { return _max_n_const_values; }
+
+    const std::list<NoisyIOPair> & getOldValues() const { return _old_values; }
+    double getDeltaX() const { return _lastDeltaX; }
+    double getDeltaF() const { return _lastDeltaF; }
+    double getIter() const { return _istep; }
+
 
     // --- Minimization
     void findMin();

@@ -25,11 +25,12 @@ private:
     double _epsilon; // offset to stabilize division in update, default 10e-8
 
     // --- Minimization
-    void _findMin() final;
+    void _findMin() override;
 
 public:
     explicit Adam(NoisyFunctionWithGradient * targetfun, bool useAveraging = false,
                   double alpha = 0.001, double beta1 = 0.9, double beta2 = 0.999, double epsilon = 10e-8);
+    ~Adam() override = default;
 
     // Getters
     bool usesAveraging() const { return _useAveraging; }

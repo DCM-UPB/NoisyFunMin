@@ -18,7 +18,7 @@ Adam::Adam(NoisyFunctionWithGradient * targetfun, const bool useAveraging,
         throw std::invalid_argument("[Adam] Adam optimization requires a target function with gradient.");
     }
     // overwrite defaults
-    _flag_graderr = false; // don't stop on noisy-low gradients, by default
+    _flag_gradErrStop = false; // don't stop on noisy-low gradients, by default
 }
 
 // --- Minimization

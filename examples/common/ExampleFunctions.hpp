@@ -31,17 +31,24 @@ class NoisyWrapper: public nfm::NoisyFunctionWithGradient
 {
 private:
     nfm::NoisyFunctionWithGradient * const _nlfun; // the noiseless function to wrap
-    double _sigma;
     std::random_device _rdev;
     std::mt19937_64 _rgen;
     std::normal_distribution<double> _rd; // this returns random doubles when called as_rd(_rgen)
+    double _sigma; // the standard deviation
 
 public:
-    explicit NoisyWrapper(nfm::NoisyFunctionWithGradient * fun, double sigma = 1.):
-            nfm::NoisyFunctionWithGradient(fun->getNDim(), fun->hasGradErr()), _nlfun(fun), _sigma(sigma)
+    explicit NoisyWrapper(nfm::NoisyFunctionWithGradient * fun, double sigma_noise = 1.):
+            nfm::NoisyFunctionWithGradient(fun->getNDim(), fun->hasGradErr()), _nlfun(fun), _sigma(sigma_noise)
     {
         // initialize random generator
         _rgen = std::mt19937_64(_rdev());
+        _rd = std::normal_distribution<double>(0., _sigma);
+    }
+
+    double getSigma() const { return _sigma; }
+    void setSigma(double sigma)
+    {
+        _sigma = sigma;
         _rd = std::normal_distribution<double>(0., _sigma);
     }
 

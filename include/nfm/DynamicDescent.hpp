@@ -36,11 +36,11 @@ private:
     // --- Internal methods
     bool _updateTarget(std::vector<NoisyValue> &grad);
     void _findNextX(int iter, const std::vector<NoisyValue> &grad, std::vector<double> &v, std::vector<double> &w);
-    void _findMin() final;
+    void _findMin() override;
 
 public:
     explicit DynamicDescent(NoisyFunctionWithGradient * targetfun, DDMode ddmode = DDMode::SGDM, bool useAveraging = false, double stepSize = 0.01, double beta = 0.9, double epsilon = 1.e-8);
-    ~DynamicDescent() final = default;
+    ~DynamicDescent() override = default;
 
     // DD Configuration
     void useSGDM() { _ddmode = DDMode::SGDM; }

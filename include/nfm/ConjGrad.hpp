@@ -33,11 +33,11 @@ private:
     void _writeCGDirectionToLog(const std::vector<double> &dir, const std::string &name) const;
 
     // --- Minimization
-    void _findMin() final; // perform noisy CG minimization
+    void _findMin() override; // perform noisy CG minimization
 
 public:
     explicit ConjGrad(NoisyFunctionWithGradient * targetfun, CGMode cgmode = CGMode::CGFR, MLMParams params = defaultMLMParams());
-    ~ConjGrad() final = default;
+    ~ConjGrad() override = default;
 
     // CG Configuration
     void useRawGrad() { _cgmode = CGMode::NOCG; }  // make ConjGrad Steepest-Descent-like

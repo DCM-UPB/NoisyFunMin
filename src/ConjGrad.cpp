@@ -63,13 +63,13 @@ void ConjGrad::_findMin()
     double gdot_old = std::inner_product(gradnew.begin(), gradnew.end(), gradnew.begin(), 0.);
 
     // find initial new position
-    LogManager::logString("\nConjGrad::findMin() Init Step\n");
+    LogManager::logString("\nConjGrad::findMin() Step 1\n");
     this->_findNextX(conjv);
 
 
     // --- Main CG Loop
 
-    int iter = 0;
+    int iter = 1;
     while (!this->_shouldStop()) {
         ++iter;
         if (LogManager::isLoggingOn()) { // else skip string construction
@@ -77,7 +77,7 @@ void ConjGrad::_findMin()
         }
 
         // evaluate the new gradient
-        flag_cont = this->_computeGradient(gradh, false); // compute only gradients
+        flag_cont = this->_computeGradient(gradh, false);
         if (!flag_cont) { return; } // gradient is only noise
         for (int i = 0; i < _ndim; ++i) { gradnew[i] = -gradh[i].value; } // store negative gradient
 
@@ -120,7 +120,7 @@ void ConjGrad::_findMin()
 
 bool ConjGrad::_computeGradient(std::vector<NoisyValue> &grad, const bool flag_value)
 {
-    if (flag_value) { // also compute and store value
+    if (flag_value) { // value and gradient
         _last.f = _gradfun->fgrad(_last.x, grad);
         this->_storeLastValue();
     }
