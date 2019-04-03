@@ -14,9 +14,9 @@ namespace nfm
 // settable log levels
 enum class LogLevel
 {
-    OFF = 0,
-    NORMAL = 1,
-    VERBOSE = 2
+    OFF,
+    NORMAL,
+    VERBOSE
 };
 
 // For simplicity we currently use a LogManager with
@@ -31,14 +31,14 @@ public:
     static std::string log_file_path;  // if the path is not given, the log uses the cout
 
     static void setLoggingOn(bool verbose = false); // set loglevel to NORMAL or VERBOSE
-    static void setLogLevel(LogLevel logLvl = LogLevel::NORMAL); // passing ints should work too
+    static void setLogLevel(LogLevel logLvl);
     static void setLoggingOff();
     static LogLevel getLogLevel();
     static bool isLoggingOn();
     static bool isVerbose();
     static bool shouldLog(LogLevel level); // should a message of this level be logged?
 
-    static void setLoggingPathFile(const std::string &path);
+    static void setLoggingFilePath(const std::string &path);
 
     static void logString(std::string s, LogLevel logLvl = LogLevel::NORMAL);
 

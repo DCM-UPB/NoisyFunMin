@@ -25,8 +25,7 @@ int main()
     using namespace std;
     using namespace nfm;
 
-    //LogManager::setLoggingOn(); // use this to enable log printout
-    //LogManager::setLoggingOn(true); // use this for verbose printout of the method
+    LogManager::setLoggingOn(true); // leave this on, because for plotting we are logging to files
 
     cout << endl;
     cout << "Testing Optimizers on Rosenbrock function" << endl << endl;
@@ -40,6 +39,7 @@ int main()
     RosenbrockFunction<2> rbfun;
     double initpos[2] {0., 3.};
 
+    LogManager::setLoggingFilePath("cg.out");
     ConjGrad cg(&rbfun);
     cg.setStepSize(0.01);
     cg.setX(initpos);
@@ -51,8 +51,10 @@ int main()
     cout << endl << "Now let's try some of the SGD optimizers." << endl << endl;
     cout << "We start with simple momentum SGD:" << endl;
 
+    LogManager::setLoggingFilePath("sgdm.out");
     DynamicDescent dd(&rbfun);
-    dd.setStepSize(0.001); // we need this small size to not overshoot initially
+    dd.setEpsX(0.); // don't stop on small x changes
+    dd.setStepSize(0.001); // we need this small size to not overshoot too extremely
     dd.setMaxNIterations(1000);
     dd.setX(initpos);
     dd.findMin();
@@ -62,15 +64,39 @@ int main()
     cout << "so simple momentum SGD doesn't work very well here." << endl << endl;
     cout << "Nesterov momentum:" << endl;
 
+    LogManager::setLoggingFilePath("nest.out");
     dd.useNesterov();
+    dd.setStepSize(0.001);
+    dd.setBeta(0.95);
     dd.setX(initpos);
     dd.findMin();
     reportMinimum(dd);
 
-    cout << "It does better, but still takes 1000 steps to nearly match CG." << endl << endl;
+    cout << "Nesterov does very good, but still takes more steps than CG." << endl << endl;
 
-    cout << "AdaDelta (poor):" << endl;
+    cout << "AdaGrad:" << endl;
 
+    LogManager::setLoggingFilePath("adag.out");
+    dd.useAdaGrad();
+    dd.setStepSize(1.31);
+    dd.setX(initpos);
+    dd.findMin();
+    reportMinimum(dd);
+
+    cout << "RMSProp:" << endl;
+
+    LogManager::setLoggingFilePath("rmsp.out");
+    dd.useRMSProp();
+    dd.setStepSize(0.002); // this is a lucky stepsize
+    dd.setBeta(0.95);
+    dd.setX(initpos);
+    dd.findMin();
+    reportMinimum(dd);
+
+
+    cout << "AdaDelta:" << endl;
+
+    LogManager::setLoggingFilePath("adad.out");
     dd.useAdaDelta();
     dd.setStepSize(0.004);
     dd.setBeta(0.5);
@@ -78,21 +104,26 @@ int main()
     dd.findMin();
     reportMinimum(dd);
 
-    cout << "Adam (not good):" << endl;
+    cout << "Adam:" << endl;
 
-    Adam adam(&rbfun, false, 0.008, 0.7, 0.9); // more parameters ftw
+    LogManager::setLoggingFilePath("adam.out");
+    Adam adam(&rbfun, false, 0.09, 0.9, 0.9); // more parameters ftw
+    adam.setEpsX(0.); // same as above
     adam.setMaxNIterations(1000);
     adam.setX(initpos);
     adam.findMin();
     reportMinimum(adam);
 
 
-    cout << endl << "Now let's turn on the noise and try a combination of noisy CG and Adam:" << endl;
+    cout << endl << "Now let's turn on the noise and try a combination of noisy CG and SGDM:" << endl;
 
-    NoisyWrapper nrbf(&rbfun, 0.05); // sigma 0.05
+    NoisyWrapper nrbf(&rbfun, 0.1); // sigma 0.1
+
+    LogManager::setLoggingFilePath("cg-sgd_noise.out");
     ConjGrad cg2(&nrbf);
 
     // config
+    cg2.setGradErrStop(false);
     cg2.setStepSize(0.2);
     cg2.setBackStep(0.1);
     cg2.useConjGradPR(); // when not stopping on rejection, better use Polak-Ribiere
@@ -100,23 +131,35 @@ int main()
     // stopping criteria
     cg2.setEpsX(0.);
     cg2.setEpsF(0.);
-    cg2.setMaxNIterations(100);
+    cg2.setMaxNIterations(25); // at this point the method usually gets stuck due to noise
 
     cg2.setX(initpos);
     cg2.findMin();
     cout << "Init CG result:" << endl;
     reportMinimum(cg2);
 
-    Adam adam2(&nrbf, true, 0.1, 0.9, 0.9); // more parameters ftw
-    adam2.setMaxNConstValues(0); // let's skip this check
-    adam2.setMaxNIterations(200); // and just run 200 adam steps
-    adam2.setX(cg2.getX()); // set result of CG
-    adam2.findMin();
-    cout << "Final Adam result:" << endl;
-    reportMinimum(adam2);
+    DynamicDescent dd2(&nrbf, DDMode::SGDM, false);
+    dd2.setStepSize(0.0025);
+    dd2.setBeta(0.95);
+    dd2.setMaxNConstValues(0);
+    dd2.setMaxNIterations(275);
+    dd2.setX(cg2.getX());
+    dd2.findMin();
+    cout << "Final SGD result:" << endl;
+    reportMinimum(dd2);
 
-    cout << "This way we obtain decent final minima with less steps (max 100+200)," << endl;
-    cout << "despite the combination of difficult function and noise." << endl << endl << endl;
+    cout << "This way we obtain decent final minima with less steps (max 25+275)," << endl;
+    cout << "despite the combination of difficult function and noise." << endl << endl;
+
+    cout << "But the added noise does not really hurt some(!) of the SGD algorithms." << endl;
+    cout << "For example, if we use Adam right from the start (300 steps), the result is similar:" << endl;
+    LogManager::setLoggingFilePath("adam_noise.out");
+    Adam adam2(&nrbf, true, 0.09, 0.9, 0.9);
+    adam2.setMaxNConstValues(0); // let's skip this check
+    adam2.setMaxNIterations(300); // and just run 300 adam steps
+    adam2.setX(initpos);
+    adam2.findMin();
+    reportMinimum(adam2);
 
     // end
     return 0;

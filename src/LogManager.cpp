@@ -47,7 +47,7 @@ LogLevel LogManager::getLogLevel()
     return log_level;
 }
 
-void LogManager::setLoggingPathFile(const std::string &path)
+void LogManager::setLoggingFilePath(const std::string &path)
 {
     log_file_path = path;
 }
@@ -57,22 +57,19 @@ void LogManager::logString(std::string s, LogLevel logLvl)
     using namespace std;
     if (!shouldLog(logLvl)) { return; }
 
-    const string log_marker = "--NFM--    ";
-    const string log_marker_with_linebreak = "\n--NFM--    ";
-    const string eol = "\n";
-
     if (log_file_path.empty()) {
         // append the string log_marker at the beginning of every new line
+        const char eol = '\n';
         size_t pos = s.find(eol, 0);
         // --- iterate through the string and change it accordingly
         while (pos < string::npos) {
             if (s.substr(pos, string::npos).length() > 0) {
-                s.replace(pos, eol.length(), log_marker_with_linebreak);
+                s.replace(pos, 1, "\n--NFM--    ");
             }
-            pos = s.find(eol, pos + 1);
+            pos = s.find('\n', pos + 1);
         }
         // write to the std output
-        cout << log_marker << s << endl;
+        cout << "--NFM--    " << s << endl;
     }
     else {
         ofstream out;
