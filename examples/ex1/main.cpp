@@ -34,7 +34,7 @@ int main()
 
     cout << "We first minimize the function, supposing to have no noise at all" << endl;
 
-    Noiseless3DParabola nlp;
+    TestParabola3D nlp;
     std::vector<double> initpos{2.5, 1., -1.};
     auto cg = std::make_unique<ConjGrad>(&nlp);
 

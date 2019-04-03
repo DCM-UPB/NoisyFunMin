@@ -17,9 +17,9 @@ and Hamiltonian implementations that are shared between the examples.
 
 ## Example 2
 
-`ex2/`: as `ex1`, but using the DynamicDescent method.
+`ex2/`: as `ex1`, but using the DynamicDescent and Adam classes.
 
 
 ## Example 3
 
-`ex3/`: as `ex1`, but using the Adam method.
+`ex3/`: A comparison of different optimizers applied to the 2D Rosenbrock function. 

@@ -6,26 +6,7 @@
 #include <cmath>
 #include <random>
 
-
-class Noiseless3DParabola: public nfm::NoisyFunctionWithGradient
-{
-public:
-    Noiseless3DParabola(): nfm::NoisyFunctionWithGradient(3, true) {}
-
-    nfm::NoisyValue f(const std::vector<double> &in) override
-    {
-        nfm::NoisyValue y{};
-        y.value = pow(in[0], 2) + pow(in[1] + 1., 2) + pow(in[2] - 2., 2);   // minimum in (0, -1, 2)
-        return y;
-    }
-
-    void grad(const std::vector<double> &in, std::vector<nfm::NoisyValue> &grad) override
-    {
-        grad[0].value = 2*in[0];
-        grad[1].value = 2.*(in[1] + 1.);
-        grad[2].value = 2.*(in[2] - 2.);
-    }
-};
+// --- The Noisy Wrapper
 
 class NoisyWrapper: public nfm::NoisyFunctionWithGradient
 {
@@ -38,7 +19,7 @@ private:
 
 public:
     explicit NoisyWrapper(nfm::NoisyFunctionWithGradient * fun, double sigma_noise = 1.):
-            nfm::NoisyFunctionWithGradient(fun->getNDim(), fun->hasGradErr()), _nlfun(fun), _sigma(sigma_noise)
+            nfm::NoisyFunctionWithGradient(fun->getNDim(), true), _nlfun(fun), _sigma(sigma_noise)
     {
         // initialize random generator
         _rgen = std::mt19937_64(_rdev());
@@ -71,5 +52,52 @@ public:
     }
 };
 
+
+// --- Noiseless Test Functions
+
+class TestParabola3D: public nfm::NoisyFunctionWithGradient
+{
+public:
+    TestParabola3D(): nfm::NoisyFunctionWithGradient(3, false/*no grad errors*/) {}
+
+    nfm::NoisyValue f(const std::vector<double> &in) override
+    {
+        nfm::NoisyValue y{};
+        y.value = pow(in[0], 2) + pow(in[1] + 1., 2) + pow(in[2] - 2., 2);   // minimum in (0, -1, 2)
+        return y;
+    }
+
+    void grad(const std::vector<double> &in, std::vector<nfm::NoisyValue> &grad) override
+    {
+        grad[0].value = 2*in[0];
+        grad[1].value = 2.*(in[1] + 1.);
+        grad[2].value = 2.*(in[2] - 2.);
+    }
+};
+
+
+template<int N>
+class RosenbrockFunction: public nfm::NoisyFunctionWithGradient
+{
+public:
+    RosenbrockFunction(): nfm::NoisyFunctionWithGradient(N, false) {}
+
+    nfm::NoisyValue f(const std::vector<double> &in) override
+    {
+        double y = 0;
+        for (int i=0; i<N-1; ++i) { y += 100.*pow(in[i+1]-in[i]*in[i], 2) + pow(1.-in[i], 2);}
+        return {y, 0.};
+    }
+
+    void grad(const std::vector<double> &in, std::vector<nfm::NoisyValue> &grad) override
+    {
+        std::fill(grad.begin(), grad.end(), nfm::NoisyValue({0., 0.}));
+        for (int i=0; i<N-1; ++i) {
+            const double common = 200.*(in[i+1]-in[i]*in[i]);
+            grad[i].value -= common*2.*in[i] + 2.*(1.-in[i]);
+            grad[i+1].value += common;
+        }
+    }
+};
 
 #endif

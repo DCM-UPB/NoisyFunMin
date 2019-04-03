@@ -32,7 +32,7 @@ int main()
 
     cout << "We first minimize it, supposing to have no noise at all" << endl;
 
-    Noiseless3DParabola nlp;
+    TestParabola3D nlp;
     DynamicDescent dd(&nlp);
     double initpos[3]{2.5, 1., -1.};
 
