@@ -8,8 +8,8 @@
 namespace nfm
 {
 
-DynamicDescent::DynamicDescent(NoisyFunctionWithGradient * targetfun, const DDMode ddmode, const bool useAveraging, const double stepSize, const double beta, const double epsilon):
-        NFM(targetfun), _ddmode(ddmode), _useAveraging(useAveraging), _stepSize(std::max(0., stepSize)), _beta(std::max(0., std::min(1., beta))), _epsilon(std::max(0., epsilon))
+DynamicDescent::DynamicDescent(NoisyFunctionWithGradient * targetfun, const DDMode ddmode, const bool useAveraging, const double stepSize):
+        NFM(targetfun), _ddmode(ddmode), _useAveraging(useAveraging), _stepSize(std::max(0., stepSize))
 {
     if (!_flag_gradfun) {
         throw std::invalid_argument("[DynamicDescent] Dynamic Descent optimization requires a target function with gradient.");
@@ -40,8 +40,8 @@ void DynamicDescent::_findMin()
         }
 
         // compute the gradient and current target
-        const bool flag_cont = this->_updateTarget();
-        if (!flag_cont) { break; } // we are done
+        this->_updateTarget();
+        if (this->_shouldStop()) { break; } // we are done
 
         // find the next position
         this->_findNextX(iter, v, w);
@@ -50,17 +50,17 @@ void DynamicDescent::_findMin()
     if (_useAveraging) { // calculate the old value average as end result
         this->_averageOldValues(); // perform average and store it in last
     }
+
     LogManager::logString("\nEnd DynamicDescent::findMin() procedure\n");
 }
 
 // --- Internal methods
 
-bool DynamicDescent::_updateTarget()
+void DynamicDescent::_updateTarget()
 {
     _last.f = _gradfun->fgrad(_last.x, _grad);
     this->_storeLastValue();
     this->_writeGradientToLog();
-    return !this->_shouldStop();
 }
 
 void DynamicDescent::_findNextX(const int iter, std::vector<double> &v, std::vector<double> &w)

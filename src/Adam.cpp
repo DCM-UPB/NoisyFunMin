@@ -10,9 +10,8 @@ namespace nfm
 
 // --- Constructor
 
-Adam::Adam(NoisyFunctionWithGradient * targetfun, const bool useAveraging,
-           const double alpha, const double beta1, const double beta2, const double epsilon):
-        NFM(targetfun), _useAveraging(useAveraging), _alpha(alpha), _beta1(beta1), _beta2(beta2), _epsilon(epsilon)
+Adam::Adam(NoisyFunctionWithGradient * targetfun, const bool useAveraging, const double alpha):
+        NFM(targetfun), _useAveraging(useAveraging), _alpha(std::max(0., alpha))
 {
     if (!_flag_gradfun) {
         throw std::invalid_argument("[Adam] Adam optimization requires a target function with gradient.");

@@ -25,16 +25,16 @@ private:
     DDMode _ddmode; // which update rule to use
     bool _useAveraging; // use the averaged positions of the old value list (length max_n_const_values) as end result
     double _stepSize; // step size factor / learning rate
-    double _beta; // momenta update parameter (not used in AdaGrad)
-    double _epsilon; // small value to prevent bad division (not used in SGDM)
+    double _beta = 0.9; // momenta update parameter (not used in AdaGrad)
+    double _epsilon = 1.e-8; // small value to prevent bad division (not used in SGDM)
 
     // --- Internal methods
-    bool _updateTarget();
+    void _updateTarget();
     void _findNextX(int iter, std::vector<double> &v, std::vector<double> &w);
     void _findMin() override;
 
 public:
-    explicit DynamicDescent(NoisyFunctionWithGradient * targetfun, DDMode ddmode = DDMode::SGDM, bool useAveraging = false, double stepSize = 0.01, double beta = 0.9, double epsilon = 1.e-8);
+    explicit DynamicDescent(NoisyFunctionWithGradient * targetfun, DDMode ddmode = DDMode::SGDM, bool useAveraging = false, double stepSize = 0.01);
     ~DynamicDescent() override = default;
 
     // DD Configuration

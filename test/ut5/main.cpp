@@ -29,7 +29,9 @@ int main()
             // cout << "useGradientError " << useGradientError << " useAveraging " << useAveraging << endl;
 
             // test Adam
-            Adam adam(&f3d, useAveraging, 0.1, 0.1, 0.1); // since the gradient is exact we chose very high decay
+            Adam adam(&f3d, useAveraging, 0.1);
+            adam.setBeta1(0.1); // this case works better with high decay
+            adam.setBeta2(0.1);
             adam.setGradErrStop(useGradientError);
             adam.setX(0, -2.);
             adam.setX(1, 1.);

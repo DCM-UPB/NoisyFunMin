@@ -17,15 +17,14 @@ class Adam: public NFM
 private:
     bool _useAveraging; // use automatic exponential decaying (beta2) parameter averaging, as proposed in the end of Adam paper
     double _alpha; // stepsize, default 0.001
-    double _beta1, _beta2; // decay rates in [0, 1), default 0.9 and 0.999 respectively
-    double _epsilon; // offset to stabilize division in update, default 10e-8
+    double _beta1 = 0.9, _beta2 = 0.999; // decay rates in [0, 1)
+    double _epsilon = 1.e-8; // offset to stabilize division in update
 
     // --- Minimization
     void _findMin() override;
 
 public:
-    explicit Adam(NoisyFunctionWithGradient * targetfun, bool useAveraging = false,
-                  double alpha = 0.001, double beta1 = 0.9, double beta2 = 0.999, double epsilon = 10e-8);
+    explicit Adam(NoisyFunctionWithGradient * targetfun, bool useAveraging = false, double alpha = 0.001);
     ~Adam() override = default;
 
     // Getters

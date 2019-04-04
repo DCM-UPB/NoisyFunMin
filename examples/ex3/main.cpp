@@ -1,6 +1,7 @@
 #include "nfm/ConjGrad.hpp"
 #include "nfm/DynamicDescent.hpp"
 #include "nfm/Adam.hpp"
+#include "nfm/FIRE.hpp"
 #include "nfm/LogManager.hpp"
 
 #include <iostream>
@@ -114,7 +115,9 @@ int main()
 
     cout << "Adam:" << endl;
 
-    Adam adam(&rbfun, false, 0.09, 0.9, 0.9); // more parameters ftw
+    Adam adam(&rbfun, false, 0.09);
+    adam.setBeta1(0.9);
+    adam.setBeta2(0.9); // more parameters ftw
     adam.disableStopping(); // same as above
     adam.setMaxNIterations(1000); // same as above
     minimize(adam, initpos, "adam.out");
@@ -152,10 +155,20 @@ int main()
     cout << "But the added noise does not really hurt some(!) of the SGD algorithms." << endl;
     cout << "For example, if we use Adam right from the start (300 steps), the result is similar:" << endl;
 
-    Adam adam2(&nrbf, true, 0.09, 0.9, 0.9);
+    Adam adam2(&nrbf, true, 0.09);
+    adam2.setBeta1(0.9);
+    adam2.setBeta2(0.9);
     adam2.disableStopping();
     adam2.setMaxNIterations(300); // just run 300 adam steps
     minimize(adam2, initpos, "adam_noise.out");
+
+    cout << endl;
+    cout << "Last but not least, here are the results for the Fast Inertial Relaxation Engine (FIRE):" << endl;
+    FIRE fire(&nrbf, 0.1, 1.);
+    fire.setNMin(1);
+    fire.disableStopping();
+    fire.setMaxNIterations(300);
+    minimize(fire, initpos, "fire_noise.out");
 
     // end
     return 0;
