@@ -76,13 +76,9 @@ inline nfm::NoisyBracket sortedBracket(nfm::NoisyBracket bracket) // we take val
     return bracket;
 }
 
-// --- Public Functions
-
-namespace nfm
+void writeBracketToLog(const std::string &key, const nfm::NoisyBracket &bracket)
 {
-
-void writeBracketToLog(const std::string &key, const NoisyBracket &bracket)
-{
+    using namespace nfm;
     if (!LogManager::isLoggingOn()) { return; } // save time when loggin is off
     std::stringstream s;
     s << key << ":    " <<
@@ -92,6 +88,11 @@ void writeBracketToLog(const std::string &key, const NoisyBracket &bracket)
     s << std::flush;
     LogManager::logString(s.str(), LogLevel::VERBOSE);
 }
+
+// --- Public Functions
+
+namespace nfm
+{
 
 bool findBracket(NoisyFunction &f1d, NoisyBracket &bracket /*inout*/, const int maxNIter, double epsx)
 {
@@ -140,7 +141,7 @@ bool findBracket(NoisyFunction &f1d, NoisyBracket &bracket /*inout*/, const int 
         c.x = a.x + (b.x - a.x)/IGOLD2;
         c.f = F(c.x);
 
-        writeBracketToLog("findBracket pre-step", bracket);
+        writeBracketToLog("findBracket pre-step (scale)", bracket);
     }
 
     // Main Loop
@@ -158,19 +159,18 @@ bool findBracket(NoisyFunction &f1d, NoisyBracket &bracket /*inout*/, const int 
             // move up
             shiftABC(a.x, b.x, c.x, (c.x - b.x)/IGOLD2 + b.x);
             shiftABC(a.f, b.f, c.f, F(c.x));
+            writeBracketToLog("findBracket step (move)", bracket);
         }
         else { // -> a.f < b.f < c.f || a.f < b.f > c.f
             // contract
             c = b;
             b.x = (c.x - a.x)*IGOLD2 + a.x;
             b.f = F(b.x);
+            writeBracketToLog("findBracket step (contract)", bracket);
         }
-
-        writeBracketToLog("findBracket step", bracket);
     }
     return false;
 }
-
 
 NoisyIOPair1D brentMin(NoisyFunction &f1d, NoisyBracket bracket, const int maxNIter, double epsx, double epsf)
 {
@@ -219,15 +219,18 @@ NoisyIOPair1D brentMin(NoisyFunction &f1d, NoisyBracket bracket, const int maxNI
         const double xm = 0.5*(lb.x + ub.x);
         const double tol = 1.5e-08*fabs(m.x); // tolerance for strategy choice
 
-        std::swap(d, e); // not sure why though
+        //std::swap(d, e); // this happens only in the step initialization of GSL's Brent and looks like a bug
         NoisyIOPair1D u{};
 
         double p = 0.;
         double q = 0.;
         double r = 0.;
 
-        // fit parabola (magic code from GSL)
-        if (fabs(e) > tol) {
+        bool flag_parab; // was parabolic fit used
+
+        // The following is a customized adaption of GSL's Brent,
+        // just using NoisyValue overloads and small other modifications.
+        if (fabs(e) > tol) { // we should fit a parabola
             r = (m.x - w.x)*(m.f.val - v.f.val);
             q = (m.x - v.x)*(m.f.val - w.f.val);
             p = (m.x - v.x)*q - (m.x - w.x)*r;
@@ -243,19 +246,23 @@ NoisyIOPair1D brentMin(NoisyFunction &f1d, NoisyBracket bracket, const int maxNI
             e = d;
         }
 
+        // if parabola fine, use it
         if (fabs(p) < fabs(0.5*q*r) && p < q*mtolb && p < q*mtoub) {
             double t2 = 2.*tol;
             d = p/q;
             u.x = m.x + d;
-            if ((u.x - lb.x) < t2 || (ub.x - u.x) < t2) {
+            if ((u.x - lb.x) < t2 || (ub.x - u.x) < t2) { // keep minimal distance to lb and ub
                 d = (m.x < xm) ? tol : -tol;
             }
+            flag_parab = true;
         }
-        else {
+        else { // else use golden section
             e = (m.x < xm) ? ub.x - m.x : -(m.x - lb.x);
             d = IGOLD2*e;
+            flag_parab = false;
         }
 
+        // keep minimal distance to m
         if (fabs(d) >= tol) {
             u.x = m.x + d;
         }
@@ -267,39 +274,34 @@ NoisyIOPair1D brentMin(NoisyFunction &f1d, NoisyBracket bracket, const int maxNI
         u.f = F(u.x);
 
         // check continue conditions
-        if (u.f.getUBound() < m.f.getUBound()) { // keep best ubound in m
+        if (u.f.getUBound() <= m.f.getUBound()) { // keep best ubound in m (prove safer so far)
             if (u.x < m.x) { ub = m; }
             else { lb = m; }
 
             v = w;
             w = m;
             m = u;
-            writeBracketToLog("brentMin step", bracket);
-            continue;
+        }
+        else {
+            if (u.x < m.x) { lb = u; }
+            else { ub = u; }
+
+            if (u.f <= w.f || w.x == m.x) {
+                v = w;
+                w = u;
+            }
+            else if (u.f <= v.f || v.x == m.x || v.x == w.x) {
+                v = u;
+            }
         }
 
-        if (u.x < m.x) { lb = u; }
-        else { ub = u; }
-
-        if (u.f <= w.f || w.x == m.x) {
-            v = w;
-            w = u;
-            writeBracketToLog("brentMin step", bracket);
-            continue;
-        }
-        if (u.f <= v.f || v.x == m.x || v.x == w.x) {
-            v = u;
-            writeBracketToLog("brentMin step", bracket);
-            continue;
-        }
-
-        writeBracketToLog("brentMin step", bracket);
+        writeBracketToLog(flag_parab ? "brentMin step (parabola)" : "brentMin step (goldsect)", bracket);
     }
 
     writeBracketToLog("brentMin final", bracket);
 
-    // Return point with best upper error bound (m). To avoid any
-    // bias, we recompute the function value at the final position.
+    // Return point in m. v might rarely have a better upper bound, but is more risky.
+    // To avoid any bias, we recompute the function value at the final position.
     m.f = F(m.x);
     return m;
 }
@@ -341,7 +343,8 @@ NoisyIOPair multiLineMin(NoisyFunction &mdf, NoisyIOPair p0Pair, const std::vect
             return p0Pair;
         }
     }
-    // return the old state unchanged
+    // return the old position, but recompute value
+    p0Pair.f = mdf(p0Pair.x);
     return p0Pair;
 }
 } // namespace nfm

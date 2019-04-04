@@ -22,7 +22,7 @@ int main()
     using namespace std;
     using namespace nfm;
 
-    //LogManager::setLoggingOn(); // use this to enable log printout
+    LogManager::setLoggingOn(); // use this to enable log printout
     //LogManager::setLoggingOn(true); // use this for verbose printout of the method
 
     cout << endl;

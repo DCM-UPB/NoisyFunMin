@@ -167,7 +167,7 @@ def showFigure(files, names, title, mode): # mode can be 0 = cg, 1 = sgd, 2 = no
 # --- Script
 
 prefix = "../../build/examples/"
-showFigure([prefix+"cg.out"], ["CG"], "Fletcher-Reeves CG, no noise", 0)
+showFigure([prefix+"cgsd.out", prefix+"cgfr.out", prefix+"cgpr.out", prefix+"cgpr0.out"], ["SD", "CG(FR)", "CG(PR)", "CG(PR0)"], "SD/CG variants, no noise", 0)
 showFigure([prefix+"sgdm.out", prefix+"nest.out", prefix+"adag.out", prefix+"rmsp.out", prefix+"adad.out", prefix+"adam.out"], ["SGDM", "Nesterov", "AdaGrad", "RMSProp", "AdaDelta", "Adam"], "SGD algorithms, no noise", 1)
 showFigure([prefix+"cg-sgd_noise.out"], ["CG", "SGDM"], "Polak-Ribiere CG, followed by momentum SGD, with noise", 2)
 showFigure([prefix+"adam_noise.out"], ["Adam"], "Adam (heavy ball with friction :D), with noise", 3)

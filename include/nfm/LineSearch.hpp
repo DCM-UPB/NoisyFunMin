@@ -94,9 +94,6 @@ inline MLMParams defaultMLMParams()
 
 // --- Line-Search Functions
 
-// Function used for writing NoisyBracket to the log
-void writeBracketToLog(const std::string &key, const NoisyBracket &bracket);
-
 // Find a valid bracket (starts with bracket [A, B, C], may increase interval to the right)
 bool findBracket(NoisyFunction &f1d, NoisyBracket &bracket, int maxNIter, double epsx = m1d_detail::STD_XTOL);
 // ^did we have success        ^1D function  ^in/out bracket (a.x < b.x < c.x)   ^bracket size tol

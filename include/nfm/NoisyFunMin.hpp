@@ -41,9 +41,10 @@ private: // set/called by base class only
     bool _flag_policyStop{}; // did the user policy dictate stopping?
     int _istep{}; // counts the calls to _storeLastValue()
 
-    // Optional user provided policy function, called after every update.
-    // May manipuulate the passed NFM and target function. If necessary, use upcasts.
-    // Must return true for NFM to continue, else NFM will stop at the next check.
+    // Optional user provided policy function, called after every iteration.
+    // May manipulate the NFM and target function (passed as their base types).
+    // If necessary, upcast them to their known true type. Must return true
+    // for NFM to continue, else NFM will stop at the next shouldStop() check.
     std::function< bool(NFM &, NoisyFunction &) > _policy{};
 
     void _clearOldValues() { _old_values.clear(); } // reset old values list
