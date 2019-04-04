@@ -2,11 +2,6 @@
 #define NFM_DYNAMICDESCENT_HPP
 
 #include "nfm/NoisyFunMin.hpp"
-#include "nfm/NoisyFunction.hpp"
-
-#include <algorithm>
-#include <cmath>
-#include <iostream>
 
 namespace nfm
 {
@@ -34,8 +29,8 @@ private:
     double _epsilon; // small value to prevent bad division (not used in SGDM)
 
     // --- Internal methods
-    bool _updateTarget(std::vector<NoisyValue> &grad);
-    void _findNextX(int iter, const std::vector<NoisyValue> &grad, std::vector<double> &v, std::vector<double> &w);
+    bool _updateTarget();
+    void _findNextX(int iter, std::vector<double> &v, std::vector<double> &w);
     void _findMin() override;
 
 public:

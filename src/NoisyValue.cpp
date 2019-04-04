@@ -17,10 +17,10 @@ void NoisyValue::setSigmaLevel(const double sigmaLevel)
 
 // --- Set
 
-void NoisyValue::set(const double val, const double err)
+void NoisyValue::set(const double value, const double error)
 {
-    value = val;
-    error = err;
+    val = value;
+    err = error;
 }
 
 // --- Binary operations
@@ -29,27 +29,27 @@ void NoisyValue::set(const double val, const double err)
 
 NoisyValue NoisyValue::operator+=(const double rhs)
 {
-    value += rhs;
+    val += rhs;
     return *this;
 }
 
 NoisyValue NoisyValue::operator-=(const double rhs)
 {
-    value -= rhs;
+    val -= rhs;
     return *this;
 }
 
 NoisyValue NoisyValue::operator*=(const double rhs)
 {
-    value *= rhs;
-    error *= rhs;
+    val *= rhs;
+    err *= rhs;
     return *this;
 }
 
 NoisyValue NoisyValue::operator/=(const double rhs)
 {
-    value /= rhs;
-    error /= rhs;
+    val /= rhs;
+    err /= rhs;
     return *this;
 }
 
@@ -83,15 +83,15 @@ NoisyValue operator/(NoisyValue lhs, const double rhs)
 
 NoisyValue NoisyValue::operator+=(const NoisyValue rhs)
 {
-    value += rhs.value;
-    error = sqrt(error*error + rhs.error*rhs.error); // standard error propagation
+    val += rhs.val;
+    err = sqrt(err*err + rhs.err*rhs.err); // standard error propagation
     return *this;
 }
 
 NoisyValue NoisyValue::operator-=(const NoisyValue rhs)
 {
-    value -= rhs.value;
-    error = sqrt(error*error + rhs.error*rhs.error); // standard error propagation
+    val -= rhs.val;
+    err = sqrt(err*err + rhs.err*rhs.err); // standard error propagation
     return *this;
 }
 
@@ -111,21 +111,21 @@ NoisyValue operator-(NoisyValue lhs, const NoisyValue rhs)
 
 // --- Comparison
 
-bool NoisyValue::operator<(const double val) const
+bool NoisyValue::operator<(const double value) const
 {
-    return this->getUBound() < val;
+    return this->getUBound() < value;
 }
 
 
-bool NoisyValue::operator>(const double val) const
+bool NoisyValue::operator>(const double value) const
 {
-    return this->getLBound() > val;
+    return this->getLBound() > value;
 }
 
 
-bool NoisyValue::operator==(const double val) const
+bool NoisyValue::operator==(const double value) const
 {
-    return !(*this < val || *this > val);
+    return !(*this < value || *this > value);
 }
 
 bool NoisyValue::operator<(const NoisyValue other) const
@@ -150,13 +150,13 @@ bool NoisyValue::operator==(const NoisyValue other) const
 // Stream I/O
 std::ostream &operator<<(std::ostream &os, const NoisyValue nv)
 {   // write NoisyValue to ostream
-    os << nv.value << " +- " << nv.error;
+    os << nv.val << " +- " << nv.err;
     return os;
 }
 
 // Minimal Distance
 double NoisyValue::minDist(NoisyValue other) const
 {
-    return fabs(this->value - other.value) - _sigmaLevel*(this->error + other.error);
+    return fabs(this->val - other.val) - _sigmaLevel*(this->err + other.err);
 }
 } // namespace nfm

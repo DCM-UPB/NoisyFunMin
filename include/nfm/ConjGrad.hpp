@@ -1,9 +1,8 @@
 #ifndef NFM_CONJGRAD_HPP
 #define NFM_CONJGRAD_HPP
 
-#include "nfm/LineSearch.hpp"
 #include "nfm/NoisyFunMin.hpp"
-#include "nfm/NoisyFunction.hpp"
+#include "nfm/LineSearch.hpp"
 
 namespace nfm
 {
@@ -28,7 +27,7 @@ private:
     MLMParams _mlmParams;  // line search configuration (see LineSearch.hpp)
 
     // --- Internal methods
-    bool _computeGradient(std::vector<NoisyValue> &grad, bool flag_value);
+    bool _computeGradient(bool flag_value);
     void _findNextX(const std::vector<double> &dir); // do line-search
     void _writeCGDirectionToLog(const std::vector<double> &dir, const std::string &name) const;
 

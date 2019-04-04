@@ -112,7 +112,7 @@ void LogManager::logVector(const std::vector<double> &x, const LogLevel logLvl,
 }
 
 
-void LogManager::logNoisyVector(const std::vector<NoisyValue> &g, const LogLevel logLvl, const bool printErrors,
+void LogManager::logNoisyVector(const NoisyGradient &g, const LogLevel logLvl, const bool printErrors,
                                 const std::string &name, const std::string &glabel)
 {
     using namespace std;
@@ -123,7 +123,7 @@ void LogManager::logNoisyVector(const std::vector<NoisyValue> &g, const LogLevel
     for (size_t i = 0; i < g.size(); ++i) {
         os << glabel << i << " = ";
         if (printErrors) { os << g[i]; }
-        else { os << g[i].value; }
+        else { os << g.val[i]; }
         if (i >= g.size() - 1) { os << "\n"; }
         else { os << "    "; }
     }

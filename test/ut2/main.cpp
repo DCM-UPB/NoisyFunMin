@@ -47,7 +47,7 @@ int main()
     p2 = nfm::brentMin(pwr4, bracket, 20, 1e-5, 1e-10);
     assert(p2.x < 0.1);
     assert(p2.x > -0.1);
-    assert(p2.f.value < 0.00001);
+    assert(p2.f.val < 0.00001);
 
 
     return 0;

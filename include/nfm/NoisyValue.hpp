@@ -28,7 +28,7 @@ namespace nfm
 //
 // NOTE 1: It was made sure that NoisyValue is an aggregate type. Among some other things,
 //         this means you can simply use aggregate initialization. Examples:
-//         i) NoisyValue x{.value = 1., .error = 0.5} or just NoisyValue x{1., 0.5};
+//         i) NoisyValue x{.val = 1., .err = 0.5} or just NoisyValue x{1., 0.5};
 //         ii) void MyFunc(NoisyValue x){...} -> may be called as MyFunc({1., 0.5});
 //
 // NOTE 2: Because having only two double fields makes NoisyValues very cheap to copy, they can
@@ -42,8 +42,8 @@ private:
     static double _sigmaLevel;
 
 public:
-    double value;
-    double error; // standard error (sigma)
+    double val; // value
+    double err; // standard error (sigma)
 
     // Static methods
     static void setSigmaLevel(double sigmaLevel = DEFAULT_SIGMA_LEVEL); // will set 0, if sigmaLevel <= 0
@@ -53,8 +53,8 @@ public:
     void set(double val, double err); // set both fields at once
 
     // Getters
-    double getUBound() const { return value + error*_sigmaLevel; }
-    double getLBound() const { return value - error*_sigmaLevel; }
+    double getUBound() const { return val + err*_sigmaLevel; }
+    double getLBound() const { return val - err*_sigmaLevel; }
 
     // Binary Operators (implemented based on compound assignments)
     NoisyValue operator+=(double rhs); // add assign with scalar value

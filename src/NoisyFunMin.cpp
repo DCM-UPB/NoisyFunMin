@@ -1,4 +1,5 @@
 #include "nfm/NoisyFunMin.hpp"
+
 #include "nfm/LogManager.hpp"
 
 #include <algorithm>
@@ -16,7 +17,7 @@ NFM::NFM(NoisyFunction * targetfun):
         _ndim(targetfun->getNDim()), _targetfun(targetfun),
         _gradfun(dynamic_cast<NoisyFunctionWithGradient *>(_targetfun)), _flag_gradfun(_gradfun != nullptr),
         _epsx(DEFAULT_EPSX), _epsf(DEFAULT_EPSF), _flag_gradErrStop(_flag_gradfun ? _gradfun->hasGradErr() : false),
-        _max_n_iterations(0), _max_n_const_values(DEFAULT_MAX_N_CONST), _last(NoisyIOPair(_ndim)) {}
+        _max_n_iterations(0), _max_n_const_values(DEFAULT_MAX_N_CONST), _last(_ndim), _grad(_ndim, _gradfun->hasGradErr()) {}
 
 // --- Private methods
 
@@ -110,25 +111,19 @@ void NFM::_averageOldValues()
 }
 
 
-bool NFM::_isGradNoisySmall(const std::vector<NoisyValue> &grad, const bool flag_log) const
+bool NFM::_isGradNoisySmall(const bool flag_log) const
 {
     if (_flag_gradErrStop && _gradfun->hasGradErr()) {
-        for (const NoisyValue &gi : grad) {
-            if (gi != 0.) { return false; } // use noisy value overload
-        }
+        if (_grad > 0.) { return false; } // use overload
         if (flag_log) { LogManager::logString("\nStopping Reason: Gradient is dominated by noise.\n"); }
         return true;
     }
     return false;
 }
 
-bool NFM::_shouldStop(const std::vector<NoisyValue> * grad) const
+bool NFM::_shouldStop() const
 {   // check all stopping criteria
-    bool answer = (_isConverged() || !_changedEnough() || _stepLimitReached());
-    if (grad != nullptr) {
-        answer = answer || _isGradNoisySmall(*grad);
-    }
-    return answer;
+    return (_isConverged() || !_changedEnough() || _stepLimitReached() || _isGradNoisySmall());
 }
 
 
@@ -142,9 +137,9 @@ void NFM::_writeCurrentXToLog() const
     else { LogManager::logNoisyValue(_last.f, LogLevel::NORMAL, "Current target value", "f"); }
 }
 
-void NFM::_writeGradientToLog(const std::vector<NoisyValue> &grad) const
+void NFM::_writeGradientToLog() const
 {
-    LogManager::logNoisyVector(grad, LogLevel::VERBOSE, _flag_gradErrStop, "Raw gradient", "g");
+    LogManager::logNoisyVector(_grad, LogLevel::VERBOSE, _flag_gradErrStop, "Raw gradient", "g");
 }
 
 // --- Setters/Getters

@@ -3,7 +3,7 @@
 #include "nfm/LogManager.hpp"
 
 #include <cmath>
-#include <iostream>
+#include <string>
 #include <numeric>
 
 namespace nfm
@@ -39,22 +39,18 @@ void ConjGrad::_findMin()
     LogManager::logString("\nBegin ConjGrad::findMin() procedure\n");
 
     // obtain the initial function value and gradient (uphill)
-    std::vector<NoisyValue> gradh(static_cast<size_t>(_ndim));
-    bool flag_cont = this->_computeGradient(gradh, true); // compute grad and value
+    bool flag_cont = this->_computeGradient(true); // compute grad and value
     if (!flag_cont) { return; } // return early
 
 
     // --- Initialize CG
 
     // initialize gradient vectors and length
-    std::vector<double> gradnew(gradh.size()); // stores new raw gradients with inverted sign
-    std::vector<double> conjv(gradh.size()); // stores the conjugate vectors
+    //std::vector<double> gradnew(_gradh.size()); // stores new raw gradients with inverted sign
+    std::vector<double> &gradnew = _grad.val; // store reference to gradient values
+    std::vector<double> conjv = gradnew; // stores the conjugate vectors, initialize with raw gradient
     std::vector<double> gradold; // the previous inverted gradients (only used for Polak-Ribiere CG)
 
-    for (int i = 0; i < _ndim; ++i) {
-        gradnew[i] = -gradh[i].value; // interested in following -gradient
-        conjv[i] = gradnew[i]; // initialize CG vector with initial gradient
-    }
     // save old gradient for PR-CG
     if (_cgmode == CGMode::CGPR || _cgmode == CGMode::CGPR0) {
         gradold = gradnew; // initialize old gradient
@@ -77,9 +73,8 @@ void ConjGrad::_findMin()
         }
 
         // evaluate the new gradient
-        flag_cont = this->_computeGradient(gradh, false);
+        flag_cont = this->_computeGradient(false);
         if (!flag_cont) { return; } // gradient is only noise
-        for (int i = 0; i < _ndim; ++i) { gradnew[i] = -gradh[i].value; } // store negative gradient
 
         // compute the next direction to follow
         if (_cgmode == CGMode::NOCG) { // use raw gradient (i.e. steepest descent)
@@ -118,17 +113,17 @@ void ConjGrad::_findMin()
 
 // --- Internal methods
 
-bool ConjGrad::_computeGradient(std::vector<NoisyValue> &grad, const bool flag_value)
+bool ConjGrad::_computeGradient(const bool flag_value)
 {
     if (flag_value) { // value and gradient
-        _last.f = _gradfun->fgrad(_last.x, grad);
+        _last.f = _gradfun->fgrad(_last.x, _grad);
         this->_storeLastValue();
     }
     else { // only gradient
-        _gradfun->grad(_last.x, grad);
+        _gradfun->grad(_last.x, _grad);
     }
-    this->_writeGradientToLog(grad);
-    if (this->_isGradNoisySmall(grad)) { // we directly check and print the exit message here
+    this->_writeGradientToLog();
+    if (this->_isGradNoisySmall()) { // we directly check and print the exit message here
         LogManager::logString("\nEnd ConjGrad::findMin() procedure\n");
         return false;
     }

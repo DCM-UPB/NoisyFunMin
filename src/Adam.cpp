@@ -28,9 +28,8 @@ void Adam::_findMin()
     LogManager::logString("\nBegin Adam::findMin() procedure\n");
 
 
-    //initialize the gradient & moments
-    auto nd = static_cast<size_t>(_ndim);
-    std::vector<NoisyValue> grad(nd); // gradient and (unused) error
+    //initialize the vectors
+    const size_t nd = _grad.size();
     std::vector<double> m(nd), v(nd); // moment vectors
     std::vector<double> xavg; // when averaging is enabled, holds the running average
     if (_useAveraging) { xavg.assign(nd, 0.); }
@@ -46,10 +45,10 @@ void Adam::_findMin()
         }
 
         // compute current gradient and target value
-        _last.f = _gradfun->fgrad(_last.x, grad);
+        _last.f = _gradfun->fgrad(_last.x, _grad);
         _storeLastValue();
-        _writeGradientToLog(grad);
-        if (_shouldStop(&grad)) { break; }
+        _writeGradientToLog();
+        if (_shouldStop()) { break; }
 
         // update factors
         beta1t = beta1t*_beta1; // update beta1 power
@@ -58,10 +57,10 @@ void Adam::_findMin()
 
         // compute the update
         for (int i = 0; i < _ndim; ++i) {
-            m[i] = _beta1*m[i] + (1. - _beta1)*grad[i].value; // Update biased first moment
-            v[i] = _beta2*v[i] + (1. - _beta2)*grad[i].value*grad[i].value; // Update biased second raw moment
+            m[i] = _beta1*m[i] + (1. - _beta1)*_grad.val[i]; // Update biased first moment
+            v[i] = _beta2*v[i] + (1. - _beta2)*_grad.val[i]*_grad.val[i]; // Update biased second raw moment
 
-            _last.x[i] -= afac*m[i]/(sqrt(v[i]) + _epsilon); // update _last
+            _last.x[i] += afac*m[i]/(sqrt(v[i]) + _epsilon); // update _last
 
             if (_useAveraging) {
                 xavg[i] = _beta2*xavg[i] + (1. - _beta2)*_last.x[i];

@@ -26,7 +26,7 @@ public:
     {
         nfm::NoisyValue y{-1, 0.1};
         if ((in[0] <= -1.) || (in[0] >= 1.)) {
-            y.value = 1.;
+            y.val = 1.;
         }
         return y;
     }
@@ -41,7 +41,7 @@ public:
     nfm::NoisyValue f(const std::vector<double> &in) override
     {
         nfm::NoisyValue y{in[0]*in[0], 0.000000001};
-        y.value *= y.value;
+        y.val *= y.val;
         return y;
     }
 };
@@ -55,7 +55,7 @@ public:
     nfm::NoisyValue f(const std::vector<double> &in) override
     {
         nfm::NoisyValue y{in[0] - 1., 0.00001};
-        y.value = pow(y.value, 4);
+        y.val = pow(y.val, 4);
         return y;
     }
 };
@@ -69,15 +69,15 @@ public:
     nfm::NoisyValue f(const std::vector<double> &in) override   // f = (x-1)^4 + (y+1.5)^4 + (z-0.5)^4
     {
         nfm::NoisyValue y{in[0] - 1., 0.00001};
-        y.value = pow(y.value, 4) + pow(in[1] + 1.5, 4) + pow(in[2] - 0.5, 4);
+        y.val = pow(y.val, 4) + pow(in[1] + 1.5, 4) + pow(in[2] - 0.5, 4);
         return y;
     }
 
-    void grad(const std::vector<double> &in, std::vector<nfm::NoisyValue> &grad) override
+    void grad(const std::vector<double> &in, nfm::NoisyGradient &grad) override
     {
-        grad[0].set(4.*pow(in[0] - 1.0, 3), 0.000001);
-        grad[1].set(4.*pow(in[1] + 1.5, 3), 0.000001);
-        grad[2].set(4.*pow(in[2] - 0.5, 3), 0.000001);
+        grad.set(0, {-4.*pow(in[0] - 1.0, 3), 0.000001});
+        grad.set(1, {-4.*pow(in[1] + 1.5, 3), 0.000001});
+        grad.set(2, {-4.*pow(in[2] - 0.5, 3), 0.000001});
     }
 };
 

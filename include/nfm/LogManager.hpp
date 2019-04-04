@@ -53,7 +53,7 @@ public:
                           const std::string &name = "", const std::string &xlabel = "x");
 
     // write vector of noisy values (e.g. gradients)
-    static void logNoisyVector(const std::vector<NoisyValue> &g, LogLevel logLvl, bool printErrors = true,
+    static void logNoisyVector(const NoisyGradient &g, LogLevel logLvl, bool printErrors = true,
                                const std::string &name = "", const std::string &glabel = "g");
 
     // write a pair of exact vector and noisy value

@@ -3,6 +3,7 @@
 #include "nfm/LogManager.hpp"
 
 #include <numeric>
+#include <cmath>
 
 namespace nfm
 {
@@ -23,11 +24,8 @@ void DynamicDescent::_findMin()
 {
     LogManager::logString("\nBegin DynamicDescent::findMin() procedure\n");
 
-    // vector to hold the gradient and (possibly) error
-    std::vector<NoisyValue> grad(static_cast<size_t>(_ndim));
-
-    // holds previous old update (init to 0)
-    std::vector<double> v(grad.size()); // helper vector used by all methods
+    // vectors used for SGD updates
+    std::vector<double> v(_grad.size()); // helper vector used by all methods
     std::vector<double> w; // only used by AdaDelta
     if (_ddmode == DDMode::ADAD) {
         w = v; // v is already all 0
@@ -42,11 +40,11 @@ void DynamicDescent::_findMin()
         }
 
         // compute the gradient and current target
-        const bool flag_cont = this->_updateTarget(grad);
+        const bool flag_cont = this->_updateTarget();
         if (!flag_cont) { break; } // we are done
 
         // find the next position
-        this->_findNextX(iter, grad, v, w);
+        this->_findNextX(iter, v, w);
     }
 
     if (_useAveraging) { // calculate the old value average as end result
@@ -57,45 +55,47 @@ void DynamicDescent::_findMin()
 
 // --- Internal methods
 
-bool DynamicDescent::_updateTarget(std::vector<NoisyValue> &grad)
+bool DynamicDescent::_updateTarget()
 {
-    _last.f = _gradfun->fgrad(_last.x, grad);
+    _last.f = _gradfun->fgrad(_last.x, _grad);
     this->_storeLastValue();
-    this->_writeGradientToLog(grad);
-    return !this->_shouldStop(&grad);
+    this->_writeGradientToLog();
+    return !this->_shouldStop();
 }
 
-void DynamicDescent::_findNextX(const int iter, const std::vector<NoisyValue> &grad, std::vector<double> &v, std::vector<double> &w)
+void DynamicDescent::_findNextX(const int iter, std::vector<double> &v, std::vector<double> &w)
 {
+    const std::vector<double> &gradv = _grad.val; // we need only the values
+
     // compute update
     switch (_ddmode) {
     case DDMode::SGDM:
         for (int i = 0; i < _ndim; ++i) {
-            v[i] = _beta*v[i] - _stepSize*grad[i].value;
+            v[i] = _beta*v[i] + _stepSize*gradv[i];
             _last.x[i] += v[i];
         }
         break;
 
     case DDMode::ADAG:
         for (int i = 0; i < _ndim; ++i) {
-            v[i] += grad[i].value*grad[i].value;
-            _last.x[i] -= _stepSize/(sqrt(v[i]) + _epsilon)*grad[i].value;
+            v[i] += gradv[i]*gradv[i];
+            _last.x[i] += _stepSize/(sqrt(v[i]) + _epsilon)*gradv[i];
         }
         break;
 
     case DDMode::ADAD:
         if (iter > 1) {
             for (int i = 0; i < _ndim; ++i) {
-                v[i] = _beta*v[i] + (1. - _beta)*(grad[i].value*grad[i].value);
-                const double dx = -grad[i].value*(sqrt(w[i]) + _epsilon)/(sqrt(v[i]) + _epsilon);
+                v[i] = _beta*v[i] + (1. - _beta)*(gradv[i]*gradv[i]);
+                const double dx = gradv[i]*(sqrt(w[i]) + _epsilon)/(sqrt(v[i]) + _epsilon);
                 _last.x[i] += dx;
                 w[i] = _beta*w[i] + (1. - _beta)*(dx*dx);
             }
         }
         else { // first step
             for (int i = 0; i < _ndim; ++i) {
-                v[i] = grad[i].value*grad[i].value;
-                const double dx = -_stepSize*grad[i].value; // initially we use the stepSize
+                v[i] = gradv[i]*gradv[i];
+                const double dx = _stepSize*gradv[i]; // initially we use the stepSize
                 _last.x[i] += dx;
                 w[i] = dx*dx;
             }
@@ -105,14 +105,14 @@ void DynamicDescent::_findNextX(const int iter, const std::vector<NoisyValue> &g
     case DDMode::RMSP: // standard RMSProp with first step as grad desc
         if (iter > 1) {
             for (int i = 0; i < _ndim; ++i) {
-                v[i] = _beta*v[i] + (1. - _beta)*(grad[i].value*grad[i].value);
-                _last.x[i] -= _stepSize*grad[i].value/(sqrt(v[i]) + _epsilon);
+                v[i] = _beta*v[i] + (1. - _beta)*(gradv[i]*gradv[i]);
+                _last.x[i] += _stepSize*gradv[i]/(sqrt(v[i]) + _epsilon);
             }
         }
         else { // first step
             for (int i = 0; i < _ndim; ++i) {
-                v[i] = grad[i].value*grad[i].value;
-                _last.x[i] -= _stepSize*grad[i].value;
+                v[i] = gradv[i]*gradv[i];
+                _last.x[i] += _stepSize*gradv[i];
             }
         }
         break;
@@ -120,13 +120,13 @@ void DynamicDescent::_findNextX(const int iter, const std::vector<NoisyValue> &g
     case DDMode::NEST: // Bengio update with first step as grad desc
         if (iter > 1) {
             for (int i = 0; i < _ndim; ++i) {
-                _last.x[i] += _beta*_beta*v[i] - (1. + _beta)*_stepSize*grad[i].value;
-                v[i] = _beta*v[i] - _stepSize*grad[i].value;
+                _last.x[i] += _beta*_beta*v[i] + (1. + _beta)*_stepSize*gradv[i];
+                v[i] = _beta*v[i] + _stepSize*gradv[i];
             }
         }
         else { // first step
             for (int i = 0; i < _ndim; ++i) {
-                _last.x[i] -= _stepSize*grad[i].value;
+                _last.x[i] += _stepSize*gradv[i];
             }
         }
     }

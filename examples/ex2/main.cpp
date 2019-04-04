@@ -4,6 +4,8 @@
 
 #include "../common/ExampleFunctions.hpp"
 
+#include <iostream>
+
 void reportMinimum(const nfm::NFM &optimizer)
 {
     using namespace std;

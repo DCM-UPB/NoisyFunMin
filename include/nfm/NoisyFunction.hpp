@@ -2,6 +2,7 @@
 #define NFM_NOISYFUNCTION_HPP
 
 #include "nfm/NoisyValue.hpp"
+#include "nfm/NoisyGradient.hpp"
 
 #include <vector>
 
@@ -20,7 +21,10 @@ struct NoisyIOPair
         x.assign(static_cast<size_t>(ndim), 0.);
         f.set(0., 0.);
     }
+
+    int getNDim() const { return static_cast<int>(x.size()); }
 };
+
 
 class NoisyFunction
 {
@@ -54,19 +58,20 @@ public:
     bool hasGradErr() const { return _flag_gradErr; }
 
     // Gradient
-    virtual void grad(const std::vector<double> &x, std::vector<NoisyValue> &gradv) = 0;
-    //                                         ^input               ^gradient (please set error fields if _flag_gradErr!)
+    // IMPORTANT: Because we are minimizing, we expect the NEGATIVE gradient.
+    virtual void grad(const std::vector<double> &x, NoisyGradient &gradv) = 0;
+    //                                         ^input             ^gradient (please set error fields if _flag_gradErr!)
 
     // Combined Function & Gradient
     // Overwrite it with a more efficient version, if possible
-    virtual NoisyValue fgrad(const std::vector<double> &x, std::vector<NoisyValue> &gradv)
-    { //         ^function value&error                ^input                     ^gradient output (size ndim)
+    virtual NoisyValue fgrad(const std::vector<double> &x, NoisyGradient &gradv)
+    { //         ^function value&error                ^input             ^gradient output (size ndim)
         NoisyValue ret = this->f(x);
         this->grad(x, gradv);
         return ret;
     }
 
-    NoisyValue operator()(const std::vector<double> &x, std::vector<NoisyValue> &gradv) { return this->fgrad(x, gradv); }
+    NoisyValue operator()(const std::vector<double> &x, NoisyGradient &gradv) { return this->fgrad(x, gradv); }
 };
 } // namespace nfm
 

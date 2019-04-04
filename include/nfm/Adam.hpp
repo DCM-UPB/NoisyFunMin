@@ -2,10 +2,6 @@
 #define NFM_ADAM_HPP
 
 #include "nfm/NoisyFunMin.hpp"
-#include "nfm/NoisyFunction.hpp"
-#include "nfm/NoisyValue.hpp"
-
-#include <list>
 
 namespace nfm
 {

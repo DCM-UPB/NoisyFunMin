@@ -228,8 +228,8 @@ NoisyIOPair1D brentMin(NoisyFunction &f1d, NoisyBracket bracket, const int maxNI
 
         // fit parabola (magic code from GSL)
         if (fabs(e) > tol) {
-            r = (m.x - w.x)*(m.f.value - v.f.value);
-            q = (m.x - v.x)*(m.f.value - w.f.value);
+            r = (m.x - w.x)*(m.f.val - v.f.val);
+            q = (m.x - v.x)*(m.f.val - w.f.val);
             p = (m.x - v.x)*q - (m.x - w.x)*r;
             q = 2.*(q - r);
 
@@ -309,7 +309,7 @@ NoisyIOPair multiLineMin(NoisyFunction &mdf, NoisyIOPair p0Pair, const std::vect
 {
     using namespace m1d_detail;
     // Sanity
-    if (static_cast<size_t>(mdf.getNDim()) != p0Pair.x.size() || p0Pair.x.size() != dir.size()) {
+    if (mdf.getNDim() != p0Pair.getNDim() || p0Pair.x.size() != dir.size()) {
         throw std::invalid_argument("[nfm::multiLineMin] The passed function and positions are inconsistent in size.");
     }
     if (params.stepLeft < 0. || params.stepRight <= 0.) {

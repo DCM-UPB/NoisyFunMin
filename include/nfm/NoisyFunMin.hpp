@@ -5,7 +5,6 @@
 #include <functional>
 
 #include "nfm/NoisyFunction.hpp"
-#include "nfm/NoisyValue.hpp"
 
 namespace nfm
 {
@@ -33,6 +32,7 @@ protected:
 
     // Member to be updated by child
     NoisyIOPair _last; // last position and its function value
+    NoisyGradient _grad; // last noisy gradient (will only be allocated if used)
 
 private: // set/called by base class only
     std::list<NoisyIOPair> _old_values{}; // list of previous target values and positions
@@ -58,12 +58,12 @@ protected: // Protected methods for child optimizers
     void _averageOldValues(); // compute average x of old value list, store it with the corresponding function value in last
 
     // check stopping criteria (shouldStop contains meaningfulGradient, if grad!=nullptr)
-    bool _isGradNoisySmall(const std::vector<NoisyValue> &grad, bool flag_log = true) const; //check if any gradient element is greater than its statistical error
-    bool _shouldStop(const std::vector<NoisyValue> * grad = nullptr) const; // check for all stopping criteria
+    bool _isGradNoisySmall(bool flag_log = true) const; //check if any gradient element is greater than its statistical error
+    bool _shouldStop() const; // check for all stopping criteria
 
     // "Mandatory" logging routines
-    // If a gradient is used, it should be logged at every step
-    void _writeGradientToLog(const std::vector<NoisyValue> &grad) const;
+    // If a gradient is used, it should be logged after it is calculated
+    void _writeGradientToLog() const;
 
     // TO BE IMPLEMENTED
     virtual void _findMin() = 0; // minimization implementation, result to be stored in _last
@@ -99,10 +99,11 @@ public:
     void getX(double x[]) const; // get via c-style array
     void getX(std::vector<double> &x) const { this->getX(x.data()); } // get via passed vector
     const std::vector<double> &getX() const { return _last.x; } // get const ref
-    double getF() const { return _last.f.value; }
-    double getDf() const { return _last.f.error; }
+    double getF() const { return _last.f.val; }
+    double getDf() const { return _last.f.err; }
     NoisyValue getFDf() const { return _last.f; }
     const NoisyIOPair &getLast() const { return _last; }
+    const NoisyGradient &getGrad() const { return _grad; }
 
     double getEpsX() const { return _epsx; }
     double getEpsF() const { return _epsf; }
