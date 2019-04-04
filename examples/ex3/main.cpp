@@ -52,10 +52,10 @@ int main()
     cout << "We start with simple momentum SGD:" << endl;
 
     LogManager::setLoggingFilePath("sgdm.out");
-    DynamicDescent dd(&rbfun);
-    dd.setEpsX(0.); // don't stop on small x changes
-    dd.setStepSize(0.001); // we need this small size to not overshoot too extremely
-    dd.setMaxNIterations(1000);
+    DynamicDescent dd(&rbfun); // default is SGD with momentum
+    dd.setStepSize(0.001); // despite the small step we still overshoot (but we move fast!)
+    dd.disableStopping(); // we want only one stopping condition
+    dd.setMaxNIterations(1000); // namely the fixed number of steps
     dd.setX(initpos);
     dd.findMin();
     reportMinimum(dd);
@@ -108,8 +108,8 @@ int main()
 
     LogManager::setLoggingFilePath("adam.out");
     Adam adam(&rbfun, false, 0.09, 0.9, 0.9); // more parameters ftw
-    adam.setEpsX(0.); // same as above
-    adam.setMaxNIterations(1000);
+    adam.disableStopping(); // same as above
+    adam.setMaxNIterations(1000); // same as above
     adam.setX(initpos);
     adam.findMin();
     reportMinimum(adam);
@@ -123,14 +123,12 @@ int main()
     ConjGrad cg2(&nrbf);
 
     // config
-    cg2.setGradErrStop(false);
     cg2.setStepSize(0.2);
     cg2.setBackStep(0.1);
     cg2.useConjGradPR(); // when not stopping on rejection, better use Polak-Ribiere
 
     // stopping criteria
-    cg2.setEpsX(0.);
-    cg2.setEpsF(0.);
+    cg2.disableStopping();
     cg2.setMaxNIterations(25); // at this point the method usually gets stuck due to noise
 
     cg2.setX(initpos);
@@ -141,7 +139,7 @@ int main()
     DynamicDescent dd2(&nrbf, DDMode::SGDM, false);
     dd2.setStepSize(0.0025);
     dd2.setBeta(0.95);
-    dd2.setMaxNConstValues(0);
+    dd2.disableStopping();
     dd2.setMaxNIterations(275);
     dd2.setX(cg2.getX());
     dd2.findMin();
@@ -155,8 +153,8 @@ int main()
     cout << "For example, if we use Adam right from the start (300 steps), the result is similar:" << endl;
     LogManager::setLoggingFilePath("adam_noise.out");
     Adam adam2(&nrbf, true, 0.09, 0.9, 0.9);
-    adam2.setMaxNConstValues(0); // let's skip this check
-    adam2.setMaxNIterations(300); // and just run 300 adam steps
+    adam2.disableStopping();
+    adam2.setMaxNIterations(300); // just run 300 adam steps
     adam2.setX(initpos);
     adam2.findMin();
     reportMinimum(adam2);

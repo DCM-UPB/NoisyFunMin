@@ -44,7 +44,7 @@ def showFigure(files, names, title, mode): # mode can be 0 = cg, 1 = sgd, 2 = no
     ax.axis([x.min(), x.max(), y.min(), y.max()])
     fig.colorbar(c, ax=ax)
 
-    clist = ['red', 'grey', 'purple', 'pink', 'black', 'lime']
+    clist = ['red', 'white', 'purple', 'pink', 'black', 'lime']
     mlist = ['o', 'x', 's', '+', 'd', '*']
 
     lines = []

@@ -94,7 +94,7 @@ void NFM::_storeLastValue()
     }
 
     // call policy
-    if (_policy) { _policy(*this, *_targetfun); }
+    if (_policy) { _flag_policyStop = _policy(*this, *_targetfun); }
 
     // count step
     ++_istep;
@@ -123,6 +123,10 @@ bool NFM::_isGradNoisySmall(const bool flag_log) const
 
 bool NFM::_shouldStop() const
 {   // check all stopping criteria
+    if (_flag_policyStop) {
+        LogManager::logString("\nStopping Reason: User provided policy.\n");
+        return true;
+    }
     return (_isConverged() || !_changedEnough() || _stepLimitReached() || _isGradNoisySmall());
 }
 
@@ -164,12 +168,22 @@ void NFM::getX(double x[]) const
     std::copy(_last.x.data(), _last.x.data() + _ndim, x);
 }
 
+void NFM::disableStopping()
+{ // turn NFM::findMin into an endless loop (unless policy cares for stopping)
+    _epsx = 0.;
+    _epsf = 0.;
+    _flag_gradErrStop = false;
+    _max_n_const_values = 1;
+    _max_n_iterations = 0;
+}
+
 // --- findMin
 
 void NFM::findMin()
 {
     this->_clearOldValues();
     _istep = 0;
+    _flag_policyStop = false;
 
     // find minimum
     this->_findMin();

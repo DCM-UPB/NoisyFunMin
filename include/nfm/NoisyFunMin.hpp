@@ -38,9 +38,13 @@ private: // set/called by base class only
     std::list<NoisyIOPair> _old_values{}; // list of previous target values and positions
     double _lastDeltaX{}; // change in x by last step (updated on storeLastValue)
     double _lastDeltaF{}; // change in f by last step (updated on storeLastalue)
+    bool _flag_policyStop{}; // did the user policy dictate stopping?
     int _istep{}; // counts the calls to _storeLastValue()
 
-    std::function< void(NFM &, NoisyFunction &) > _policy{}; // optional user provided policy function
+    // Optional user provided policy function, called after every update.
+    // May manipuulate the passed NFM and target function. If necessary, use upcasts.
+    // Must return true for NFM to continue, else NFM will stop at the next check.
+    std::function< bool(NFM &, NoisyFunction &) > _policy{};
 
     void _clearOldValues() { _old_values.clear(); } // reset old values list
     bool _isConverged() const; // check if the target function has stabilized
@@ -78,15 +82,17 @@ public:
     void setX(const double x[]); // set via c-style array
     void setX(const std::vector<double> &x); // set via vector (must be ndim length)
 
+    // stopping conditions
     void setEpsX(double epsx) { _epsx = epsx; }
     void setEpsF(double epsf) { _epsf = epsf; }
     void setGradErrStop(bool flag_gradErrStop) { _flag_gradErrStop = flag_gradErrStop; }
     void setMaxNIterations(int maxn_iterations) { _max_n_iterations = std::max(0, maxn_iterations); }
     void setMaxNConstValues(int maxn_const_values) { _max_n_const_values = std::max(1, maxn_const_values); }
+    void disableStopping(); // WILL TURN OFF ALL STOPPING CRITERIA (except user policy)
 
     // Set an own policy function which may manipulate NFM and target function on each step.
     // It will always get called after a new position pair has been stored.
-    void setPolicy(const std::function<void(NFM &, NoisyFunction &)> &policy) { _policy = policy; }
+    void setPolicy(const std::function<bool(NFM &, NoisyFunction &)> &policy) { _policy = policy; }
     void clearPolicy() { _policy = nullptr; } // set empty policy
 
     // --- Getters

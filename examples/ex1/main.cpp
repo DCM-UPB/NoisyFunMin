@@ -72,7 +72,7 @@ int main()
     cout << endl << "you may try something like the following example using a custom policy.";
     cout << endl << "Note that this is just an artifical demonstration of the technique!" << endl << endl;
 
-    // let's define a policy lambda (not binding the target function above directly)
+    // let's define a policy lambda (without binding the target function above directly!)
     const double scale = 1./sqrt(2.); // supposing we double the number of samples each iteration, so error would go down like this
     auto myPolicy = [=](NFM &nfm, NoisyFunction &targetfun) {
         // decrease sigma iteratively
@@ -88,16 +88,15 @@ int main()
                 mycg->setBackStep(2.*mycg->getBackStep());
             } // this is not stable for real use, because the size may only go up!
         }
+        return false; // no custom stopping criterion
     };
 
     // set your own policy
     cg->setPolicy(myPolicy);
 
     // and we change stopping criteria
-    cg->setGradErrStop(false);
-    cg->setEpsX(0.);
-    cg->setEpsF(0.);
-    cg->setMaxNIterations(10); // fixed amount of steps
+    cg->disableStopping(); // first disable everything
+    cg->setMaxNIterations(10); // set fixed amount of steps
 
     // let's try again
     cg->setX(initpos);
