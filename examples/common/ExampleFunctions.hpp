@@ -48,7 +48,7 @@ public:
     void grad(const std::vector<double> &in, nfm::NoisyGradient &grad) final
     {
         _nlfun->grad(in, grad);
-        for (int i=0; i<_ndim; ++i) { grad.set(i, makeValueNoisy(grad.get(i), 2.)); } // gradients have larger error
+        for (int i=0; i<_ndim; ++i) { grad.set(i, makeValueNoisy(grad.get(i), sqrt(2.))); } // gradients have larger error
     }
 };
 

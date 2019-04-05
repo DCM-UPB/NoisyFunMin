@@ -163,9 +163,11 @@ int main()
     minimize(adam2, initpos, "adam_noise.out");
 
     cout << endl;
-    cout << "Last but not least, here are the results for the Fast Inertial Relaxation Engine (FIRE):" << endl;
-    FIRE fire(&nrbf, 0.1, 1.);
-    fire.setNMin(1);
+    cout << "Last but not least, here are the results for the (Soft) Fast Inertial Relaxation Engine (FIRE):" << endl;
+    FIRE fire(&nrbf, 0.005, 0.02);
+    //fire.setNMin(3);
+    fire.setBeta(0.7);
+    fire.setSoftFreeze();
     fire.disableStopping();
     fire.setMaxNIterations(300);
     minimize(fire, initpos, "fire_noise.out");

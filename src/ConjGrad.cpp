@@ -46,7 +46,6 @@ void ConjGrad::_findMin()
     // --- Initialize CG
 
     // initialize gradient vectors and length
-    //std::vector<double> gradnew(_gradh.size()); // stores new raw gradients with inverted sign
     std::vector<double> &gradnew = _grad.val; // store reference to gradient values
     std::vector<double> conjv = gradnew; // stores the conjugate vectors, initialize with raw gradient
     std::vector<double> gradold; // the previous inverted gradients (only used for Polak-Ribiere CG)

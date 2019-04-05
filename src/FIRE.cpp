@@ -26,11 +26,12 @@ void FIRE::_findMin()
 
     // helper variables
     const std::vector<double> &F = _grad.val; // convenience reference (the force)
-    std::vector<double> v(_grad.size()); // velocity vector
+    std::vector<double> v(F.size()); // velocity vector
+    std::vector<double> m(F.size()); // gradient running average (only for beta>0)
 
     double dt = _dt0; // current time-step
     double alpha = _alpha0; // current mixing factor
-    int Npos = 0; // number of steps since "grad.v" was negative
+    int Npos = 0; // number of steps since "m.v" was negative
 
     //begin the minimization loop
     int iter = 0;
@@ -44,29 +45,55 @@ void FIRE::_findMin()
         this->_updateTarget();
         if (this->_shouldStop()) { break; } // we are done
 
-        const double P = std::inner_product(F.begin(), F.end(), v.begin(), 0.); // P = F.v
-        this->_mixVelocity(v, alpha);
+        // update vector lengths
+        const double vnorm = sqrt(std::inner_product(v.begin(), v.end(), v.begin(), 0.));
+        const double fnorm = sqrt(std::inner_product(F.begin(), F.end(), F.begin(), 0.));
 
-        if (P > 0.) {
-            if (++Npos > _Nmin) {
+        // calculate scalar product P = F.v or P = m.v (if beta > 0)
+        double P;
+        if (_beta > 0) {
+            for (int i = 0; i < _ndim; ++i) {
+                m[i] = _beta*m[i] + (1. - _beta)*F[i];
+            }
+            const double mnorm = sqrt(std::inner_product(m.begin(), m.end(), m.begin(), 0.));
+            P = std::inner_product(m.begin(), m.end(), v.begin(), 0.);
+            P = (P != 0.) ? P/(mnorm*vnorm) : 0.; // P would be 0 if mnorm or vnorm were 0
+        }
+        else {
+            P = std::inner_product(F.begin(), F.end(), v.begin(), 0.);
+            P = (P != 0.) ? P/(fnorm*vnorm) : 0.; // P would be 0 if fnorm or vnorm were 0
+        }
+
+        // modify velocity
+        for (int i = 0; i < _ndim; ++i) {
+            v[i] = (1. - alpha)*v[i] + alpha*vnorm*F[i]/fnorm;
+        }
+
+        // check P
+        if (P > 0.) { // we are going downhill
+            if (++Npos > _Nmin) { // then increase dt
                 dt = std::min(dt*_finc, _dtmax);
                 alpha *= _falpha;
             }
         }
-        else {
+        else { // we are going uphill
             Npos = 0;
             dt *= _fdec;
             alpha = _alpha0;
-            std::fill(v.begin(), v.end(), 0.);
+            if (_flag_soft) { // freeze softly
+                for (auto &vi : v) {
+                    vi *= (1. - fabs(P));
+                }
+            }
+            else { // freeze completely (default)
+                std::fill(v.begin(), v.end(), 0.);
+            }
         }
 
         // make MD step to find the next position/velocity
         this->_doMDStep(v, dt);
     }
 
-    /*if (_useAveraging) { // calculate the old value average as end result
-        this->_averageOldValues(); // perform average and store it in last
-    }*/
     LogManager::logString("\nEnd FIRE::findMin() procedure\n");
 }
 
@@ -79,20 +106,10 @@ void FIRE::_updateTarget()
     this->_writeGradientToLog();
 }
 
-void FIRE::_mixVelocity(std::vector<double> &v, double alpha)
-{
-    const std::vector<double> &F = _grad.val; // we need only the values (the force)
-    const double fnorm = sqrt(std::inner_product(F.begin(), F.end(), F.begin(), 0.));
-    const double vnorm = sqrt(std::inner_product(v.begin(), v.end(), v.begin(), 0.));
-    for (int i = 0; i < _ndim; ++i) {
-        v[i] = (1. - alpha)*v[i] + alpha*vnorm*F[i]/fnorm;
-    }
-}
-
 void FIRE::_doMDStep(std::vector<double> &v, double dt)
 {
-    // compute euler update
-    for (int i = 0; i< _ndim; ++i) {
+    // compute explicit Euler update
+    for (int i = 0; i < _ndim; ++i) {
         v[i] += dt*_grad.val[i];
         _last.x[i] += dt*v[i];
     }
