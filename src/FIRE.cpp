@@ -2,10 +2,9 @@
 
 #include "nfm/LogManager.hpp"
 
-#include <numeric>
 #include <cmath>
 
-#include <iostream>
+
 namespace nfm
 {
 
@@ -15,6 +14,7 @@ FIRE::FIRE(NoisyFunctionWithGradient * targetfun, const double dtmax, const doub
     if (!_flag_gradfun) {
         throw std::invalid_argument("[FIRE] FIRE optimization requires a target function with gradient.");
     }
+    _mi.assign(_grad.size(), 1.); // inverse masses default to 1
     // overwrite defaults
     _flag_gradErrStop = false; // don't stop on noisy-low gradients, by default
 }
@@ -26,51 +26,65 @@ void FIRE::_findMin()
     LogManager::logString("\nBegin FIRE::findMin() procedure\n");
 
     // helper variables
-    const std::vector<double> &F = _grad.val; // convenience reference (the force)
-    std::vector<double> v(F.size()); // velocity vector
+    std::vector<double> v(_grad.size()); // velocity vector
+    std::vector<double> a(_grad.size()); // acceleration vector (F*mi)
+    md::MDView mdview{.mi = _mi, .x = _last.x, .v = v, .a = a, .F = _grad}; // references for MD integrator
 
     double dt = _dt0; // current time-step
     double alpha = _alpha0; // current mixing factor
     int Npos = 0; // number of steps since "F.v" was negative
+    int Nmin = 0; // number of steps since dt = dtmin
+
+    // initial step (velocities are kept 0)
+    if (!this->_initializeMD(mdview, dt)) { return; } // return if shouldStop() already
 
     //begin the minimization loop
     int iter = 0;
-    while (true) {
+    while (true) { // a better while (True)
         ++iter;
         if (LogManager::isLoggingOn()) { // else skip string construction
             LogManager::logString("\nFIRE::findMin() Step " + std::to_string(iter) + "\n");
         }
 
         // compute the gradient and current target
-        this->_updateTarget();
-        if (this->_shouldStop()) { break; } // we are done
+        this->_updateTarget(mdview, dt);
+        if ((_Ndtmin > 0 && Nmin > _Ndtmin) || this->_shouldStop()) { break; } // we are done
 
         // update vector lengths and P
         const double vnorm = sqrt(std::inner_product(v.begin(), v.end(), v.begin(), 0.));
-        const double fnorm = sqrt(std::inner_product(F.begin(), F.end(), F.begin(), 0.));
-        const double P = std::inner_product(F.begin(), F.end(), v.begin(), 0.);
+        const double anorm = sqrt(std::inner_product(a.begin(), a.end(), a.begin(), 0.));
+        const double P = std::inner_product(a.begin(), a.end(), v.begin(), 0.);
 
-        // modify velocity
+        // velocity mixing
         for (int i = 0; i < _ndim; ++i) {
-            v[i] = (1. - alpha)*v[i] + alpha*vnorm*F[i]/fnorm;
+            v[i] = (1. - alpha)*v[i] + alpha*vnorm*a[i]/anorm;
         }
 
         // check P
         if (P > 0.) { // we are going downhill
-            if (++Npos > _Nmin) { // then increase dt
+            if (++Npos > _Nwait) { // then increase dt
                 dt = std::min(dt*_finc, _dtmax);
+                Nmin = 0; // we have increased dt
                 alpha *= _falpha;
             }
         }
         else { // we are going uphill
             Npos = 0;
-            dt *= _fdec;
+            dt = std::max(dt*_fdec, _dtmin);
+            if (dt == _dtmin) { ++Nmin; }
             alpha = _alpha0;
-            std::fill(v.begin(), v.end(), 0.); // freeze the system
-        }
 
-        // make MD step to find the next position/velocity
-        this->_doMDStep(v, dt);
+            if (_flag_fullFreeze) { // freeze the system completely
+                std::fill(v.begin(), v.end(), 0.);
+            }
+            else { // freeze selectively
+                for (int i = 0; i < _ndim; ++i) {
+                    if (a[i]*v[i] < 0.) {
+                        v[i] = 0.;
+                    }
+                }
+            }
+        }
     }
 
     LogManager::logString("\nEnd FIRE::findMin() procedure\n");
@@ -78,19 +92,35 @@ void FIRE::_findMin()
 
 // --- Internal methods
 
-void FIRE::_updateTarget()
+bool FIRE::_initializeMD(md::MDView &view, const double dt)
 {
+    LogManager::logString("\nFIRE::findMin() Initial Step\n");
     _last.f = _gradfun->fgrad(_last.x, _grad);
+    md::computeAcceleration(view); // store initial acceleration
+    this->_storeLastValue();
+    this->_writeGradientToLog();
+    if (this->_shouldStop()) { // we print termination message already
+        LogManager::logString("\nEnd FIRE::findMin() procedure\n");
+        return false;
+    }
+    return true; // we can start the algorithm
+}
+
+void FIRE::_updateTarget(md::MDView &view, const double dt)
+{
+    _last.f = md::doMDStep(_mdi, *_gradfun, view, dt);
     this->_storeLastValue();
     this->_writeGradientToLog();
 }
 
-void FIRE::_doMDStep(std::vector<double> &v, double dt)
+// --- Public
+
+void FIRE::setMasses(const std::vector<double> &m)
 {
-    // compute explicit Euler update
-    for (int i = 0; i < _ndim; ++i) {
-        v[i] += dt*_grad.val[i];
-        _last.x[i] += dt*v[i];
+    if (m.size() == _mi.size()) {
+        for (size_t i = 0; i < m.size(); ++i) {
+            _mi[i] = 1./m[i];
+        }
     }
 }
 } // namespace nfm

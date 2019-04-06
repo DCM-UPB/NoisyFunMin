@@ -48,7 +48,7 @@ public:
     void grad(const std::vector<double> &in, nfm::NoisyGradient &grad) final
     {
         _nlfun->grad(in, grad);
-        for (int i=0; i<_ndim; ++i) { grad.set(i, makeValueNoisy(grad.get(i), sqrt(2.))); } // gradients have larger error
+        for (int i = 0; i < _ndim; ++i) { grad.set(i, makeValueNoisy(grad.get(i), sqrt(2.))); } // gradients have larger error
     }
 };
 
@@ -76,7 +76,7 @@ public:
 };
 
 
-template<int N>
+template <int N>
 class RosenbrockFunction: public nfm::NoisyFunctionWithGradient
 {
 public:
@@ -85,17 +85,17 @@ public:
     nfm::NoisyValue f(const std::vector<double> &in) override
     {
         double y = 0;
-        for (int i=0; i<N-1; ++i) { y += 100.*pow(in[i+1]-in[i]*in[i], 2) + pow(1.-in[i], 2);}
+        for (int i = 0; i < N - 1; ++i) { y += 100.*pow(in[i + 1] - in[i]*in[i], 2) + pow(1. - in[i], 2); }
         return {y, 0.};
     }
 
     void grad(const std::vector<double> &in, nfm::NoisyGradient &grad) override
     {
         std::fill(grad.val.begin(), grad.val.end(), 0.);
-        for (int i=0; i<N-1; ++i) {
-            const double common = 200.*(in[i+1]-in[i]*in[i]);
-            grad.val[i] += common*2.*in[i] + 2.*(1.-in[i]);
-            grad.val[i+1] -= common;
+        for (int i = 0; i < N - 1; ++i) {
+            const double common = 200.*(in[i + 1] - in[i]*in[i]);
+            grad.val[i] += common*2.*in[i] + 2.*(1. - in[i]);
+            grad.val[i + 1] -= common;
         }
     }
 };

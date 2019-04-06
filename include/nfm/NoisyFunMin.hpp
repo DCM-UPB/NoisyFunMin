@@ -45,7 +45,7 @@ private: // set/called by base class only
     // May manipulate the NFM and target function (passed as their base types).
     // If necessary, upcast them to their known true type. Must return true
     // for NFM to continue, else NFM will stop at the next shouldStop() check.
-    std::function< bool(NFM &, NoisyFunction &) > _policy{};
+    std::function<bool(NFM &, NoisyFunction &)> _policy{};
 
     void _clearOldValues() { _old_values.clear(); } // reset old values list
     bool _isConverged() const; // check if the target function has stabilized
@@ -118,7 +118,7 @@ public:
     int getMaxNIterations() const { return _max_n_iterations; }
     int getMaxNConstValues() const { return _max_n_const_values; }
 
-    const std::list<NoisyIOPair> & getOldValues() const { return _old_values; }
+    const std::list<NoisyIOPair> &getOldValues() const { return _old_values; }
     double getDeltaX() const { return _lastDeltaX; }
     double getDeltaF() const { return _lastDeltaF; }
     double getIter() const { return _istep; }

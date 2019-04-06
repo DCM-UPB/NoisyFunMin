@@ -3,7 +3,6 @@
 #include "nfm/LogManager.hpp"
 
 #include <cmath>
-#include <string>
 #include <numeric>
 
 namespace nfm

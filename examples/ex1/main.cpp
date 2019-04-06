@@ -22,7 +22,7 @@ int main()
     using namespace std;
     using namespace nfm;
 
-    LogManager::setLoggingOn(); // use this to enable log printout
+    //LogManager::setLoggingOn(); // use this to enable log printout
     //LogManager::setLoggingOn(true); // use this for verbose printout of the method
 
     cout << endl;
@@ -74,7 +74,8 @@ int main()
 
     // let's define a policy lambda (without binding the target function above directly!)
     const double scale = 1./sqrt(2.); // supposing we double the number of samples each iteration, so error would go down like this
-    auto myPolicy = [=](NFM &nfm, NoisyFunction &targetfun) {
+    auto myPolicy = [=](NFM &nfm, NoisyFunction &targetfun)
+    {
         // decrease sigma iteratively
         auto * myfun = dynamic_cast<NoisyWrapper *>(&targetfun); // a static cast would be faster, but this is safer
         if (myfun) { myfun->setSigma(scale*myfun->getSigma()); } // supposing that we have the option to decrease the noise (e.g. by sampling twice as much)

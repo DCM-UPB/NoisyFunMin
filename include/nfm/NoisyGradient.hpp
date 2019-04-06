@@ -15,16 +15,15 @@ namespace nfm
 struct NoisyGradient
 // Used to store noisy gradients
 {
-    std::vector<double> val; //
+    std::vector<double> val;
     std::vector<double> err;
 
-    explicit NoisyGradient(int ndim, bool flag_err);
+    explicit NoisyGradient(int ndim);
 
     // get the dimensions
     int getNDim() const { return static_cast<int>(val.size()); }
     size_t size() const { return val.size(); }
     bool empty() const { return val.empty(); }
-    bool hasErr() const { return !err.empty(); }
 
     // set/get elements in NoisyValue view
     void set(int i, NoisyValue nv);

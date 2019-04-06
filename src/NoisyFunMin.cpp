@@ -17,7 +17,7 @@ NFM::NFM(NoisyFunction * targetfun):
         _ndim(targetfun->getNDim()), _targetfun(targetfun),
         _gradfun(dynamic_cast<NoisyFunctionWithGradient *>(_targetfun)), _flag_gradfun(_gradfun != nullptr),
         _epsx(DEFAULT_EPSX), _epsf(DEFAULT_EPSF), _flag_gradErrStop(_flag_gradfun ? _gradfun->hasGradErr() : false),
-        _max_n_iterations(0), _max_n_const_values(DEFAULT_MAX_N_CONST), _last(_ndim), _grad(_ndim, _gradfun->hasGradErr()) {}
+        _max_n_iterations(0), _max_n_const_values(DEFAULT_MAX_N_CONST), _last(_ndim), _grad(_ndim) {}
 
 // --- Private methods
 
@@ -45,8 +45,8 @@ void NFM::_updateDeltas()
         NoisyIOPair &old = _old_values.front(); // reference to last old value
         // deltaX
         _lastDeltaX = 0.;
-        for (int i=0; i<_ndim; ++i) {
-            _lastDeltaX += pow(old.x[i]-_last.x[i], 2);
+        for (int i = 0; i < _ndim; ++i) {
+            _lastDeltaX += pow(old.x[i] - _last.x[i], 2);
         }
         _lastDeltaX = sqrt(_lastDeltaX);
         // deltaF

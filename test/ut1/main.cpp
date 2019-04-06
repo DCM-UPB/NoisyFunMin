@@ -2,7 +2,6 @@
 #include <iostream>
 
 #include "nfm/ConjGrad.hpp"
-#include "nfm/LineSearch.hpp"
 #include "nfm/LogManager.hpp"
 
 #include "TestNFMFunctions.hpp"

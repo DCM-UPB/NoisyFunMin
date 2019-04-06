@@ -2,12 +2,11 @@
 #include "nfm/DynamicDescent.hpp"
 #include "nfm/Adam.hpp"
 #include "nfm/FIRE.hpp"
-#include "nfm/SIRENE.hpp"
+#include "nfm/IRENE.hpp"
 #include "nfm/LogManager.hpp"
 
 #include <iostream>
 #include <memory>
-#include <cassert>
 
 #include "../common/ExampleFunctions.hpp"
 
@@ -148,16 +147,16 @@ int main()
     dd2.setStepSize(0.001);
     dd2.setBeta(0.9);
     dd2.disableStopping();
-    dd2.setMaxNIterations(370);
+    dd2.setMaxNIterations(470);
 
     cout << "Final SGD result:" << endl;
     minimize(dd2, cg2.getX(), "cg-sgd_noise.out");
 
-    cout << "This way we obtain decent final minima with less steps (max 30+370)," << endl;
+    cout << "This way we obtain decent final minima with less steps (max 30+470)," << endl;
     cout << "despite the combination of difficult function and noise." << endl << endl;
 
     cout << "But the added noise does not really hurt some(!) of the SGD algorithms." << endl;
-    cout << "For example, if we use Adam right from the start (400 steps)," << endl;
+    cout << "For example, if we use Adam right from the start (500 steps)," << endl;
     cout << "the result is very accurate if we turn averaging on:" << endl;
 
     Adam adam2(&nrbf, true, 0.1);
@@ -170,20 +169,26 @@ int main()
     cout << endl;
     cout << "Now with noise on and a shallow minimum, FIRE got more problems:" << endl;
     FIRE fire2(&nrbf, 0.05, 0.01);
-    fire2.setNMin(0);
+    fire2.setDtMin(0.01);
+    fire2.setSelectiveFreeze();
+    //fire2.setNWait(0);
     fire2.disableStopping();
     fire2.setMaxNIterations(500);
     minimize(fire2, initpos, "fire_noise.out");
 
-    cout << "Our custom SIRENE to the rescue:" << endl;
+    cout << "Our custom IRENE to the rescue:" << endl;
     NoisyValue::setSigmaLevel(1.);
-    SIRENE sirene(&nrbf, 0.05, 0.01);
-    sirene.setNMin(0);
-    //fire2.setBeta(0.5);
-    sirene.setSoftFreeze();
-    sirene.disableStopping();
-    sirene.setMaxNIterations(500);
-    minimize(sirene, initpos, "sirene_noise.out");
+    IRENE irene(&nrbf, 0.05, 0.01);
+    irene.setDtMin(0.01);
+    //irene.setNWait(0);
+    irene.setSelectiveFreeze();
+    irene.disableStopping();
+    irene.setMaxNIterations(500);
+    minimize(irene, initpos, "irene_noise.out");
+
+    //cout << "And with beta>0:" << endl;
+    //sirene.setBeta(0.5);
+    //minimize(irene, initpos, "irene-b_noise.out");
 
     // end
     return 0;
