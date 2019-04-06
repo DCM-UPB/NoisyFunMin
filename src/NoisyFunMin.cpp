@@ -143,7 +143,7 @@ void NFM::_writeCurrentXToLog() const
 
 void NFM::_writeGradientToLog() const
 {
-    LogManager::logNoisyVector(_grad, LogLevel::VERBOSE, _flag_gradErrStop, "Raw gradient", "g");
+    LogManager::logNoisyVector(_grad, LogLevel::VERBOSE, _gradfun->hasGradErr(), "Raw gradient", "g");
 }
 
 // --- Setters/Getters

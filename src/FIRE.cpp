@@ -5,11 +5,12 @@
 #include <numeric>
 #include <cmath>
 
+#include <iostream>
 namespace nfm
 {
 
-FIRE::FIRE(NoisyFunctionWithGradient * targetfun, const double dtinit, const double dtmax):
-        NFM(targetfun), _dt0(std::max(0., std::min(dtmax, dtinit))), _dtmax(std::max(0., dtmax))
+FIRE::FIRE(NoisyFunctionWithGradient * targetfun, const double dtmax, const double dt0):
+        NFM(targetfun), _dtmax(std::max(0., dtmax)), _dt0((dt0 > 0.) ? std::min(dt0, dtmax) : 0.1*dtmax)
 {
     if (!_flag_gradfun) {
         throw std::invalid_argument("[FIRE] FIRE optimization requires a target function with gradient.");
@@ -27,11 +28,10 @@ void FIRE::_findMin()
     // helper variables
     const std::vector<double> &F = _grad.val; // convenience reference (the force)
     std::vector<double> v(F.size()); // velocity vector
-    std::vector<double> m(F.size()); // gradient running average (only for beta>0)
 
     double dt = _dt0; // current time-step
     double alpha = _alpha0; // current mixing factor
-    int Npos = 0; // number of steps since "m.v" was negative
+    int Npos = 0; // number of steps since "F.v" was negative
 
     //begin the minimization loop
     int iter = 0;
@@ -45,24 +45,10 @@ void FIRE::_findMin()
         this->_updateTarget();
         if (this->_shouldStop()) { break; } // we are done
 
-        // update vector lengths
+        // update vector lengths and P
         const double vnorm = sqrt(std::inner_product(v.begin(), v.end(), v.begin(), 0.));
         const double fnorm = sqrt(std::inner_product(F.begin(), F.end(), F.begin(), 0.));
-
-        // calculate scalar product P = F.v or P = m.v (if beta > 0)
-        double P;
-        if (_beta > 0) {
-            for (int i = 0; i < _ndim; ++i) {
-                m[i] = _beta*m[i] + (1. - _beta)*F[i];
-            }
-            const double mnorm = sqrt(std::inner_product(m.begin(), m.end(), m.begin(), 0.));
-            P = std::inner_product(m.begin(), m.end(), v.begin(), 0.);
-            P = (P != 0.) ? P/(mnorm*vnorm) : 0.; // P would be 0 if mnorm or vnorm were 0
-        }
-        else {
-            P = std::inner_product(F.begin(), F.end(), v.begin(), 0.);
-            P = (P != 0.) ? P/(fnorm*vnorm) : 0.; // P would be 0 if fnorm or vnorm were 0
-        }
+        const double P = std::inner_product(F.begin(), F.end(), v.begin(), 0.);
 
         // modify velocity
         for (int i = 0; i < _ndim; ++i) {
@@ -80,14 +66,7 @@ void FIRE::_findMin()
             Npos = 0;
             dt *= _fdec;
             alpha = _alpha0;
-            if (_flag_soft) { // freeze softly
-                for (auto &vi : v) {
-                    vi *= (1. - fabs(P));
-                }
-            }
-            else { // freeze completely (default)
-                std::fill(v.begin(), v.end(), 0.);
-            }
+            std::fill(v.begin(), v.end(), 0.); // freeze the system
         }
 
         // make MD step to find the next position/velocity

@@ -22,7 +22,7 @@ enum class CGMode
 // be the fastest optimization method in this library.
 class ConjGrad: public NFM
 {
-private:
+protected:
     CGMode _cgmode; // which gradients to use
     MLMParams _mlmParams;  // line search configuration (see LineSearch.hpp)
 

@@ -42,14 +42,14 @@ NoisyValue NoisyValue::operator-=(const double rhs)
 NoisyValue NoisyValue::operator*=(const double rhs)
 {
     val *= rhs;
-    err *= rhs;
+    err *= fabs(rhs);
     return *this;
 }
 
 NoisyValue NoisyValue::operator/=(const double rhs)
 {
     val /= rhs;
-    err /= rhs;
+    err /= fabs(rhs);
     return *this;
 }
 

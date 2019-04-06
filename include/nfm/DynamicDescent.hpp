@@ -21,7 +21,7 @@ enum class DDMode
 // usually by the use of momenta. There
 class DynamicDescent: public NFM
 {
-private:
+protected:
     DDMode _ddmode; // which update rule to use
     bool _useAveraging; // use the averaged positions of the old value list (length max_n_const_values) as end result
     double _stepSize; // step size factor / learning rate

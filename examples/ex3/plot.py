@@ -23,7 +23,7 @@ def rbf(x, y):
     return 100.*(y-x**2)**2 + (1.-x)**2
 
 # showFigure script with hardcoded modes
-ncg_split = 25
+ncg_split = 31
 def showFigure(files, names, title, mode): # mode can be 0 = cg, 1 = sgd, 2 = noisy-split, 3 = noisy-adam
     data = []
     for file in files:
@@ -31,8 +31,8 @@ def showFigure(files, names, title, mode): # mode can be 0 = cg, 1 = sgd, 2 = no
         data.append([px,py,pz])
 
     # generate plot of Rosenbrock function
-    x = np.linspace(-2, 2, 200)
-    y = np.linspace(-1, 3, 200)
+    x = np.linspace(-2., 2., 250)
+    y = np.linspace(-1, 3, 250)
     X, Y = np.meshgrid(x, y)
     Z = rbf(X, Y)
     z_max =  np.abs(Z).max()
@@ -44,8 +44,8 @@ def showFigure(files, names, title, mode): # mode can be 0 = cg, 1 = sgd, 2 = no
     ax.axis([x.min(), x.max(), y.min(), y.max()])
     fig.colorbar(c, ax=ax)
 
-    clist = ['red', 'white', 'purple', 'pink', 'black', 'lime']
-    mlist = ['o', 'x', 's', '+', 'd', '*']
+    clist = ['white', 'purple', 'pink', 'black', 'lime', 'red']
+    mlist = ['o', 'x', 's', 'd', '*', '+']
 
     lines = []
     for it in range(len(files)):
@@ -168,6 +168,6 @@ def showFigure(files, names, title, mode): # mode can be 0 = cg, 1 = sgd, 2 = no
 
 prefix = "../../build/examples/"
 showFigure([prefix+"cgsd.out", prefix+"cgfr.out", prefix+"cgpr.out", prefix+"cgpr0.out"], ["SD", "CG(FR)", "CG(PR)", "CG(PR0)"], "SD/CG variants, no noise", 0)
-showFigure([prefix+"sgdm.out", prefix+"nest.out", prefix+"adag.out", prefix+"rmsp.out", prefix+"adad.out", prefix+"adam.out"], ["SGDM", "Nesterov", "AdaGrad", "RMSProp", "AdaDelta", "Adam"], "SGD algorithms, no noise", 1)
-showFigure([prefix+"cg-sgd_noise.out"], ["CG", "SGDM"], "Polak-Ribiere CG, followed by momentum SGD, with noise", 2)
-showFigure([prefix+"adam_noise.out", prefix+"fire_noise.out"], ["Adam", "FIRE"], "Adam and FIRE, with noise", 3)
+showFigure([prefix+"sgdm.out", prefix+"nest.out", prefix+"rmsp.out", prefix+"adad.out", prefix+"adam.out", prefix+"fire.out"], ["SGDM", "Nesterov", "RMSProp", "AdaDelta", "Adam", "FIRE"], "SGD algorithms (and FIRE), no noise", 1)
+showFigure([prefix+"cg-sgd_noise.out"], ["CG", "SGDM"], "Noisy CG, followed by momentum SGD, with noise", 2)
+showFigure([prefix+"adam_noise.out", prefix+"fire_noise.out", prefix+"sirene_noise.out"], ["Adam", "FIRE", "SIRENE"], "Adam and FIRE (+ custom variant), with noise", 3)

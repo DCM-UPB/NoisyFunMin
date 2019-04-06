@@ -2,6 +2,7 @@
 #include "nfm/DynamicDescent.hpp"
 #include "nfm/Adam.hpp"
 #include "nfm/FIRE.hpp"
+#include "nfm/SIRENE.hpp"
 #include "nfm/LogManager.hpp"
 
 #include <iostream>
@@ -41,23 +42,23 @@ int main()
     cout << "We want to minimize the 2D function" << endl;
     cout << "    100*(y-x^2)^2 + (1-x)^2 ,      " << endl;
     cout << "which has its minimum in (1,1).    " << endl << endl;
-    cout << "We will always start at (0, 3).    " << endl;
+    cout << "We will always start at (-0.1, 2.9).    " << endl;
     cout << "This ensures a formidable challenge!" << endl << endl;
 
     cout << "Let's first use Fletcher-Reeves CG to minimize the noiseless function:" << endl;
 
     RosenbrockFunction<2> rbfun;
-    const std::vector<double> initpos{0., 3.};
+    const std::vector<double> initpos{-0.1, 2.9};
 
     ConjGrad cg(&rbfun);
     cg.setStepSize(0.01);
     cg.disableStopping();
-    cg.setMaxNIterations(25);
+    cg.setMaxNIterations(30);
     minimize(cg, initpos, "cgfr.out");
 
     cout << "It took a bit longer than for the Parabola, but the minimum" << endl;
-    cout << "was found to more than 10^-8 precision within 25 gradient steps." << endl << endl;
-    cout << "Results for other SD and CG variants..." << endl;
+    cout << "was found to about 10^-5 precision within 30 gradient steps." << endl << endl;
+    cout << "Results for other SD and CG variants (after 30 gradient steps)..." << endl;
 
     cout << "Raw gradient/Steepest Descent:" << endl;
     cg.useRawGrad();
@@ -76,33 +77,28 @@ int main()
     cout << "We start with simple momentum SGD:" << endl;
 
     DynamicDescent dd(&rbfun); // default is SGD with momentum
-    dd.setStepSize(0.001); // despite the small step we still overshoot (but we move fast!)
+    dd.setStepSize(0.0005); // despite the small step we still overshoot (but we move fast!)
+    dd.setBeta(0.9);
     dd.disableStopping(); // we want only one stopping condition
     dd.setMaxNIterations(1000); // namely the fixed number of steps
     minimize(dd, initpos, "sgdm.out");
 
     cout << "That was the result after 1000(!) gradient steps," << endl;
-    cout << "so simple momentum SGD doesn't work very well here." << endl << endl;
+    cout << "so the SGD method is much slower than CG here (no noise!)." << endl << endl;
+    cout << "Results for other SGD variants (1000 gradient steps):" << endl;
     cout << "Nesterov momentum:" << endl;
 
     dd.useNesterov();
     dd.setStepSize(0.001);
-    dd.setBeta(0.95);
+    dd.setBeta(0.9);
     minimize(dd, initpos, "nest.out");
 
-    cout << "Nesterov does very good, but still takes more steps than CG." << endl << endl;
-
-    cout << "AdaGrad:" << endl;
-
-    dd.useAdaGrad();
-    dd.setStepSize(1.31);
-    minimize(dd, initpos, "adag.out");
 
     cout << "RMSProp:" << endl;
 
     dd.useRMSProp();
-    dd.setStepSize(0.002); // this is a lucky stepsize
-    dd.setBeta(0.95);
+    dd.setStepSize(0.004);
+    dd.setBeta(0.9);
     minimize(dd, initpos, "rmsp.out");
 
 
@@ -110,12 +106,12 @@ int main()
 
     dd.useAdaDelta();
     dd.setStepSize(0.004);
-    dd.setBeta(0.5);
+    dd.setBeta(0.9);
     minimize(dd, initpos, "adad.out");
 
     cout << "Adam:" << endl;
 
-    Adam adam(&rbfun, false, 0.09);
+    Adam adam(&rbfun, false, 0.1);
     adam.setBeta1(0.9);
     adam.setBeta2(0.9); // more parameters ftw
     adam.disableStopping(); // same as above
@@ -123,54 +119,71 @@ int main()
     minimize(adam, initpos, "adam.out");
 
 
-    cout << endl << "Now let's turn on the noise and try a combination of noisy CG and SGDM:" << endl;
+    cout << "And also the Fast Inertial Relaxation Engine (FIRE):" << endl;
+    FIRE fire(&rbfun, 0.05, 0.01);
+    fire.disableStopping();
+    fire.setMaxNIterations(1000);
+    minimize(fire, initpos, "fire.out");
+
+
+    cout << endl << "Now let's turn on the noise and first try a combination of noisy CG and SGDM:" << endl;
 
     NoisyWrapper nrbf(&rbfun, 0.1); // sigma 0.1
     ConjGrad cg2(&nrbf);
 
     // config
-    cg2.setStepSize(0.2);
-    cg2.setBackStep(0.1);
-    cg2.useConjGradPR(); // when not stopping on rejection, better use Polak-Ribiere
+    cg2.setStepSize(0.02);
+    cg2.setBackStep(0.005);
+    cg2.setMaxNBracket(7);
+    cg2.useConjGradFR(); // in the noise case Fletcher-Reeves seems to do best
 
     // stopping criteria
     cg2.disableStopping();
-    cg2.setMaxNIterations(25); // at this point the method usually gets stuck due to noise
+    cg2.setMaxNIterations(30); // at this point the method usually gets stuck due to noise
 
     cout << "Init CG result:" << endl;
     minimize(cg2, initpos, "cg-sgd_noise.out");
 
     DynamicDescent dd2(&nrbf, DDMode::SGDM, false);
-    dd2.setStepSize(0.0025);
-    dd2.setBeta(0.95);
+    dd2.setStepSize(0.001);
+    dd2.setBeta(0.9);
     dd2.disableStopping();
-    dd2.setMaxNIterations(275);
+    dd2.setMaxNIterations(370);
 
     cout << "Final SGD result:" << endl;
     minimize(dd2, cg2.getX(), "cg-sgd_noise.out");
 
-    cout << "This way we obtain decent final minima with less steps (max 25+275)," << endl;
+    cout << "This way we obtain decent final minima with less steps (max 30+370)," << endl;
     cout << "despite the combination of difficult function and noise." << endl << endl;
 
     cout << "But the added noise does not really hurt some(!) of the SGD algorithms." << endl;
-    cout << "For example, if we use Adam right from the start (300 steps), the result is similar:" << endl;
+    cout << "For example, if we use Adam right from the start (400 steps)," << endl;
+    cout << "the result is very accurate if we turn averaging on:" << endl;
 
-    Adam adam2(&nrbf, true, 0.09);
+    Adam adam2(&nrbf, true, 0.1);
     adam2.setBeta1(0.9);
     adam2.setBeta2(0.9);
     adam2.disableStopping();
-    adam2.setMaxNIterations(300); // just run 300 adam steps
+    adam2.setMaxNIterations(500); // just run 500 adam steps
     minimize(adam2, initpos, "adam_noise.out");
 
     cout << endl;
-    cout << "Last but not least, here are the results for the (Soft) Fast Inertial Relaxation Engine (FIRE):" << endl;
-    FIRE fire(&nrbf, 0.005, 0.02);
-    //fire.setNMin(3);
-    fire.setBeta(0.7);
-    fire.setSoftFreeze();
-    fire.disableStopping();
-    fire.setMaxNIterations(300);
-    minimize(fire, initpos, "fire_noise.out");
+    cout << "Now with noise on and a shallow minimum, FIRE got more problems:" << endl;
+    FIRE fire2(&nrbf, 0.05, 0.01);
+    fire2.setNMin(0);
+    fire2.disableStopping();
+    fire2.setMaxNIterations(500);
+    minimize(fire2, initpos, "fire_noise.out");
+
+    cout << "Our custom SIRENE to the rescue:" << endl;
+    NoisyValue::setSigmaLevel(1.);
+    SIRENE sirene(&nrbf, 0.05, 0.01);
+    sirene.setNMin(0);
+    //fire2.setBeta(0.5);
+    sirene.setSoftFreeze();
+    sirene.disableStopping();
+    sirene.setMaxNIterations(500);
+    minimize(sirene, initpos, "sirene_noise.out");
 
     // end
     return 0;
