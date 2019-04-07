@@ -112,7 +112,7 @@ int main()
 
     Adam adam(&rbfun, false, 0.1);
     adam.setBeta1(0.9);
-    adam.setBeta2(0.9); // more parameters ftw
+    adam.setBeta2(0.95); // more parameters ftw
     adam.disableStopping(); // same as above
     adam.setMaxNIterations(1000); // same as above
     minimize(adam, initpos, "adam.out");
@@ -127,7 +127,7 @@ int main()
 
     cout << endl << "Now let's turn on the noise and first try a combination of noisy CG and SGDM:" << endl;
 
-    NoisyWrapper nrbf(&rbfun, 0.1); // sigma 0.1
+    NoisyWrapper nrbf(&rbfun, 0.2); // sigma 0.2
     ConjGrad cg2(&nrbf);
 
     // config
@@ -161,14 +161,14 @@ int main()
 
     Adam adam2(&nrbf, true, 0.1);
     adam2.setBeta1(0.9);
-    adam2.setBeta2(0.9);
+    adam2.setBeta2(0.95);
     adam2.disableStopping();
     adam2.setMaxNIterations(500); // just run 500 adam steps
     minimize(adam2, initpos, "adam_noise.out");
 
     cout << endl;
     cout << "Now with noise on and a shallow minimum, default FIRE got more problems:" << endl;
-    FIRE fire2(&nrbf, 0.05, 0.02);
+    FIRE fire2(&nrbf, 0.03, 0.01);
     //fire2.setDtMin(0.01);
     //fire2.setSelectiveFreeze();
     //fire2.setNWait(0);
@@ -177,11 +177,12 @@ int main()
     minimize(fire2, initpos, "fire_noise.out");
 
     cout << "Our custom IRENE to the rescue:" << endl;
-    //NoisyValue::setSigmaLevel(1.5);
-    IRENE irene(&nrbf, 0.05, 0.02);
-    irene.setDtMin(0.01);
-    irene.setSelectiveFreeze();
-    //irene.setNWait(2);
+    NoisyValue::setSigmaLevel(2.);
+    IRENE irene(&nrbf, 0.03, 0.01);
+    //irene.setDtMin(0.005);
+    //irene.setSelectiveFreeze();
+    //irene.setNWait(0);
+    //irene.setBeta(0.9);
     irene.disableStopping();
     irene.setMaxNIterations(500);
     minimize(irene, initpos, "irene_noise.out");

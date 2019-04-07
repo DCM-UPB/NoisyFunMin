@@ -22,31 +22,39 @@ enum class Integrator
 // from the optimizers to MD integrators.
 struct MDView
 {
-    const std::vector<double> &mi; // inverse masses
     std::vector<double> &x; // position
     std::vector<double> &v; // velocity
     std::vector<double> &a; // acceleration (F*mi)
-    NoisyGradient &F; // force (passed to NoisyFun)
+    std::function<void()> &update; // force update callback function (usually a lambda)
 };
 
 // --- Functions
 
-// Given an enum and data, perform the step
-NoisyValue doMDStep(Integrator mdi, NoisyFunctionWithGradient &efun, MDView &view, double dt);
-
-// helper to compute acceleration
-void computeAcceleration(MDView &view);
-
-
 // MDIntegrator step functions are of the form:
-// std::function<NoisyValue(NoisyFunctionWithGradient &efun,          MDView &view,  double dt)>
-//                  ^returns new energy value         ^energy/force function ^in/out MDView ^time step
+// std::function<void(MDView &view,  double dt)>
+//                           ^in/out MDView ^time step
+//
+// Starting from the previous step's information in MDView x,v,a ,
+// they will perform a MD time step according to dt and call the
+// provided update() callback to ask for calculation of updated
+// acceleration values, to be stored in a.
 
 // Euler
-NoisyValue ExplicitEulerIntegrator(NoisyFunctionWithGradient &efun, MDView &view, double dt);
+void ExplicitEulerIntegrator(MDView &view, double dt);
 
 // Standard Velocity-Verlet, 4 step version
-NoisyValue VelocityVerletIntegrator(NoisyFunctionWithGradient &efun, MDView &view, double dt);
+void VelocityVerletIntegrator(MDView &view, double dt);
+
+
+// calls the right integrator according to enum
+void doMDStep(Integrator mdi, MDView &view, double dt);
+
+
+// helper to compute accelerations
+inline void computeAcceleration(const std::vector<double> &F, const std::vector<double> &mi, std::vector<double> &a)
+{
+    std::transform(F.begin(), F.end(), mi.begin(), a.begin(), std::multiplies<>());
+}
 } // namespace md
 } // namespace nfm
 

@@ -15,7 +15,7 @@ namespace nfm
 class IRENE: public FIRE // reuse some members from FIRE
 {
 private:
-    //double _beta = 0.; // builds up averaged gradient to use for scalar product P (0 means use pure raw grad)
+    double _beta = 0.; // exponential averaging factor for averaged acceleration
 
     // --- Internal methods
     void _findMin() override;
@@ -24,10 +24,10 @@ public:
     explicit IRENE(NoisyFunctionWithGradient * targetfun, double dtmax, double dt0 = 0.): FIRE(targetfun, dtmax, dt0) {}
 
     // Getters
-    //double getBeta() const { return _beta; }
+    double getBeta() const { return _beta; }
 
     // Setters
-    //void setBeta(double beta) { _beta = std::max(0., std::min(1., beta)); }
+    void setBeta(double beta) { _beta = std::max(0., std::min(1., beta)); }
 };
 } // namespace nfm
 

@@ -8,51 +8,39 @@ namespace nfm
 namespace md
 {
 
-void computeAcceleration(MDView &view)
+void ExplicitEulerIntegrator(MDView &view, const double dt)
 {
-    std::transform(view.F.val.begin(), view.F.val.end(), view.mi.begin(), view.a.begin(), std::multiplies<>());
-}
-
-NoisyValue ExplicitEulerIntegrator(NoisyFunctionWithGradient &efun, MDView &view, const double dt)
-{
-    for (int i = 0; i < efun.getNDim(); ++i) {
+    for (size_t i = 0; i < view.x.size(); ++i) {
         view.x[i] += dt*view.v[i];
         view.v[i] += dt*view.a[i];
     }
-    const NoisyValue newE = efun.fgrad(view.x, view.F);
-    computeAcceleration(view);
-    return newE;
+    view.update();
 }
 
 // Standard Velocity-Verlet, 4 step version
-NoisyValue VelocityVerletIntegrator(NoisyFunctionWithGradient &efun, MDView &view, const double dt)
+void VelocityVerletIntegrator(MDView &view, const double dt)
 {
-    const int ndim = efun.getNDim();
+    const size_t ndim = view.x.size();
     const double hdt = 0.5*dt;
-    for (int i = 0; i < ndim; ++i) {
+    for (size_t i = 0; i < ndim; ++i) {
         view.v[i] += hdt*view.a[i];
         view.x[i] += dt*view.v[i];
     }
-    const NoisyValue newE = efun.fgrad(view.x, view.F);
-    computeAcceleration(view);
-    for (int i = 0; i < ndim; ++i) {
+    view.update();
+    for (size_t i = 0; i < ndim; ++i) {
         view.v[i] += hdt*view.a[i];
     }
-    return newE;
 }
 
 // Given an enum and data, perform the step
-NoisyValue doMDStep(Integrator mdi, NoisyFunctionWithGradient &efun, MDView &view, const double dt)
+void doMDStep(const Integrator mdi, MDView &view, const double dt)
 {
     switch (mdi) {
     case Integrator::EulerE:
-        return ExplicitEulerIntegrator(efun, view, dt);
+        ExplicitEulerIntegrator(view, dt);
 
     case Integrator::VerletV:
-        return VelocityVerletIntegrator(efun, view, dt);
-
-    default:
-        return {0., 0.}; // cannot happen
+        VelocityVerletIntegrator(view, dt);
     }
 }
 } // namespace md

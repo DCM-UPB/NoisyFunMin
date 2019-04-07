@@ -14,7 +14,7 @@ FIRE::FIRE(NoisyFunctionWithGradient * targetfun, const double dtmax, const doub
         throw std::invalid_argument("[FIRE] FIRE optimization requires a target function with gradient.");
     }
     _mi.assign(_grad.size(), 1.); // inverse masses default to 1
-    // overwrite defaults
+    // override defaults
     _epsx=1.e-08; // FIRE moves can occasionally be very small (with Euler integration this check must be off)
     _flag_gradErrStop = false; // don't stop on noisy-low gradients, by default
 }
@@ -28,19 +28,23 @@ void FIRE::_findMin()
     // helper variables
     std::vector<double> v(_grad.size()); // velocity vector
     std::vector<double> a(_grad.size()); // acceleration vector (F*mi)
-    md::MDView mdview{.mi = _mi, .x = _last.x, .v = v, .a = a, .F = _grad}; // references for MD integrator
+    std::function<void()> update = [&]() { // MD force update lambda
+        _last.f = _gradfun->fgrad(_last.x, _grad);
+        md::computeAcceleration(_grad.val, _mi, a);
+    };
+    md::MDView mdview{.x = _last.x, .v = v, .a = a, .update = update}; // references for MD integrator
 
     double dt = _dt0; // current time-step
     double alpha = _alpha0; // current mixing factor
     int Npos = 0; // number of steps since "F.v" was negative
     int Nmin = 0; // number of steps since dt = dtmin
 
-    // initial step (velocities are kept 0)
+    // initial step
     if (!this->_initializeMD(mdview, dt)) { return; } // return if shouldStop() already
 
     //begin the minimization loop
     int iter = 0;
-    while (true) { // a better while (True)
+    while (true) {
         ++iter;
         if (LogManager::isLoggingOn()) { // else skip string construction
             LogManager::logString("\nFIRE::findMin() Step " + std::to_string(iter) + "\n");
@@ -97,12 +101,10 @@ bool FIRE::_initializeMD(md::MDView &view, const double dt)
     LogManager::logString("\nFIRE::findMin() Initial Step\n");
 
     // compute initial step
-    _last.f = _gradfun->fgrad(_last.x, _grad);
-    md::computeAcceleration(view); // store initial acceleration
+    view.update(); // compute initial force and store acceleration
     for (int i = 0; i < _ndim; ++i) {
         view.v[i] += dt*view.a[i]; // we start with an initial velocity
     }
-
     // other stuff
     this->_storeLastValue();
     this->_writeGradientToLog();
@@ -115,7 +117,7 @@ bool FIRE::_initializeMD(md::MDView &view, const double dt)
 
 void FIRE::_updateTarget(md::MDView &view, const double dt)
 {
-    _last.f = md::doMDStep(_mdi, *_gradfun, view, dt);
+    md::doMDStep(_mdi, view, dt);
     this->_storeLastValue();
     this->_writeGradientToLog();
 }
