@@ -4,6 +4,8 @@
 #include "nfm/NoisyFunMin.hpp"
 #include "nfm/MDIntegrators.hpp"
 
+#include <algorithm>
+
 namespace nfm
 {
 
@@ -39,12 +41,13 @@ protected:
 
     // MD / extension parameters
     md::Integrator _mdi = md::Integrator::VerletV; // MD integrator to be used, default Verlocity Verlet
-    bool _flag_fullFreeze = true; // freeze all velocity indices on P < 0 (default/original)
+    bool _flag_fullFreeze = true; // set to false if you want to use selective instead of global (original) freezing
     std::vector<double> _mi; // inverse masses (default all 1)
 
     // --- Internal methods
     bool _initializeMD(md::MDView &view, double dt);
     void _updateTarget(md::MDView &view, double dt);
+    bool _isNDtMinReached(int Nmin);
     void _findMin() override;
 
 public:
@@ -82,6 +85,7 @@ public:
     void setFullFreeze() { _flag_fullFreeze = true; }
     void setSelectiveFreeze() { _flag_fullFreeze = false; }
     void setMasses(const std::vector<double> &m);
+    void resetMasses() { std::fill(_mi.begin(), _mi.end(), 1.); }
 };
 } // namespace nfm
 

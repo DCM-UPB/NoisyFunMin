@@ -4,7 +4,6 @@
 
 #include <cmath>
 
-
 namespace nfm
 {
 
@@ -16,6 +15,7 @@ FIRE::FIRE(NoisyFunctionWithGradient * targetfun, const double dtmax, const doub
     }
     _mi.assign(_grad.size(), 1.); // inverse masses default to 1
     // overwrite defaults
+    _epsx=1.e-08; // FIRE moves can occasionally be very small (with Euler integration this check must be off)
     _flag_gradErrStop = false; // don't stop on noisy-low gradients, by default
 }
 
@@ -48,7 +48,7 @@ void FIRE::_findMin()
 
         // compute the gradient and current target
         this->_updateTarget(mdview, dt);
-        if ((_Ndtmin > 0 && Nmin > _Ndtmin) || this->_shouldStop()) { break; } // we are done
+        if (this->_isNDtMinReached(Nmin) || this->_shouldStop()) { break; } // we are done
 
         // update vector lengths and P
         const double vnorm = sqrt(std::inner_product(v.begin(), v.end(), v.begin(), 0.));
@@ -95,8 +95,15 @@ void FIRE::_findMin()
 bool FIRE::_initializeMD(md::MDView &view, const double dt)
 {
     LogManager::logString("\nFIRE::findMin() Initial Step\n");
+
+    // compute initial step
     _last.f = _gradfun->fgrad(_last.x, _grad);
     md::computeAcceleration(view); // store initial acceleration
+    for (int i = 0; i < _ndim; ++i) {
+        view.v[i] += dt*view.a[i]; // we start with an initial velocity
+    }
+
+    // other stuff
     this->_storeLastValue();
     this->_writeGradientToLog();
     if (this->_shouldStop()) { // we print termination message already
@@ -111,6 +118,15 @@ void FIRE::_updateTarget(md::MDView &view, const double dt)
     _last.f = md::doMDStep(_mdi, *_gradfun, view, dt);
     this->_storeLastValue();
     this->_writeGradientToLog();
+}
+
+bool FIRE::_isNDtMinReached(const int Nmin)
+{
+    if (_Ndtmin > 0 && Nmin > _Ndtmin) {
+        LogManager::logString("\nStopping Reason: Maximal number of steps with minimal time step.\n");
+        return true;
+    }
+    return false;
 }
 
 // --- Public

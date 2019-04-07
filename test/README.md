@@ -31,3 +31,9 @@ with valgrind or use `make test` inside the build directory, to run unit tests w
 ## Unit Test 5
 
 `ut5/`: check the minimisation method Adam
+
+
+## Unit Test 6
+
+`ut6/`: check the minimisation methods FIRE and IRENE
+

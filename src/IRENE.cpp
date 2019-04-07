@@ -16,6 +16,7 @@ void IRENE::_findMin()
 
     // helper variables
     std::vector<double> v(_grad.size()); // velocity vector
+    //std::vector<double> ma(_grad.size()); // moving average acceleration
     NoisyGradient a(_ndim); // noisy acceleration vector (F*mi)
     md::MDView mdview{.mi = _mi, .x = _last.x, .v = v, .a = a.val, .F = _grad}; // references for MD integrator
 
@@ -34,12 +35,12 @@ void IRENE::_findMin()
         if (LogManager::isLoggingOn()) { // else skip string construction
             LogManager::logString("\nIRENE::findMin() Step " + std::to_string(iter) + "\n");
         }
-        std::cout << std::endl << "IRENE step " << iter << ":" << std::endl;
+        //std::cout << std::endl << "IRENE step " << iter << ":" << std::endl;
 
         // compute the gradient and current target
         this->_updateTarget(mdview, dt);
         std::transform(_grad.err.begin(), _grad.err.end(), _mi.begin(), a.err.begin(), std::multiplies<>()); // update a.err
-        if ((_Ndtmin > 0 && Nmin > _Ndtmin) || this->_shouldStop()) { break; } // we are done
+        if (this->_isNDtMinReached(Nmin) || this->_shouldStop()) { break; } // we are done
 
         // update vector lengths and P
         const double vnorm = sqrt(std::inner_product(v.begin(), v.end(), v.begin(), 0.));
@@ -54,22 +55,22 @@ void IRENE::_findMin()
         }
         P.err = sqrt(P.err);
 
-        std::cout << "vnorm " << vnorm << ", anorm " << anorm << ", P" << P << std::endl;
+        //std::cout << "vnorm " << vnorm << ", anorm " << anorm << ", P" << P << std::endl;
 
         // velocity mixing
         for (int i = 0; i < _ndim; ++i) {
             v[i] = (1. - alpha)*v[i] + alpha*vnorm*a.val[i]/anorm;
         }
 
-        // check noisy P
-        if (P > 0.) { // we are going downhill
+        // check P (using noisy comparison)
+        if (P > 0.) { // we are definitely going downhill
             if (++Npos > _Nwait) { // then increase dt
                 dt = std::min(dt*_finc, _dtmax);
                 Nmin = 0; // we have increased dt
                 alpha *= _falpha;
             }
         }
-        else if (P < 0.) { // we are going uphill
+        else if (P < 0.) { // we are definitely going uphill
             Npos = 0;
             dt = std::max(dt*_fdec, _dtmin);
             alpha = _alpha0;
@@ -79,14 +80,14 @@ void IRENE::_findMin()
             }
             else { // freeze selectively
                 for (int i = 0; i < _ndim; ++i) {
-                    if (a[i]*v[i] < 0.) {
+                    if (a[i]*v[i] < 0.) { // using two noisy overloads here!
                         v[i] = 0.;
                     }
                 }
             }
         }
         if (dt == _dtmin) { ++Nmin; }
-        std::cout << "dt " << dt << std::endl;
+        //std::cout << "dt " << dt << std::endl;
     }
 
     LogManager::logString("\nEnd IRENE::findMin() procedure\n");
@@ -107,7 +108,7 @@ void IRENE::_findMin()
                         const double vold = v[i];
                         //v[i] = 0.;
                         v[i] = (F[i] != 0.) ? v[i] = p_err/F[i] : 0.;
-                        std::cout << "flip v" << i << ": " << vold << " -> " << v[i] << std::endl;
+                        //std::cout << "flip v" << i << ": " << vold << " -> " << v[i] << std::endl;
                     }
    */
 } // namespace nfm

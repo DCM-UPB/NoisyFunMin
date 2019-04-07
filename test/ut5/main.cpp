@@ -19,12 +19,10 @@ int main()
     // define 3D function that I want to minimise
     F3D f3d;
 
-    bool useGradientError = false; // this option isn't Adam-specific
-    bool useAveraging = true;
     for (int i = 0; i < 2; ++i) {
-        useGradientError = !useGradientError;
+        const bool useGradientError = (i!=0); // this option isn't Adam-specific
         for (int j = 0; j < 2; ++j) {
-            useAveraging = !useAveraging;
+            const bool useAveraging = (j!=0);
 
             // cout << "useGradientError " << useGradientError << " useAveraging " << useAveraging << endl;
 

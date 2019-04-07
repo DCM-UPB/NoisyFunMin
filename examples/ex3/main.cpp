@@ -167,21 +167,21 @@ int main()
     minimize(adam2, initpos, "adam_noise.out");
 
     cout << endl;
-    cout << "Now with noise on and a shallow minimum, FIRE got more problems:" << endl;
-    FIRE fire2(&nrbf, 0.05, 0.01);
-    fire2.setDtMin(0.01);
-    fire2.setSelectiveFreeze();
+    cout << "Now with noise on and a shallow minimum, default FIRE got more problems:" << endl;
+    FIRE fire2(&nrbf, 0.05, 0.02);
+    //fire2.setDtMin(0.01);
+    //fire2.setSelectiveFreeze();
     //fire2.setNWait(0);
     fire2.disableStopping();
     fire2.setMaxNIterations(500);
     minimize(fire2, initpos, "fire_noise.out");
 
     cout << "Our custom IRENE to the rescue:" << endl;
-    NoisyValue::setSigmaLevel(1.);
-    IRENE irene(&nrbf, 0.05, 0.01);
+    //NoisyValue::setSigmaLevel(1.5);
+    IRENE irene(&nrbf, 0.05, 0.02);
     irene.setDtMin(0.01);
-    //irene.setNWait(0);
     irene.setSelectiveFreeze();
+    //irene.setNWait(2);
     irene.disableStopping();
     irene.setMaxNIterations(500);
     minimize(irene, initpos, "irene_noise.out");

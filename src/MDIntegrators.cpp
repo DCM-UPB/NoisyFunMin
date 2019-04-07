@@ -16,8 +16,8 @@ void computeAcceleration(MDView &view)
 NoisyValue ExplicitEulerIntegrator(NoisyFunctionWithGradient &efun, MDView &view, const double dt)
 {
     for (int i = 0; i < efun.getNDim(); ++i) {
-        view.v[i] += dt*view.a[i];
         view.x[i] += dt*view.v[i];
+        view.v[i] += dt*view.a[i];
     }
     const NoisyValue newE = efun.fgrad(view.x, view.F);
     computeAcceleration(view);
@@ -28,14 +28,15 @@ NoisyValue ExplicitEulerIntegrator(NoisyFunctionWithGradient &efun, MDView &view
 NoisyValue VelocityVerletIntegrator(NoisyFunctionWithGradient &efun, MDView &view, const double dt)
 {
     const int ndim = efun.getNDim();
+    const double hdt = 0.5*dt;
     for (int i = 0; i < ndim; ++i) {
-        view.v[i] += 0.5*dt*view.a[i];
+        view.v[i] += hdt*view.a[i];
         view.x[i] += dt*view.v[i];
     }
     const NoisyValue newE = efun.fgrad(view.x, view.F);
     computeAcceleration(view);
     for (int i = 0; i < ndim; ++i) {
-        view.v[i] += 0.5*dt*view.a[i];
+        view.v[i] += hdt*view.a[i];
     }
     return newE;
 }
