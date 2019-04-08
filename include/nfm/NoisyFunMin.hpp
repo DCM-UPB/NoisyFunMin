@@ -5,6 +5,7 @@
 #include <functional>
 
 #include "nfm/NoisyFunction.hpp"
+#include "nfm/PushBackBuffer.hpp"
 
 namespace nfm
 {
