@@ -78,17 +78,17 @@ int main()
 
     // increase cap temporarily
     if (verbose) { cout << "Increasing capacity to " << ntest << ":" << endl; }
-    testbuf.setcap(ntest); // calls reserve() ("else" case)
+    testbuf.set_cap(ntest); // calls reserve() ("else" case)
     assertBuffer(testbuf, ntest, nbuf - 1, testvec, testvec);
 
     // make it one less
     if (verbose) { cout << "Decreasing capacity by 1 again:" << endl; }
-    testbuf.setcap(ntest - 1); // calls "else" case of setcap()
+    testbuf.set_cap(ntest - 1); // calls "else" case of set_cap()
     assertBuffer(testbuf, ntest - 1, nbuf - 1, testvec, testvec);
 
     // now decrease it to current size(!) - 1 (dropping oldest element)
     if (verbose) { cout << "Now decreasing capacity to one less than current size(" << nbuf - 1 << "):" << endl; }
-    testbuf.setcap(nbuf - 2); // calls "else if" case of setcap()
+    testbuf.set_cap(nbuf - 2); // calls "else if" case of set_cap()
     assertBuffer(testbuf, nbuf - 2, nbuf - 2, testvec+1, testvec+1); // oldest (first) element was dropped
 
     // now set the buffer back to the original
@@ -97,7 +97,7 @@ int main()
     for (size_t i = 0; i < nbuf - 2; ++i) { // push through one full round with proper data
         testbuf.push_back(testvec[i]);
     }
-    testbuf.setcap(nbuf); // calls reserve() again, but "if" case
+    testbuf.set_cap(nbuf); // calls reserve() again, but "if" case
     testbuf.push_back(testvec[nbuf - 2]); // restore the last element
     assertBuffer(testbuf, nbuf, nbuf - 1, testvec, testvec); // we should have the original buffer
 
@@ -111,7 +111,7 @@ int main()
 
     // reduce the buffer size significantly
     if (verbose) { cout << "And reduce the cap to " << nsmall << ":" << endl; }
-    testbuf.setcap(nsmall); // keep only most recent data
+    testbuf.set_cap(nsmall); // keep only most recent data
     assertBuffer(testbuf, nsmall, nsmall, testvec + ntest - nsmall, testvec + ntest - nsmall); // will be ordered again
 
     if (verbose) { cout << "Try making a copy:" << endl; }

@@ -3,7 +3,7 @@
 #include "nfm/LogManager.hpp"
 
 #include <cmath>
-
+#include <iostream>
 namespace nfm
 {
 
@@ -16,12 +16,19 @@ void IRENE::_findMin()
     // helper variables
     std::vector<double> v(_grad.size()); // velocity vector
     std::vector<double> ma(_grad.size()); // moving average acceleration
-    NoisyGradient a(_ndim); // noisy acceleration vector (F*mi)
+    NoisyGradient a(_ndim); // noisy mixed acceleration vector (used for MD)
 
     std::function<void()> update = [&]() { // MD force update lambda
         _last.f = _gradfun->fgrad(_last.x, _grad);
         md::computeAcceleration(_grad.val, _mi, a.val);
-        md::computeAcceleration(_grad.err, _mi, a.err);
+        md::computeAcceleration(_grad.err, _mi, a.err); // we need that later
+        if (_beta > 0.) {
+            for (int i = 0; i < _ndim; ++i) { // update averaged acceleration and mixed acceleration (for MD)
+                ma[i] = _beta*ma[i] + (1. - _beta)*a.val[i];
+                const double ISNR = std::min(1., a.err[i] / fabs(ma[i]));
+                a.val[i] = (a.val[i] + ISNR*ISNR*ma[i])/(ISNR*ISNR + 1.); // mix raw and averaged gradient according to ISNR squared
+            }
+        }
     };
     md::MDView mdview{.x = _last.x, .v = v, .a = a.val, .update = update}; // references for MD integrator
 
@@ -56,24 +63,21 @@ void IRENE::_findMin()
         P.err = sqrt(P.err);
 
         // acceleration / velocity mixing
-        for (int i = 0; i < _ndim; ++i) {
-            ma[i] = _beta*ma[i] + (1. - _beta)*a.val[i];
-        }
         const double vnorm = sqrt(std::inner_product(v.begin(), v.end(), v.begin(), 0.));
-        const double anorm = sqrt(std::inner_product(ma.begin(), ma.end(), ma.begin(), 0.));
+        const double anorm = sqrt(std::inner_product(a.val.begin(), a.val.end(), a.val.begin(), 0.));
         for (int i = 0; i < _ndim; ++i) {
-            v[i] = (1. - alpha)*v[i] + alpha*vnorm*ma[i]/anorm;
+            v[i] = (1. - alpha)*v[i] + alpha*vnorm*a.val[i]/anorm;
         }
 
         // check P (using noisy comparison)
-        if (P > 0.) { // we are definitely going downhill
+        if (P > 0.) { // we are most likely going downhill
             if (++Npos > _Nwait) { // then increase dt
                 dt = std::min(dt*_finc, _dtmax);
                 Nmin = 0; // we have increased dt
                 alpha *= _falpha;
             }
         }
-        else if (P < 0.) { // we are definitely going uphill
+        else if (P < 0.) { // we are most likely going uphill
             Npos = 0;
             dt = std::max(dt*_fdec, _dtmin);
             alpha = _alpha0;
@@ -89,6 +93,7 @@ void IRENE::_findMin()
                 }
             }
         }
+
         if (dt == _dtmin) { ++Nmin; }
     }
 

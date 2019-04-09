@@ -180,5 +180,5 @@ showFigure([prefix + "sgdm.out", prefix + "nest.out", prefix + "rmsp.out", prefi
            "SGD algorithms (and FIRE), no noise", 1)
 showFigure([prefix + "cg-sgd_noise.out"], ["CG", "SGDM"], "Noisy CG, followed by momentum SGD, with noise", 2)
 showFigure(
-    [prefix + "adam_noise.out", prefix + "fire_noise.out", prefix + "irene_noise.out"],
-    ["Adam", "FIRE", "IRENE"], "Adam and FIRE (+ custom variant), with noise", 3)
+    [prefix + "adam_noise.out", prefix + "fire_noise.out", prefix + "irene_noise.out", prefix + "irene2_noise.out"],
+    ["Adam", "FIRE", "IRENE", "IRENE-B"], "Adam, FIRE and own variant IRENE), with noise", 3)

@@ -176,8 +176,7 @@ int main()
     fire2.setMaxNIterations(500);
     minimize(fire2, initpos, "fire_noise.out");
 
-    cout << "Our custom IRENE to the rescue:" << endl;
-    NoisyValue::setSigmaLevel(2.);
+    cout << "Our custom IRENE to the rescue ( same/default settings ):" << endl;
     IRENE irene(&nrbf, 0.03, 0.01);
     //irene.setDtMin(0.005);
     //irene.setSelectiveFreeze();
@@ -186,6 +185,17 @@ int main()
     irene.disableStopping();
     irene.setMaxNIterations(500);
     minimize(irene, initpos, "irene_noise.out");
+
+    cout << "And with slightly optimized settings:" << endl;
+    NoisyValue::setSigmaLevel(1.);
+    IRENE irene2(&nrbf, 0.03, 0.01);
+    //irene2.setDtMin(0.001);
+    //irene2.setSelectiveFreeze();
+    //irene2.setNWait(0);
+    irene2.setBeta(0.9);
+    irene2.disableStopping();
+    irene2.setMaxNIterations(500);
+    minimize(irene2, initpos, "irene2_noise.out");
 
     //cout << "And with beta>0:" << endl;
     //sirene.setBeta(0.5);

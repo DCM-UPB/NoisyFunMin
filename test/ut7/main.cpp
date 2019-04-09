@@ -19,7 +19,7 @@ int main()
 
     // define 3D function that I want to minimise
     F3D f3d;
-    double initpos[3]{-2., 1., 0.};
+    std::vector<double> initpos{-2., 1., 0.};
 
     // --- Test default FIRE
 
@@ -107,6 +107,7 @@ int main()
     assert(irene.getX(0) == fire2.getX(0));
     assert(irene.getX(1) == fire2.getX(1));
     assert(irene.getX(2) == fire2.getX(2));
+    assert(irene.getX() == fire2.getX());
 
 
     return 0;

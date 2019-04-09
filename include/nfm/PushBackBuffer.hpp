@@ -25,7 +25,7 @@ namespace nfm
 // available via external libraries like boost and we don't want to needlessly add such dependency.
 // Luckily, especially if one restricts the class to support solely the push_back operation, i.e. no
 // pop() or arbitrary insert/remove, the implementation comes down to a few methods consisting of simple
-// single if-clauses (with the exception of the reserve()/setcap() methods).
+// single if-clauses (with the exception of the reserve()/set_cap() methods).
 //
 // NOTE: The class is not a fully STL-compatible container (i.e. fulfills not all requirements), but
 // the public interface largely resembles a subset of the std::vector interface. Quite notably though,
@@ -44,8 +44,7 @@ protected:
     size_t _ncap; // the buffer capacity (max number of elements)
     size_t _inext; // the next index to be written at on push
 
-    void _incINext() noexcept { _inext = (++_inext < _ncap) ? _inext : _inext - _ncap; } // this is a bit cheaper than modulo
-    size_t _wrapIndex(size_t i) const noexcept { return (i < _ncap) ? i : i - _ncap; }
+    void _inc_inext() noexcept { _inext = (++_inext < _ncap) ? _inext : _inext - _ncap; } // this is a bit cheaper than modulo
 
 public:
     explicit PushBackBuffer(size_t size = 0/*initial full capacity*/) noexcept;
@@ -71,7 +70,7 @@ public:
     size_t capacity() const noexcept { return _ncap; }
 
     void reserve(size_t new_cap); // resembles the usual meaning of reserve() (i.e. may only increase cap)
-    void setcap(size_t new_cap); // also allows to shrink (preserving newest elements)
+    void set_cap(size_t new_cap); // also allows to shrink (preserving newest elements)
 
     // --- push_back and emplace_back, clear and swap
 
@@ -111,7 +110,7 @@ const ValueT &PushBackBuffer<ValueT>::back() const {
 
 template <class ValueT>
 const ValueT &PushBackBuffer<ValueT>::operator[](const size_t i) const { // when index i out of bounds, UB
-    return (_inext < _vec.size()) ? _vec[this->_wrapIndex(_inext + i)] : _vec[i];
+    return (_inext < _vec.size()) ? _vec[(_inext + i)%_ncap] : _vec[i];
 }
 
 template <class ValueT>
@@ -139,7 +138,7 @@ void PushBackBuffer<ValueT>::reserve(const size_t new_cap)
 }
 
 template <class ValueT>
-void PushBackBuffer<ValueT>::setcap(const size_t new_cap)
+void PushBackBuffer<ValueT>::set_cap(size_t new_cap)
 {
     if (new_cap>=_ncap) { // simply reuse reserve (helps to reduce cases)
         this->reserve(new_cap);
@@ -181,7 +180,7 @@ void PushBackBuffer<ValueT>::push_back(const ValueT &val)
     else {
         _vec.push_back(val);
     }
-    this->_incINext();
+    this->_inc_inext();
 }
 
 template <class ValueT>
@@ -193,7 +192,7 @@ void PushBackBuffer<ValueT>::push_back(ValueT &&val)
     else {
         _vec.push_back(val);
     }
-    this->_incINext();
+    this->_inc_inext();
 }
 
 template <class ValueT>
@@ -205,7 +204,7 @@ void PushBackBuffer<ValueT>::emplace_back(Args &&... args) {
     else {
         _vec.emplace_back(std::forward<Args>(args)...);
     }
-    this->_incINext();
+    this->_inc_inext();
 }
 
 template <class ValueT>

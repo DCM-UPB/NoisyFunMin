@@ -169,7 +169,7 @@ void NFM::getX(double x[]) const
 void NFM::setMaxNConstValues(int maxn_const_values)
 {
     _max_n_const_values = std::max(1, maxn_const_values);
-    _old_values.setcap(static_cast<size_t>(_max_n_const_values));
+    _old_values.set_cap(static_cast<size_t>(_max_n_const_values));
 }
 
 void NFM::disableStopping()
