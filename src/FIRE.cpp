@@ -15,8 +15,8 @@ FIRE::FIRE(NoisyFunctionWithGradient * targetfun, const double dtmax, const doub
     }
     _mi.assign(_grad.size(), 1.); // inverse masses default to 1
     // override defaults
-    _epsx=1.e-08; // FIRE moves can occasionally be very small (with Euler integration this check must be off)
-    _flag_gradErrStop = false; // don't stop on noisy-low gradients, by default
+    this->setEpsX(1.e-08); // FIRE moves can occasionally be very small (with Euler integration this check must be off)
+    this->setGradErrStop(false); // don't stop on noisy-low gradients, by default
 }
 
 // --- Minimization

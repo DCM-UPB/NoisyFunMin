@@ -24,19 +24,19 @@ protected:
     NoisyFunctionWithGradient * const _gradfun;  //gradient of the target function
     const bool _flag_gradfun; // has the gradient been provided?
 
-    // Stopping Tolerances (may also be used by child to auto-set own tolerances, e.g. for line search)
+    // Member to be updated by child
+    NoisyIOPair _last; // last position and its function value
+    NoisyGradient _grad; // last noisy gradient (will only be allocated if used)
+
+private: // set/called directly by base class only
+    // Stopping Criteria (childs should use get/set methods)
     double _epsx; // changes in the position x smaller than this value will stop the minimization (if 0, disabled)
     double _epsf; // changes in the function smaller than this value will stop the minimization (if 0, disabled)
     bool _flag_gradErrStop; // should we consider gradient errors for stopping? (if targetfun supports it)
     int _max_n_iterations; // hard stop after this amount of iterations (if 0, disabled (the default!))
     int _max_n_const_values; // stop after this number of target values have been constant within error bounds (if <= 1, disabled)
 
-    // Member to be updated by child
-    NoisyIOPair _last; // last position and its function value
-    NoisyGradient _grad; // last noisy gradient (will only be allocated if used)
-
-private: // set/called by base class only
-    std::list<NoisyIOPair> _old_values{}; // list of previous target values and positions
+    PushBackBuffer<NoisyIOPair> _old_values{}; // list of previous target values and positions
     double _lastDeltaX{}; // change in x by last step (updated on storeLastValue)
     double _lastDeltaF{}; // change in f by last step (updated on storeLastalue)
     bool _flag_policyStop{}; // did the user policy dictate stopping?
@@ -89,7 +89,7 @@ public:
     void setEpsF(double epsf) { _epsf = epsf; }
     void setGradErrStop(bool flag_gradErrStop) { _flag_gradErrStop = flag_gradErrStop; }
     void setMaxNIterations(int maxn_iterations) { _max_n_iterations = std::max(0, maxn_iterations); }
-    void setMaxNConstValues(int maxn_const_values) { _max_n_const_values = std::max(1, maxn_const_values); }
+    void setMaxNConstValues(int maxn_const_values);
     void disableStopping(); // WILL TURN OFF ALL STOPPING CRITERIA (except user policy)
 
     // Set an own policy function which may manipulate NFM and target function on each step.
@@ -119,7 +119,7 @@ public:
     int getMaxNIterations() const { return _max_n_iterations; }
     int getMaxNConstValues() const { return _max_n_const_values; }
 
-    const std::list<NoisyIOPair> &getOldValues() const { return _old_values; }
+    const PushBackBuffer<NoisyIOPair> &getOldValues() const { return _old_values; }
     double getDeltaX() const { return _lastDeltaX; }
     double getDeltaF() const { return _lastDeltaF; }
     double getIter() const { return _istep; }

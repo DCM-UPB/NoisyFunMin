@@ -1,8 +1,8 @@
 #include <cassert>
+#include <cmath>
 #include <iostream>
 
-#include "nfm/FIRE.hpp"
-#include "nfm/IRENE.hpp"
+#include "nfm/Adam.hpp"
 #include "nfm/LogManager.hpp"
 
 #include "TestNFMFunctions.hpp"
@@ -15,99 +15,32 @@ int main()
 
     LogManager::setLoggingOff();
     //LogManager::setLogLevel(LogLevel::VERBOSE);
-    //LogManager::setLogLevel(LogLevel::NORMAL);
 
     // define 3D function that I want to minimise
     F3D f3d;
-    double initpos[3]{-2., 1., 0.};
 
-    // --- Test default FIRE
+    for (int i = 0; i < 2; ++i) {
+        const bool useGradientError = (i!=0); // this option isn't Adam-specific
+        for (int j = 0; j < 2; ++j) {
+            const bool useAveraging = (j!=0);
 
-    // with default integrator (Verlet)
-    FIRE fire(&f3d, 1.);
-    fire.setX(initpos);
-    fire.findMin();
+            // cout << "useGradientError " << useGradientError << " useAveraging " << useAveraging << endl;
 
-    assert(fabs(fire.getX(0) - 1.0) < 0.05);
-    assert(fabs(fire.getX(1) + 1.5) < 0.05);
-    assert(fabs(fire.getX(2) - 0.5) < 0.05);
+            // test Adam
+            Adam adam(&f3d, useAveraging, 0.1);
+            adam.setBeta1(0.1); // this case works better with high decay
+            adam.setBeta2(0.1);
+            adam.setGradErrStop(useGradientError);
+            adam.setX(0, -2.);
+            adam.setX(1, 1.);
+            adam.setX(2, 0.);
+            adam.findMin();
 
-    // with Euler integrator
-    fire.setMDIntegrator(md::Integrator::EulerE);
-    fire.setEpsX(0.); // euler doesn't move once when FIRE freezes system
-    fire.setEpsF(0.);
-    fire.setX(initpos);
-    fire.findMin();
-
-    assert(fabs(fire.getX(0) - 1.0) < 0.05);
-    assert(fabs(fire.getX(1) + 1.5) < 0.05);
-    assert(fabs(fire.getX(2) - 0.5) < 0.05);
-
-    // --- Test extensions
-
-    // test dtmin stopping
-    fire.setMDIntegrator(md::Integrator::VerletV); // set back to original
-    fire.disableStopping(); // we want to test the FIRE-specific stopping criterion
-    fire.setDtMax(0.25);
-    fire.setDt0(0.2);
-    fire.setDtMin(0.15);
-    fire.setNDtMin(1); // we stop when 1 step had dtmin time step
-    fire.setX(initpos);
-    fire.findMin();
-
-    // which is way too early
-    assert(fabs(fire.getX(0) - 1.0) > 0.05);
-    assert(fabs(fire.getX(1) + 1.5) > 0.05);
-    assert(fabs(fire.getX(2) - 0.5) > 0.05);
-
-    // try selective freeze (and reenable fake const-list stopping)
-    fire.setDtMax(1.);
-    fire.setDtMin(0.);
-    fire.setDt0(0.1);
-    fire.setNDtMin(0);
-    fire.setMaxNConstValues(20);
-    fire.setSelectiveFreeze();
-    fire.setX(initpos);
-    fire.findMin();
-
-    assert(fabs(fire.getX(0) - 1.0) < 0.05);
-    assert(fabs(fire.getX(1) + 1.5) < 0.05);
-    assert(fabs(fire.getX(2) - 0.5) < 0.05);
-
-    // set different masses
-    std::vector<double> m{0.75, 1.1, 0.9};
-    fire.setMasses(m);
-    fire.setX(initpos);
-    fire.findMin();
-
-    assert(fabs(fire.getX(0) - 1.0) < 0.05);
-    assert(fabs(fire.getX(1) + 1.5) < 0.05);
-    assert(fabs(fire.getX(2) - 0.5) < 0.05);
-
-    // reset settings
-    fire.setFullFreeze();
-    fire.resetMasses();
-    fire.setX(initpos);
-    fire.findMin();
-
-    // check that we properly reconfigured default state
-    FIRE fire2(&f3d, 1.);
-    fire2.setX(initpos);
-    fire2.findMin();
-
-    assert(fire.getX(0) == fire2.getX(0));
-    assert(fire.getX(1) == fire2.getX(1));
-    assert(fire.getX(2) == fire2.getX(2));
-
-    // now we test also IRENE default (is identical here despite fake sigmas)
-    IRENE irene(&f3d, 1.);
-    irene.setX(initpos);
-    irene.findMin();
-
-    assert(irene.getX(0) == fire2.getX(0));
-    assert(irene.getX(1) == fire2.getX(1));
-    assert(irene.getX(2) == fire2.getX(2));
-
+            assert(fabs(adam.getX(0) - 1.0) < 0.1);
+            assert(fabs(adam.getX(1) + 1.5) < 0.1);
+            assert(fabs(adam.getX(2) - 0.5) < 0.1);
+        }
+    }
 
     return 0;
 }

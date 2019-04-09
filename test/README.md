@@ -9,31 +9,32 @@ with valgrind or use `make test` inside the build directory, to run unit tests w
 `ut1/`: check the function 1DTools.hpp -> nfm::findBracket()
 
 
-
 ## Unit Test 2
 
 `ut2/`: check the function 1DTools.hpp -> nfm::parabgoldMinimization()
 
 
-
 ## Unit Test 3
 
-`ut3/`: check the minimisation method ConjGrad
-
+`ut3/`: check the PushBackBuffer used to store old values/positions
 
 
 ## Unit Test 4
 
-`ut4/`: check the minimisation method DynamicDescent
-
+`ut4/`: check the minimisation method ConjGrad
 
 
 ## Unit Test 5
 
-`ut5/`: check the minimisation method Adam
+`ut5/`: check the minimisation method DynamicDescent
 
 
 ## Unit Test 6
 
-`ut6/`: check the minimisation methods FIRE and IRENE
+`ut6/`: check the minimisation method Adam
+
+
+## Unit Test 7
+
+`ut7/`: check the minimisation methods FIRE and IRENE
 

@@ -16,8 +16,9 @@ namespace nfm
 NFM::NFM(NoisyFunction * targetfun):
         _ndim(targetfun->getNDim()), _targetfun(targetfun),
         _gradfun(dynamic_cast<NoisyFunctionWithGradient *>(_targetfun)), _flag_gradfun(_gradfun != nullptr),
+        _last(_ndim), _grad(_ndim),
         _epsx(DEFAULT_EPSX), _epsf(DEFAULT_EPSF), _flag_gradErrStop(_flag_gradfun ? _gradfun->hasGradErr() : false),
-        _max_n_iterations(0), _max_n_const_values(DEFAULT_MAX_N_CONST), _last(_ndim), _grad(_ndim) {}
+        _max_n_iterations(0), _max_n_const_values(DEFAULT_MAX_N_CONST), _old_values(static_cast<size_t>(_max_n_const_values)) {}
 
 // --- Private methods
 
@@ -27,8 +28,8 @@ bool NFM::_isConverged() const
     if (max_nold < 2) { return false; } // we need at least two values for this check
 
     if (_old_values.size() >= max_nold) {
-        for (auto &oldp : _old_values) {
-            if (oldp.f != _old_values.front().f) {
+        for (const auto &oldp : _old_values.vec()) {
+            if (oldp.f != _old_values.back().f) {
                 return false;
             }
         }
@@ -42,7 +43,7 @@ bool NFM::_isConverged() const
 void NFM::_updateDeltas()
 {
     if (!_old_values.empty()) {
-        NoisyIOPair &old = _old_values.front(); // reference to last old value
+        const NoisyIOPair &old = _old_values.back(); // reference to last old value
         // deltaX
         _lastDeltaX = 0.;
         for (int i = 0; i < _ndim; ++i) {
@@ -88,10 +89,7 @@ void NFM::_storeLastValue()
     this->_updateDeltas(); // changes in x and f
 
     // update old value list
-    _old_values.emplace_front(_last);
-    while (_old_values.size() > static_cast<size_t>(_max_n_const_values)) {
-        _old_values.pop_back();
-    }
+    _old_values.emplace_back(_last); // oldest element will be deleted (if full)
 
     // call policy
     if (_policy) { _flag_policyStop = _policy(*this, *_targetfun); }
@@ -103,7 +101,7 @@ void NFM::_storeLastValue()
 void NFM::_averageOldValues()
 {
     std::fill(_last.x.begin(), _last.x.end(), 0.);
-    for (auto &oldp : _old_values) {
+    for (const auto &oldp : _old_values.vec()) {
         std::transform(_last.x.begin(), _last.x.end(), oldp.x.begin(), _last.x.begin(), std::plus<>());
     }
     for (double &x : _last.x) { x /= _old_values.size(); } // get proper averages
@@ -168,12 +166,18 @@ void NFM::getX(double x[]) const
     std::copy(_last.x.data(), _last.x.data() + _ndim, x);
 }
 
+void NFM::setMaxNConstValues(int maxn_const_values)
+{
+    _max_n_const_values = std::max(1, maxn_const_values);
+    _old_values.setcap(static_cast<size_t>(_max_n_const_values));
+}
+
 void NFM::disableStopping()
 { // turn NFM::findMin into an endless loop (unless policy cares for stopping)
     _epsx = 0.;
     _epsf = 0.;
     _flag_gradErrStop = false;
-    _max_n_const_values = 1;
+    this->setMaxNConstValues(1);
     _max_n_iterations = 0;
 }
 

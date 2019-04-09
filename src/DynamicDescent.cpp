@@ -15,7 +15,7 @@ DynamicDescent::DynamicDescent(NoisyFunctionWithGradient * targetfun, const DDMo
         throw std::invalid_argument("[DynamicDescent] Dynamic Descent optimization requires a target function with gradient.");
     }
     // overwrite defaults
-    _flag_gradErrStop = false; // don't stop on noisy-low gradients, by default
+    this->setGradErrStop(false); // don't stop on noisy-low gradients, by default
 }
 
 // --- Minimization

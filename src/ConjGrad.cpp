@@ -17,9 +17,9 @@ ConjGrad::ConjGrad(NoisyFunctionWithGradient * targetfun, const CGMode cgmode, c
         throw std::invalid_argument("[ConjGrad] Conjugate Gradient optimization requires a target function with gradient.");
     }
     // overwrite defaults
-    _max_n_const_values = 1; // don't use the check by default
-    _epsx = m1d_detail::STD_XTOL; // because this means we stop on reject line search
-    _epsf = m1d_detail::STD_FTOL; // and this means we stop if it didn't improve target significantly (beyond tol+errors)
+    this->setMaxNConstValues(1); // don't use the check by default
+    this->setEpsX(m1d_detail::STD_XTOL); // because this means we stop on reject line search
+    this->setEpsF(m1d_detail::STD_FTOL); // and this means we stop if it didn't improve target significantly (beyond tol+errors)
 }
 
 // --- Logging
@@ -131,8 +131,8 @@ bool ConjGrad::_computeGradient(const bool flag_value)
 void ConjGrad::_findNextX(const std::vector<double> &dir)
 {
     // use NFM tolerances for MLM
-    _mlmParams.epsx = _epsx;
-    _mlmParams.epsf = _epsf;
+    _mlmParams.epsx = this->getEpsX();
+    _mlmParams.epsf = this->getEpsF();
 
     // do line-minimization and store result in last
     _last = nfm::multiLineMin(*_targetfun, _last, dir, _mlmParams);

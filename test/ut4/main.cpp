@@ -2,7 +2,7 @@
 #include <cmath>
 #include <iostream>
 
-#include "nfm/DynamicDescent.hpp"
+#include "nfm/ConjGrad.hpp"
 #include "nfm/LogManager.hpp"
 
 #include "TestNFMFunctions.hpp"
@@ -19,75 +19,47 @@ int main()
     // define 3D function that I want to minimise
     F3D f3d;
     // introduce array with the initial position
-    double x[3]{-2., 1., 0.};
+    double x[3];
+    x[0] = -2.;
+    x[1] = 1.0;
+    x[2] = 0.0;
+
+    const double XTOL = 0.15;
+    const double YTOL = 0.10;
+    const double ZTOL = 0.10;
 
 
-    // test DynamicDescent
-    DynamicDescent dyndesc(&f3d);
-    dyndesc.setX(x);
-    dyndesc.findMin();
+    // test ConjGrad (Fletcher-Reeves)
+    ConjGrad cjgrad(&f3d);
+    cjgrad.setX(x);
+    cjgrad.findMin();
+    assert(fabs(cjgrad.getX(0) - 1.0) < XTOL);
+    assert(fabs(cjgrad.getX(1) + 1.5) < YTOL);
+    assert(fabs(cjgrad.getX(2) - 0.5) < ZTOL);
 
-    assert(fabs(dyndesc.getX(0) - 1.0) < 0.1);
-    assert(fabs(dyndesc.getX(1) + 1.5) < 0.1);
-    assert(fabs(dyndesc.getX(2) - 0.5) < 0.1);
+    // steepest descent version
+    cjgrad.useRawGrad();
+    cjgrad.setX(x);
+    cjgrad.findMin();
+    assert(fabs(cjgrad.getX(0) - 1.0) < XTOL);
+    assert(fabs(cjgrad.getX(1) + 1.5) < YTOL);
+    assert(fabs(cjgrad.getX(2) - 0.5) < ZTOL);
 
+    // Polak-Ribiere version
+    cjgrad.useConjGradPR();
+    cjgrad.setX(x);
+    cjgrad.findMin();
+    assert(fabs(cjgrad.getX(0) - 1.0) < XTOL);
+    assert(fabs(cjgrad.getX(1) + 1.5) < YTOL);
+    assert(fabs(cjgrad.getX(2) - 0.5) < ZTOL);
 
-    // also with averaging
-    dyndesc.setAveraging(true);
-    dyndesc.setMaxNConstValues(5);
-    dyndesc.setX(x);
-    dyndesc.findMin();
-
-    assert(fabs(dyndesc.getX(0) - 1.0) < 0.1);
-    assert(fabs(dyndesc.getX(1) + 1.5) < 0.1);
-    assert(fabs(dyndesc.getX(2) - 0.5) < 0.1);
-
-
-    // AdaGrad
-    dyndesc.useAdaGrad();
-    dyndesc.setStepSize(3.);
-    dyndesc.setX(x);
-    dyndesc.findMin();
-
-    assert(fabs(dyndesc.getX(0) - 1.0) < 0.1);
-    assert(fabs(dyndesc.getX(1) + 1.5) < 0.15);
-    assert(fabs(dyndesc.getX(2) - 0.5) < 0.15);
-
-
-    // AdaDelta
-    dyndesc.useAdaDelta();
-    dyndesc.setStepSize(0.05);
-    const double oldBeta = dyndesc.getBeta();
-    dyndesc.setBeta(0.5); // I had problems when leaving this at default
-    dyndesc.setX(x);
-    dyndesc.findMin();
-    dyndesc.setBeta(oldBeta); // set back the original value
-
-    assert(fabs(dyndesc.getX(0) - 1.0) < 0.1);
-    assert(fabs(dyndesc.getX(1) + 1.5) < 0.1);
-    assert(fabs(dyndesc.getX(2) - 0.5) < 0.1);
-
-
-    // RMSProp
-    dyndesc.useRMSProp();
-    dyndesc.setStepSize(0.05);
-    dyndesc.setX(x);
-    dyndesc.findMin();
-
-    assert(fabs(dyndesc.getX(0) - 1.0) < 0.1);
-    assert(fabs(dyndesc.getX(1) + 1.5) < 0.1);
-    assert(fabs(dyndesc.getX(2) - 0.5) < 0.1);
-
-
-    // Nesterov
-    dyndesc.useNesterov();
-    dyndesc.setStepSize(0.025);
-    dyndesc.setX(x);
-    dyndesc.findMin();
-
-    assert(fabs(dyndesc.getX(0) - 1.0) < 0.1);
-    assert(fabs(dyndesc.getX(1) + 1.5) < 0.1);
-    assert(fabs(dyndesc.getX(2) - 0.5) < 0.1);
+    // PR-CG with reset
+    cjgrad.useConjGradPR0();
+    cjgrad.setX(x);
+    cjgrad.findMin();
+    assert(fabs(cjgrad.getX(0) - 1.0) < XTOL);
+    assert(fabs(cjgrad.getX(1) + 1.5) < YTOL);
+    assert(fabs(cjgrad.getX(2) - 0.5) < ZTOL);
 
     return 0;
 }
