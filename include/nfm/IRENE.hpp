@@ -12,6 +12,15 @@ namespace nfm
 // Inspired by FIRE (see FIRE.hpp or https://doi.org/10.1103/PhysRevLett.97.170201),
 // this modified algorithm suffers less from the presence of significant statistical
 // noise in the gradient of the target function (energy).
+//
+// This is achieved by the combination of two techniques: First of all, we make use of
+// user-provided estimates of gradient errors, to make more safe decisions within the
+// freezing / time tep mechanism. Furthermore, if the parameter "beta" is set > 0., we
+// will accumulate the moving average gradient and use a mix of raw gradient and averaged
+// gradient for the MD dynamics. The amount of mix-in is decided by the Signal-To-Noise
+// ratio of gradient values. This allows to retain the very stiff and reactive dynamics
+// of the original optimizer, but gains the ability to progress when gradients are noisy.
+//
 class IRENE: public FIRE // reuse some members from FIRE
 {
 private:

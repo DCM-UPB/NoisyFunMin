@@ -28,7 +28,8 @@ void FIRE::_findMin()
     // helper variables
     std::vector<double> v(_grad.size()); // velocity vector
     std::vector<double> a(_grad.size()); // acceleration vector (F*mi)
-    std::function<void()> update = [&]() { // MD force update lambda
+    std::function<void()> update = [&]()
+    { // MD force update lambda
         _last.f = _gradfun->fgrad(_last.x, _grad);
         md::computeAcceleration(_grad.val, _mi, a);
     };

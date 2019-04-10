@@ -20,9 +20,9 @@ int main()
     F3D f3d;
 
     for (int i = 0; i < 2; ++i) {
-        const bool useGradientError = (i!=0); // this option isn't Adam-specific
+        const bool useGradientError = (i != 0); // this option isn't Adam-specific
         for (int j = 0; j < 2; ++j) {
-            const bool useAveraging = (j!=0);
+            const bool useAveraging = (j != 0);
 
             // cout << "useGradientError " << useGradientError << " useAveraging " << useAveraging << endl;
 

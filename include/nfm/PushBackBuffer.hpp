@@ -44,7 +44,7 @@ protected:
     size_t _ncap; // the buffer capacity (max number of elements)
     size_t _inext; // the next index to be written at on push
 
-    void _inc_inext() noexcept { _inext = (++_inext < _ncap) ? _inext : _inext - _ncap; } // this is a bit cheaper than modulo
+    void _inc_inext() noexcept; // increment and wrap inext
 
 public:
     explicit PushBackBuffer(size_t size = 0/*initial full capacity*/) noexcept;
@@ -58,7 +58,7 @@ public:
     // Raw access to underlying data
     // Use these whenever you need to read the data without
     // requiring information about relative position in time!
-    const std::vector<ValueT> & vec() const noexcept { return _vec; } // e.g. averaging elements from vec().begin() to vec().end() is always correct
+    const std::vector<ValueT> &vec() const noexcept { return _vec; } // e.g. averaging elements from vec().begin() to vec().end() is always correct
     const ValueT * data() const noexcept { return _vec.data(); } // similarly, going from data() to data()+size() would be correct
 
     // --- Capacity
@@ -85,31 +85,41 @@ public:
 };
 
 // non-member swap
-template<class ValueT>
-void swap( PushBackBuffer<ValueT>& lhs, PushBackBuffer<ValueT>& rhs ) noexcept { lhs.swap(rhs); }
+template <class ValueT>
+void swap(PushBackBuffer<ValueT> &lhs, PushBackBuffer<ValueT> &rhs) noexcept { lhs.swap(rhs); }
 
 
 // --- Implementation
 
 template <class ValueT>
-PushBackBuffer<ValueT>::PushBackBuffer(const size_t size) noexcept {
+PushBackBuffer<ValueT>::PushBackBuffer(const size_t size) noexcept
+{
     _vec.reserve(size); // we pre-allocate the required space
     _ncap = size;
     _inext = 0;
 }
 
 template <class ValueT>
-const ValueT &PushBackBuffer<ValueT>::front() const {
+void PushBackBuffer<ValueT>::_inc_inext() noexcept
+{
+    if (++_inext >= _ncap) { _inext -= _ncap; }
+}
+
+template <class ValueT>
+const ValueT &PushBackBuffer<ValueT>::front() const
+{
     return (_inext < _vec.size()) ? _vec[_inext] : _vec.front(); // second case only if empty (UB) or not full
 }
 
 template <class ValueT>
-const ValueT &PushBackBuffer<ValueT>::back() const {
+const ValueT &PushBackBuffer<ValueT>::back() const
+{
     return (_inext != 0) ? _vec[_inext - 1] : _vec.back(); // works always (UB when empty)
 }
 
 template <class ValueT>
-const ValueT &PushBackBuffer<ValueT>::operator[](const size_t i) const { // when index i out of bounds, UB
+const ValueT &PushBackBuffer<ValueT>::operator[](const size_t i) const
+{ // when index i out of bounds, UB
     return (_inext < _vec.size()) ? _vec[(_inext + i)%_ncap] : _vec[i];
 }
 
@@ -128,7 +138,7 @@ void PushBackBuffer<ValueT>::reserve(const size_t new_cap)
             new_vec.emplace_back(std::move(_vec[i]));
         }
         _vec.swap(new_vec);
-        _inext = _vec.size(); // there is at least one unwritten element at the end of vec
+        _inext = _vec.size(); // there is space for at least one new element at the end of vec
     }
     else { // _inext == _vec.size();
         _vec.reserve(new_cap);
@@ -140,7 +150,7 @@ void PushBackBuffer<ValueT>::reserve(const size_t new_cap)
 template <class ValueT>
 void PushBackBuffer<ValueT>::set_cap(size_t new_cap)
 {
-    if (new_cap>=_ncap) { // simply reuse reserve (helps to reduce cases)
+    if (new_cap >= _ncap) { // simply reuse reserve (helps to reduce cases)
         this->reserve(new_cap);
         return;
     }
@@ -160,7 +170,7 @@ void PushBackBuffer<ValueT>::set_cap(size_t new_cap)
     }
     else if (_vec.size() > new_cap) { // not full before but overfull after cap reduce
         const size_t dsize = _vec.size() - new_cap; // number of elements to remove, > 0
-        std::vector<ValueT>(_vec.begin()+dsize, _vec.end()).swap(_vec); // remove the first dsize elements
+        std::vector<ValueT>(_vec.begin() + dsize, _vec.end()).swap(_vec); // remove the first dsize elements
     }
     else { // not full before and _vec.size() <= new_cap
         _vec.shrink_to_fit(); // else the vector cap will not decrease
@@ -197,7 +207,8 @@ void PushBackBuffer<ValueT>::push_back(ValueT &&val)
 
 template <class ValueT>
 template <class... Args>
-void PushBackBuffer<ValueT>::emplace_back(Args &&... args) {
+void PushBackBuffer<ValueT>::emplace_back(Args &&... args)
+{
     if (this->full()) {
         _vec[_inext] = ValueT(std::forward<Args>(args)...);
     }
@@ -215,7 +226,8 @@ void PushBackBuffer<ValueT>::clear() noexcept
 }
 
 template <class ValueT>
-void PushBackBuffer<ValueT>::swap(PushBackBuffer &other) noexcept {
+void PushBackBuffer<ValueT>::swap(PushBackBuffer &other) noexcept
+{
     _vec.swap(other._vec);
     std::swap(_ncap, other._ncap);
     std::swap(_inext, other._inext);

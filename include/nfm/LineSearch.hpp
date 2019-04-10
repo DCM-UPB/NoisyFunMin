@@ -1,5 +1,5 @@
-#ifndef NFM_1DTOOLS_HPP
-#define NFM_1DTOOLS_HPP
+#ifndef NFM_LINESEARCH_HPP
+#define NFM_LINESEARCH_HPP
 
 #include "nfm/FunProjection1D.hpp"
 #include "nfm/NoisyValue.hpp"

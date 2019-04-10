@@ -4,6 +4,7 @@
 
 #include <cmath>
 #include <iostream>
+
 namespace nfm
 {
 
@@ -18,15 +19,17 @@ void IRENE::_findMin()
     std::vector<double> ma(_grad.size()); // moving average acceleration
     NoisyGradient a(_ndim); // noisy mixed acceleration vector (used for MD)
 
-    std::function<void()> update = [&]() { // MD force update lambda
+    std::function<void()> update = [&]()
+    { // MD force update lambda
         _last.f = _gradfun->fgrad(_last.x, _grad);
         md::computeAcceleration(_grad.val, _mi, a.val);
         md::computeAcceleration(_grad.err, _mi, a.err); // we need that later
         if (_beta > 0.) {
             for (int i = 0; i < _ndim; ++i) { // update averaged acceleration and mixed acceleration (for MD)
                 ma[i] = _beta*ma[i] + (1. - _beta)*a.val[i];
-                const double ISNR = std::min(1., a.err[i] / fabs(ma[i]));
+                const double ISNR = std::min(1., a.err[i]/fabs(ma[i]));
                 a.val[i] = (a.val[i] + ISNR*ISNR*ma[i])/(ISNR*ISNR + 1.); // mix raw and averaged gradient according to ISNR squared
+                // note that we currently "assume" that the statistical error of a does not change due to this
             }
         }
     };

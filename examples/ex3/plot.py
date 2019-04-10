@@ -1,13 +1,14 @@
-from numpy import *
-from matplotlib.pyplot import *
 import matplotlib.animation as animation
 import matplotlib.colors as colors
+from matplotlib.pyplot import *
+from numpy import *
 
-def getData(file):
+
+def getData(myfile):
     x = []
     y = []
     z = []
-    for line in open(file):
+    for line in open(myfile):
         llist = line.split()
         if len(llist) == 6:  # could be valid x line
             if (llist[0] == 'x0' and llist[3] == 'x1'):  # yes it is
@@ -31,8 +32,8 @@ ncg_split = 31
 
 def showFigure(files, names, title, mode):  # mode can be 0 = cg, 1 = sgd, 2 = noisy-split, 3 = noisy-adam
     data = []
-    for file in files:
-        px, py, pz = getData(file)
+    for myfile in files:
+        px, py, pz = getData(myfile)
         data.append([px, py, pz])
 
     # generate plot of Rosenbrock function
@@ -40,7 +41,6 @@ def showFigure(files, names, title, mode):  # mode can be 0 = cg, 1 = sgd, 2 = n
     y = linspace(-1, 3, 250)
     X, Y = meshgrid(x, y)
     Z = rbf(X, Y)
-    z_max = abs(Z).max()
 
     fig = figure()
     ax = fig.add_subplot(111)
@@ -76,7 +76,7 @@ def showFigure(files, names, title, mode):  # mode can be 0 = cg, 1 = sgd, 2 = n
 
     def getReturnList(lines, points, time_text):  # assuming lines and points have equal len
         # I didn't find a better way of doing this
-        if len(lines) == 0:
+        if not lines:
             return time_text
         if len(lines) == 1:
             return lines[0], points[0], time_text
@@ -97,20 +97,16 @@ def showFigure(files, names, title, mode):  # mode can be 0 = cg, 1 = sgd, 2 = n
     def getTrueLen(n):
         if (mode != 2):
             return n
-        else:
-            if n > ncg_split:
-                return ncg_split + (n - ncg_split) // 5
-            else:
-                return n
+        if n > ncg_split:
+            return ncg_split + (n - ncg_split) // 5
+        return n
 
     def getTrueIdx(i):
         if (mode != 2):
             return i
-        else:
-            if i > ncg_split:
-                return ncg_split + 5 * (i - ncg_split)
-            else:
-                return i
+        if i > ncg_split:
+            return ncg_split + 5 * (i - ncg_split)
+        return i
 
     def init():
         for line in lines:

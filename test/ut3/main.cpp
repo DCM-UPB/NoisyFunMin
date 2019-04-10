@@ -21,8 +21,8 @@ void assertBuffer(const nfm::PushBackBuffer<ValueT> &buffer, size_t ncap_expect,
             assert(!buffer.empty());
             if (nsize_expect == ncap_expect) { assert(buffer.full()); }
             // check raw data
-            std::equal(data, data + nsize_expect, buffer.vec().data());
-            std::equal(data, data + nsize_expect, buffer.data());
+            assert(std::equal(data, data + nsize_expect, buffer.vec().data()));
+            assert(std::equal(data, data + nsize_expect, buffer.data()));
             // check time-ordered indexing
             for (size_t i = 0; i < nsize_expect; ++i) {
                 if (verbose) {
@@ -89,7 +89,7 @@ int main()
     // now decrease it to current size(!) - 1 (dropping oldest element)
     if (verbose) { cout << "Now decreasing capacity to one less than current size(" << nbuf - 1 << "):" << endl; }
     testbuf.set_cap(nbuf - 2); // calls "else if" case of set_cap()
-    assertBuffer(testbuf, nbuf - 2, nbuf - 2, testvec+1, testvec+1); // oldest (first) element was dropped
+    assertBuffer(testbuf, nbuf - 2, nbuf - 2, testvec + 1, testvec + 1); // oldest (first) element was dropped
 
     // now set the buffer back to the original
     if (verbose) { cout << "And back to the original of " << nbuf << ":" << endl; }
@@ -103,7 +103,7 @@ int main()
 
 
     // fill in the rest of the data (which will fill and then cycle the buffer)
-    if (verbose) { cout << "Now emplace the remaining " << ntest-nbuf << " elements into the ring:" << endl; }
+    if (verbose) { cout << "Now emplace the remaining " << ntest - nbuf << " elements into the ring:" << endl; }
     for (size_t i = nbuf - 1; i < ntest; ++i) { // now push the rest
         testbuf.emplace_back(testvec[i]); // I don't think emplacing a double means much but we do it for testing
     }
