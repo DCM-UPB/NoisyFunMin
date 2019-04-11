@@ -36,7 +36,7 @@ private: // set/called directly by base class only
     int _max_n_iterations; // hard stop after this amount of iterations (if 0, disabled (the default!))
     int _max_n_const_values; // stop after this number of target values have been constant within error bounds (if <= 1, disabled)
 
-    PushBackBuffer<NoisyIOPair> _old_values{}; // list of previous target values and positions
+    PushBackBuffer<NoisyIOPair> _old_values; // list of previous target values and positions
     double _lastDeltaX{}; // change in x by last step (updated on storeLastValue)
     double _lastDeltaF{}; // change in f by last step (updated on storeLastalue)
     bool _flag_policyStop{}; // did the user policy dictate stopping?

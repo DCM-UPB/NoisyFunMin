@@ -1,8 +1,5 @@
 #include "nfm/MDIntegrators.hpp"
 
-#include <algorithm>
-#include <numeric>
-
 namespace nfm
 {
 namespace md

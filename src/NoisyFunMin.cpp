@@ -89,7 +89,7 @@ void NFM::_storeLastValue()
     this->_updateDeltas(); // changes in x and f
 
     // update old value list
-    _old_values.emplace_back(_last); // oldest element will be deleted (if full)
+    _old_values.push_back(_last); // oldest element will be deleted (if full)
 
     // call policy
     if (_policy) { _flag_policyStop = _policy(*this, *_targetfun); }

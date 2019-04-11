@@ -23,9 +23,10 @@ namespace nfm
 // insertion-order-based indexing in O(1) complexity with very small overhead. Pushing a new element
 // comes down to a single copy or move operation. Unfortunately, ring buffer implementations are only
 // available via external libraries like boost and we don't want to needlessly add such dependency.
-// Luckily, especially if one restricts the class to support solely the push_back operation, i.e. no
-// pop() or arbitrary insert/remove, the implementation comes down to a few methods consisting of simple
-// single if-clauses (with the exception of the reserve()/set_cap() methods).
+// But especially if one restricts the class to support solely the push_back operation, i.e. no pop()
+// or arbitrary insert/remove, the implementation comes down to a few methods consisting of simple
+// single if-clauses (with the exception of the reserve()/set_cap() methods). Furthermore, we only
+// need to provide const versions of accessor methods. New values enter the buffer only via push/emplace.
 //
 // NOTE: The class is not a fully STL-compatible container (i.e. fulfills not all requirements), but
 // the public interface largely resembles a subset of the std::vector interface. Quite notably though,
@@ -36,17 +37,21 @@ namespace nfm
 // NOTE 2: In most of my other code I don't care about noexcept specifiers, but the std::vector interface
 //         uses it, so for conformity I chose to use noexcept consistently here.
 //
+//
+// Benchmark: http://quick-bench.com/DrWoTCBHvwJ7u8jdbpC2LB-2Q20
+//
 template <class ValueT> // in NFM, ValueT is usually NoisyValue, NoisyIOPair or just int/double(vectors)
 class PushBackBuffer
 {
 protected:
     std::vector<ValueT> _vec; // the vector for actually storing the elements
     size_t _ncap; // the buffer capacity (max number of elements)
-    size_t _inext; // the next index to be written at on push
+    size_t _inext; // the next internal storage index to be written at on push
 
     void _inc_inext() noexcept; // increment and wrap inext
 
 public:
+    // Constructor (NOTE: When default-constructed, any accessor or push is UB)
     explicit PushBackBuffer(size_t size = 0/*initial full capacity*/) noexcept;
 
     // --- Element access (const)
@@ -63,8 +68,8 @@ public:
 
     // --- Capacity
 
-    bool empty() const noexcept { return _vec.empty(); };
-    bool full() const noexcept { return (_vec.size() == _ncap); }
+    bool empty() const noexcept { return _vec.empty(); }
+    bool full() const noexcept { return (_vec.size() == _ncap); } // i.e. cap=0 -> is full
 
     size_t size() const noexcept { return _vec.size(); } // this is max(npushed, ncap)
     size_t capacity() const noexcept { return _ncap; }
@@ -102,7 +107,7 @@ PushBackBuffer<ValueT>::PushBackBuffer(const size_t size) noexcept
 template <class ValueT>
 void PushBackBuffer<ValueT>::_inc_inext() noexcept
 {
-    if (++_inext >= _ncap) { _inext -= _ncap; }
+    if (++_inext == _ncap) { _inext = 0; } // this beats modulo and is safe here
 }
 
 template <class ValueT>
@@ -131,11 +136,8 @@ void PushBackBuffer<ValueT>::reserve(const size_t new_cap)
     if (_inext < _vec.size()) {
         std::vector<ValueT> new_vec; // the easiest way seems to be using a new vector
         new_vec.reserve(new_cap);
-        for (size_t i = _inext; i < _vec.size(); ++i) { // fill new vec, starting from oldest
-            new_vec.emplace_back(std::move(_vec[i])); // we can move elements
-        }
-        for (size_t i = 0; i < _inext; ++i) { // now fill in the rest
-            new_vec.emplace_back(std::move(_vec[i]));
+        for (size_t i = 0; i < _vec.size(); ++i) {
+            new_vec.push_back(std::move(_vec[(_inext + i)%_ncap])); // we can move the elements
         }
         _vec.swap(new_vec);
         _inext = _vec.size(); // there is space for at least one new element at the end of vec
@@ -159,12 +161,8 @@ void PushBackBuffer<ValueT>::set_cap(size_t new_cap)
         const size_t dcap = _ncap - new_cap; // number of elements to remove, > 0
         std::vector<ValueT> new_vec;
         new_vec.reserve(new_cap);
-        for (size_t i = _inext + dcap; i < _vec.size(); ++i) {
-            new_vec.emplace_back(std::move(_vec[i])); // we can move elements
-        }
-        const size_t drest = (_inext + dcap < _vec.size()) ? 0 : _inext + dcap + 1 - _vec.size(); // rest to skip
-        for (size_t i = drest; i < _inext; ++i) { // now fill in the rest
-            new_vec.emplace_back(std::move(_vec[i]));
+        for (size_t i = dcap; i < _vec.size(); ++i) {
+            new_vec.push_back(std::move(_vec[(_inext + i)%_ncap])); // we can move the elements
         }
         _vec.swap(new_vec);
     }
@@ -210,7 +208,7 @@ template <class... Args>
 void PushBackBuffer<ValueT>::emplace_back(Args &&... args)
 {
     if (this->full()) {
-        _vec[_inext] = ValueT(std::forward<Args>(args)...);
+        _vec[_inext] = ValueT(std::forward<Args>(args)...); // I'm not sure what exactly this compiles to
     }
     else {
         _vec.emplace_back(std::forward<Args>(args)...);
