@@ -38,7 +38,7 @@ namespace nfm
 //         uses it, so for conformity I chose to use noexcept consistently here.
 //
 //
-// Benchmark: http://quick-bench.com/DrWoTCBHvwJ7u8jdbpC2LB-2Q20
+// Benchmark: http://quick-bench.com/I7A55mWk_7uBD4O21e6yKc-5l_M
 //
 template <class ValueT> // in NFM, ValueT is usually NoisyValue, NoisyIOPair or just int/double(vectors)
 class PushBackBuffer
@@ -49,6 +49,7 @@ protected:
     size_t _inext; // the next internal storage index to be written at on push
 
     void _inc_inext() noexcept; // increment and wrap inext
+    size_t _get_index(size_t i) const noexcept; // get internal storage index corresponding i
 
 public:
     // Constructor (NOTE: When default-constructed, any accessor or push is UB)
@@ -70,6 +71,7 @@ public:
 
     bool empty() const noexcept { return _vec.empty(); }
     bool full() const noexcept { return (_vec.size() == _ncap); } // i.e. cap=0 -> is full
+    bool wrapped() const noexcept { return (_inext < _vec.size()); } // is equivalent to full when cap > 0
 
     size_t size() const noexcept { return _vec.size(); } // this is max(npushed, ncap)
     size_t capacity() const noexcept { return _ncap; }
@@ -83,7 +85,7 @@ public:
     void push_back(ValueT &&val); // move version
 
     template <class... Args>
-    void emplace_back(Args &&... args); // construct in-place version
+    void emplace_back(Args &&... args); // construct in-place version (slower when buffer is full)
 
     void clear() noexcept; // reduce size to 0, leave capacity as is
     void swap(PushBackBuffer &other) noexcept;
@@ -107,13 +109,25 @@ PushBackBuffer<ValueT>::PushBackBuffer(const size_t size) noexcept
 template <class ValueT>
 void PushBackBuffer<ValueT>::_inc_inext() noexcept
 {
-    if (++_inext == _ncap) { _inext = 0; } // this beats modulo and is safe here
+    if (++_inext == _ncap) { _inext = 0; } // this beats modulo by far and is safe here
+}
+
+template <class ValueT>
+size_t PushBackBuffer<ValueT>::_get_index(const size_t i) const noexcept
+{   // assuming index < ncap, else UB
+    if (this->wrapped()) {
+        const size_t shifti = _inext + i;
+        return (shifti < _ncap) ? shifti : shifti - _ncap; // (much!) cheaper modulo, given the assumption
+    }
+    else {
+        return i;
+    }
 }
 
 template <class ValueT>
 const ValueT &PushBackBuffer<ValueT>::front() const
 {
-    return (_inext < _vec.size()) ? _vec[_inext] : _vec.front(); // second case only if empty (UB) or not full
+    return (this->wrapped()) ? _vec[_inext] : _vec.front(); // second case only if empty (UB) or not full
 }
 
 template <class ValueT>
@@ -125,7 +139,7 @@ const ValueT &PushBackBuffer<ValueT>::back() const
 template <class ValueT>
 const ValueT &PushBackBuffer<ValueT>::operator[](const size_t i) const
 { // when index i out of bounds, UB
-    return (_inext < _vec.size()) ? _vec[(_inext + i)%_ncap] : _vec[i];
+    return _vec[this->_get_index(i)];
 }
 
 template <class ValueT>
@@ -133,7 +147,7 @@ void PushBackBuffer<ValueT>::reserve(const size_t new_cap)
 {
     if (new_cap <= _ncap) { return; } // like for std::vector, reserve does nothing if new_cap<_ncap
 
-    if (_inext < _vec.size()) {
+    if (this->wrapped()) {
         std::vector<ValueT> new_vec; // the easiest way seems to be using a new vector
         new_vec.reserve(new_cap);
         for (size_t i = 0; i < _vec.size(); ++i) {
@@ -157,7 +171,7 @@ void PushBackBuffer<ValueT>::set_cap(size_t new_cap)
         return;
     }
 
-    if (_inext < _vec.size()) { // vec is full and will be overfull after cap reduce
+    if (this->wrapped()) { // vec is full and will be overfull after cap reduce
         const size_t dcap = _ncap - new_cap; // number of elements to remove, > 0
         std::vector<ValueT> new_vec;
         new_vec.reserve(new_cap);
@@ -208,7 +222,7 @@ template <class... Args>
 void PushBackBuffer<ValueT>::emplace_back(Args &&... args)
 {
     if (this->full()) {
-        _vec[_inext] = ValueT(std::forward<Args>(args)...); // I'm not sure what exactly this compiles to
+        _vec[_inext] = ValueT(std::forward<Args>(args)...); // should be construct + move assign usually
     }
     else {
         _vec.emplace_back(std::forward<Args>(args)...);
