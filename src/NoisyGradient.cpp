@@ -14,6 +14,24 @@ NoisyGradient::NoisyGradient(const int ndim)
     err.assign(val.size(), 0.);
 }
 
+void NoisyGradient::zero()
+{
+    std::fill(val.begin(), val.end(), 0.);
+    std::fill(err.begin(), err.end(), 0.);
+}
+
+void NoisyGradient::set(const NoisyValue nv)
+{
+    std::fill(val.begin(), val.end(), nv.val);
+    std::fill(err.begin(), err.end(), nv.err);
+}
+
+void NoisyGradient::set(const int i, const NoisyValue nv)
+{
+    val[i] = nv.val;
+    err[i] = nv.err;
+}
+
 bool NoisyGradient::operator>(const double value) const
 {
     for (size_t i = 0; i < val.size(); ++i) {
@@ -22,11 +40,5 @@ bool NoisyGradient::operator>(const double value) const
         }
     }
     return false;
-}
-
-void NoisyGradient::set(const int i, const NoisyValue nv)
-{
-    val[i] = nv.val;
-    err[i] = nv.err;
 }
 } // namespace nfm

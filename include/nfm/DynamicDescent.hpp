@@ -34,7 +34,7 @@ protected:
     void _findMin() override;
 
 public:
-    explicit DynamicDescent(NoisyFunctionWithGradient * targetfun, DDMode ddmode = DDMode::SGDM, bool useAveraging = false, double stepSize = 0.01);
+    explicit DynamicDescent(int ndim, DDMode ddmode = DDMode::SGDM, bool useAveraging = false, double stepSize = 0.01);
     ~DynamicDescent() override = default;
 
     // DD Configuration

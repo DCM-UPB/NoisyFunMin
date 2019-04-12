@@ -51,7 +51,7 @@ protected:
     void _findMin() override;
 
 public:
-    explicit FIRE(NoisyFunctionWithGradient * targetfun, double dtmax, double dt0 = 0. /*will be set to 0.1*dtmax*/);
+    explicit FIRE(int ndim, double dtmax, double dt0 = 0. /*will be set to 0.1*dtmax*/);
     ~FIRE() override = default;
 
     // Getters

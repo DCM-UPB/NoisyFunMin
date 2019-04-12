@@ -7,12 +7,9 @@
 namespace nfm
 {
 
-FIRE::FIRE(NoisyFunctionWithGradient * targetfun, const double dtmax, const double dt0):
-        NFM(targetfun), _dtmax(std::max(0., dtmax)), _dt0((dt0 > 0.) ? std::min(dt0, dtmax) : 0.1*dtmax)
+FIRE::FIRE(const int ndim, const double dtmax, const double dt0):
+        NFM(ndim, true), _dtmax(std::max(0., dtmax)), _dt0((dt0 > 0.) ? std::min(dt0, dtmax) : 0.1*dtmax)
 {
-    if (!_flag_gradfun) {
-        throw std::invalid_argument("[FIRE] FIRE optimization requires a target function with gradient.");
-    }
     _mi.assign(_grad.size(), 1.); // inverse masses default to 1
     // override defaults
     this->setEpsX(1.e-08); // FIRE moves can occasionally be very small (with Euler integration this check must be off)

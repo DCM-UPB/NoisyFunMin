@@ -7,7 +7,6 @@
 
 #include "TestNFMFunctions.hpp"
 
-
 int main()
 {
     using namespace std;
@@ -24,9 +23,9 @@ int main()
     // --- Test default FIRE
 
     // with default integrator (Verlet)
-    FIRE fire(&f3d, 1.);
+    FIRE fire(f3d.getNDim(), 1.);
     fire.setX(initpos);
-    fire.findMin();
+    fire.findMin(f3d);
 
     assert(fabs(fire.getX(0) - 1.0) < 0.05);
     assert(fabs(fire.getX(1) + 1.5) < 0.05);
@@ -36,8 +35,7 @@ int main()
     fire.setMDIntegrator(md::Integrator::EulerE);
     fire.setEpsX(0.); // euler doesn't move once when FIRE freezes system
     fire.setEpsF(0.);
-    fire.setX(initpos);
-    fire.findMin();
+    fire.findMin(f3d, initpos);
 
     assert(fabs(fire.getX(0) - 1.0) < 0.05);
     assert(fabs(fire.getX(1) + 1.5) < 0.05);
@@ -52,8 +50,7 @@ int main()
     fire.setDt0(0.2);
     fire.setDtMin(0.15);
     fire.setNDtMin(1); // we stop when 1 step had dtmin time step
-    fire.setX(initpos);
-    fire.findMin();
+    fire.findMin(f3d, initpos);
 
     // which is way too early
     assert(fabs(fire.getX(0) - 1.0) > 0.05);
@@ -67,8 +64,7 @@ int main()
     fire.setNDtMin(0);
     fire.setMaxNConstValues(20);
     fire.setSelectiveFreeze();
-    fire.setX(initpos);
-    fire.findMin();
+    fire.findMin(f3d, initpos);
 
     assert(fabs(fire.getX(0) - 1.0) < 0.05);
     assert(fabs(fire.getX(1) + 1.5) < 0.05);
@@ -77,8 +73,7 @@ int main()
     // set different masses
     std::vector<double> m{0.75, 1.1, 0.9};
     fire.setMasses(m);
-    fire.setX(initpos);
-    fire.findMin();
+    fire.findMin(f3d, initpos);
 
     assert(fabs(fire.getX(0) - 1.0) < 0.05);
     assert(fabs(fire.getX(1) + 1.5) < 0.05);
@@ -87,22 +82,19 @@ int main()
     // reset settings
     fire.setFullFreeze();
     fire.resetMasses();
-    fire.setX(initpos);
-    fire.findMin();
+    fire.findMin(f3d, initpos);
 
     // check that we properly reconfigured default state
-    FIRE fire2(&f3d, 1.);
-    fire2.setX(initpos);
-    fire2.findMin();
+    FIRE fire2(f3d.getNDim(), 1.);
+    fire2.findMin(f3d, initpos);
 
     assert(fire.getX(0) == fire2.getX(0));
     assert(fire.getX(1) == fire2.getX(1));
     assert(fire.getX(2) == fire2.getX(2));
 
     // now we test also IRENE default (is identical here despite fake sigmas)
-    IRENE irene(&f3d, 1.);
-    irene.setX(initpos);
-    irene.findMin();
+    IRENE irene(f3d.getNDim(), 1.);
+    irene.findMin(f3d, initpos);
 
     assert(irene.getX(0) == fire2.getX(0));
     assert(irene.getX(1) == fire2.getX(1));

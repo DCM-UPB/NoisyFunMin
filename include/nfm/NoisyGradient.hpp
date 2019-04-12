@@ -26,7 +26,9 @@ struct NoisyGradient
     bool empty() const { return val.empty(); }
 
     // set/get elements in NoisyValue view
-    void set(int i, NoisyValue nv);
+    void zero(); // set both vecs to 0
+    void set(NoisyValue nv); // set all val/err elements to nv.val/nv.err
+    void set(int i, NoisyValue nv); // element-wise set
     NoisyValue get(int i) const { return {val[i], err[i]}; }
     const NoisyValue operator[](size_t i) const { return {val[i], err[i]}; }
 

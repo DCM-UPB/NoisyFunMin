@@ -35,7 +35,7 @@ int main()
     cout << "We first minimize it, supposing to have no noise at all" << endl;
 
     TestParabola3D nlp;
-    DynamicDescent dd(&nlp);
+    DynamicDescent dd(nlp.getNDim());
     double initpos[3]{2.5, 1., -1.};
 
     // in the case without noise we change settings
@@ -44,41 +44,39 @@ int main()
     dd.setEpsF(0.001); // we should enable stopping on too small function changes
 
     // and now find the min
-    dd.setX(initpos);
-    dd.findMin();
+    dd.findMin(nlp, initpos);
     reportMinimum(dd);
 
 
     cout << "Now we repeat the minimisation adding a noise to the function and its gradient." << endl;
 
     NoisyWrapper np(&nlp, 0.25); // sigma 0.25
-    DynamicDescent dd2(&np);
 
     // here we use different settings
-    dd2.setStepSize(0.01); // a smaller step size
-    dd2.setMaxNConstValues(20);
-    dd2.setAveraging(true); // this option usually improves the final result significantly
+    dd.setStepSize(0.01); // a smaller step size
+    dd.setBeta(0.9); // a reasonable default
+    dd.setEpsF(0.); // this time we stop by other means
+    dd.setMaxNConstValues(20);
+    dd.setAveraging(true); // this option usually improves the final result significantly
 
-    dd2.setX(initpos);
-    dd2.findMin();
-    reportMinimum(dd2);
+    dd.findMin(np, initpos);
+    reportMinimum(dd);
 
     cout << "We may also use a different Stochastic Gradient algorithm, like AdaDelta:" << endl;
 
-    dd2.useAdaDelta();
-    dd2.setStepSize(0.1); // the initial step size (in AdaDelta this is only used in step 1!)
+    dd.useAdaDelta();
+    dd.setStepSize(0.1); // the initial step size (in AdaDelta this is only used in step 1!)
 
-    dd2.setX(initpos);
-    dd2.findMin();
-    reportMinimum(dd2);
+    dd.findMin(np, initpos);
+    reportMinimum(dd);
 
 
     cout << "Another SGD algorithm is Adam, which resides in its own class. Let's try it:" << endl;
 
-    Adam adam(&np, true /* use averaging to obtian final result */, 0.1 /* step size factor */);
+    Adam adam(np.getNDim(), true /* use averaging to obtian final result */, 0.1 /* step size factor */);
 
-    adam.setX(dd2.getX());
-    adam.findMin();
+    adam.setX(dd.getX());
+    adam.findMin(np);
     reportMinimum(adam);
 
     cout << "NOTE: You may enable detailed logging by uncommenting" << endl;

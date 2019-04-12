@@ -1,7 +1,6 @@
 #ifndef NFM_NOISYFUNMIN_HPP
 #define NFM_NOISYFUNMIN_HPP
 
-#include <list>
 #include <functional>
 
 #include "nfm/NoisyFunction.hpp"
@@ -13,34 +12,35 @@ namespace nfm
 class NFM
 {
 protected:
-    // Default values for general NFM parameters (childs may use different defaults)
-    static constexpr int DEFAULT_MAX_N_CONST = 20; // stop on maximal number of noisy-constant values
-    static constexpr double DEFAULT_EPSX = 1.e-5; // stop on minimal position change
-    static constexpr double DEFAULT_EPSF = 0.; // stop on minimal target function change
-
-    // Const members
+    // Consts
     const int _ndim;  //dimensionality of the space where the target function is embedded
-    NoisyFunction * const _targetfun;  //target function to minimize
-    NoisyFunctionWithGradient * const _gradfun;  //gradient of the target function
-    const bool _flag_gradfun; // has the gradient been provided?
+    const bool _flag_needsGrad; // does the optimization method use gradients?
+
+    // Temporary pointers valid during findMin()
+    NoisyFunction * _targetfun{};  // target function to minimize
+    NoisyFunctionWithGradient * _gradfun{};  // will be null if _targetfun is not NoisyFunctionWithGradient
 
     // Member to be updated by child
-    NoisyIOPair _last; // last position and its function value
-    NoisyGradient _grad; // last noisy gradient (will only be allocated if used)
+    NoisyIOPair _last; // last position and its function value (will be 0 after construction)
+    NoisyGradient _grad; // last noisy gradient (will be all 0 if current/last run didn't use gradients)
 
 private: // set/called directly by base class only
-    // Stopping Criteria (childs should use get/set methods)
-    double _epsx; // changes in the position x smaller than this value will stop the minimization (if 0, disabled)
-    double _epsf; // changes in the function smaller than this value will stop the minimization (if 0, disabled)
-    bool _flag_gradErrStop; // should we consider gradient errors for stopping? (if targetfun supports it)
-    int _max_n_iterations; // hard stop after this amount of iterations (if 0, disabled (the default!))
-    int _max_n_const_values; // stop after this number of target values have been constant within error bounds (if <= 1, disabled)
-
     PushBackBuffer<NoisyIOPair> _old_values; // list of previous target values and positions
+
+    // Stopping Criteria (childs should use get/set methods, but may change defaults)
+    bool _flag_gradErrStop; // should we consider gradient errors for stopping? (if targetfun supports it)
+    double _epsx = 1.e-5; // changes in the position x smaller than this value will stop the minimization (if 0, disabled)
+    double _epsf = 0.; // changes in the function smaller than this value will stop the minimization (if 0, disabled)
+    int _max_n_iterations = 0; // hard stop after this amount of iterations (if 0, disabled (the default!))
+    int _max_n_const_values = 20; // stop after this number of target values have been constant within error bounds (if <= 1, disabled)
+
+    // other
     double _lastDeltaX{}; // change in x by last step (updated on storeLastValue)
     double _lastDeltaF{}; // change in f by last step (updated on storeLastalue)
-    bool _flag_policyStop{}; // did the user policy dictate stopping?
     int _istep{}; // counts the calls to _storeLastValue()
+    bool _flag_policyStop{}; // did the user policy dictate stopping?
+    bool _flag_validGrad{}; // are the values in _grad meaningful (i.e. not default 0)
+    bool _flag_validGradErr{}; // if the targetfun doesn't provide gradient errors, this stays false
 
     // Optional user provided policy function, called after every iteration.
     // May manipulate the NFM and target function (passed as their base types).
@@ -48,7 +48,6 @@ private: // set/called directly by base class only
     // for NFM to continue, else NFM will stop at the next shouldStop() check.
     std::function<bool(NFM &, NoisyFunction &)> _policy{};
 
-    void _clearOldValues() { _old_values.clear(); } // reset old values list
     bool _isConverged() const; // check if the target function has stabilized
     void _updateDeltas(); // calculate deltaX and deltaF between _last and _old_values.front()
     bool _changedEnough() const; // check deltas against epsx and epsf
@@ -72,14 +71,15 @@ protected: // Protected methods for child optimizers
     void _writeGradientToLog() const;
 
     // TO BE IMPLEMENTED
-    virtual void _findMin() = 0; // minimization implementation, result to be stored in _last
+    virtual void _findMin() = 0; // minimization implementation (called in findMin(), result to be stored in _last
 
 public:
-    explicit NFM(NoisyFunction * targetfun);
+    NFM(int ndim, bool needsGrad);
     virtual ~NFM() = default;
 
     // --- Setters
 
+    // You may pre-set the initial position (or pass x0 on findMin())
     void setX(int i, double x) { _last.x[i] = x; } // set per element
     void setX(const double x[]); // set via c-style array
     void setX(const std::vector<double> &x); // set via vector (must be ndim length)
@@ -100,33 +100,54 @@ public:
     // --- Getters
 
     int getNDim() const { return _ndim; }
-    NoisyFunction * getTargetFun() const { return _targetfun; }
-    NoisyFunctionWithGradient * getGradientFun() const { return _gradfun; }
 
+    // Last Position
     double getX(int i) const { return _last.x[i]; }; // elementary get
     void getX(double x[]) const; // get via c-style array
     void getX(std::vector<double> &x) const { this->getX(x.data()); } // get via passed vector
     const std::vector<double> &getX() const { return _last.x; } // get const ref
+
+    // Last Value or Value/Position Pair
     double getF() const { return _last.f.val; }
     double getDf() const { return _last.f.err; }
     NoisyValue getFDf() const { return _last.f; }
     const NoisyIOPair &getLast() const { return _last; }
-    const NoisyGradient &getGrad() const { return _grad; }
 
+    // Gradient (will be all 0 if hasGrad() == false)
+    const NoisyGradient &getGrad() const { return _grad; }
+    bool hasGrad() const { return _flag_validGrad; } // is getGrad().val meaningful?
+    bool hasGradErr() const { return _flag_validGradErr; } // is getGrad().err meaningful?
+    bool needsGrad() const { return _flag_needsGrad; } // does the derived optimizer require gradients?
+
+    // Other last values
+    const PushBackBuffer<NoisyIOPair> &getOldValues() const { return _old_values; }
+    double getDeltaX() const { return _lastDeltaX; }
+    double getDeltaF() const { return _lastDeltaF; }
+    double getIter() const { return _istep; }
+
+    // Stopping
     double getEpsX() const { return _epsx; }
     double getEpsF() const { return _epsf; }
     bool getGradErrStop() const { return _flag_gradErrStop; }
     int getMaxNIterations() const { return _max_n_iterations; }
     int getMaxNConstValues() const { return _max_n_const_values; }
 
-    const PushBackBuffer<NoisyIOPair> &getOldValues() const { return _old_values; }
-    double getDeltaX() const { return _lastDeltaX; }
-    double getDeltaF() const { return _lastDeltaF; }
-    double getIter() const { return _istep; }
+
+    // When in your use case (for whatever reason) it can happen that you access
+    // a NFM object while it is running the findMin() method, this may be used to check.
+    bool isRunning() const { return _targetfun != nullptr; }
 
 
-    // --- Minimization
-    void findMin();
+    // --- Minimization method
+
+    // Minimize a target function (must be a NoisyFunctionWithGradient when needsGrad()).
+    // The initial position will be the last internal X position (0 after construction).
+    // Returns the optimal position and function value in a NoisyIOPair.
+    NoisyIOPair findMin(NoisyFunction &targetFun); // will throw if wrong ndim or gradient requirement not matched
+
+    // Optionally provide different initial positions x0
+    NoisyIOPair findMin(NoisyFunction &targetFun, const std::vector<double> &x0); // will throw on wrong size
+    NoisyIOPair findMin(NoisyFunction &targetFun, const double x0[]); // c array version (no size check)
 };
 } // namespace nfm
 

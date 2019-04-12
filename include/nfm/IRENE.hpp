@@ -30,7 +30,7 @@ private:
     void _findMin() override;
 
 public:
-    explicit IRENE(NoisyFunctionWithGradient * targetfun, double dtmax, double dt0 = 0.): FIRE(targetfun, dtmax, dt0) {}
+    explicit IRENE(int ndim, double dtmax, double dt0 = 0.): FIRE(ndim, dtmax, dt0) {}
 
     // Getters
     double getBeta() const { return _beta; }

@@ -13,12 +13,12 @@ namespace nfm
 
 // --- Constructor
 
-NFM::NFM(NoisyFunction * targetfun):
-        _ndim(targetfun->getNDim()), _targetfun(targetfun),
-        _gradfun(dynamic_cast<NoisyFunctionWithGradient *>(_targetfun)), _flag_gradfun(_gradfun != nullptr),
-        _last(_ndim), _grad(_ndim),
-        _epsx(DEFAULT_EPSX), _epsf(DEFAULT_EPSF), _flag_gradErrStop(_flag_gradfun ? _gradfun->hasGradErr() : false),
-        _max_n_iterations(0), _max_n_const_values(DEFAULT_MAX_N_CONST), _old_values(static_cast<size_t>(_max_n_const_values)) {}
+NFM::NFM(const int ndim, const bool needsGrad):
+        _ndim(ndim), _flag_needsGrad(needsGrad), _last(_ndim), _grad(_ndim), _flag_gradErrStop(needsGrad /*default*/)
+{
+    _old_values.reserve(static_cast<size_t>(_max_n_const_values));
+}
+
 
 // --- Private methods
 
@@ -111,7 +111,7 @@ void NFM::_averageOldValues()
 
 bool NFM::_isGradNoisySmall(const bool flag_log) const
 {
-    if (_flag_gradErrStop && _gradfun->hasGradErr()) {
+    if (_flag_gradErrStop && this->hasGradErr()) {
         if (_grad > 0.) { return false; } // use overload
         if (flag_log) { LogManager::logString("\nStopping Reason: Gradient is dominated by noise.\n"); }
         return true;
@@ -140,8 +140,8 @@ void NFM::_writeCurrentXToLog() const
 }
 
 void NFM::_writeGradientToLog() const
-{
-    LogManager::logNoisyVector(_grad, LogLevel::VERBOSE, _gradfun->hasGradErr(), "Raw gradient", "g");
+{   // !! Derived: Use only if NFM constructor is called with needsErr = true
+    LogManager::logNoisyVector(_grad, LogLevel::VERBOSE, this->hasGradErr(), "Raw gradient", "g");
 }
 
 // --- Setters/Getters
@@ -183,14 +183,59 @@ void NFM::disableStopping()
 
 // --- findMin
 
-void NFM::findMin()
+NoisyIOPair NFM::findMin(NoisyFunction &targetfun)
 {
-    this->_clearOldValues();
+    if (targetfun.getNDim() != this->getNDim()) {
+        throw std::invalid_argument("[NFM] Passed target function's number of inputs is not equal to NFM's number of dimensions.");
+    }
+
+    // setup target function
+    _targetfun = &targetfun; // we keep a pointer during findMin()
+    _gradfun = dynamic_cast<NoisyFunctionWithGradient *>(_targetfun); // we do this single dynamic cast to check for gradient functions
+
+    if (this->needsGrad()) { // setup gradient case
+        if (_gradfun != nullptr) {
+            _flag_validGrad = true; // gradient values will be calulcated and stored
+            _flag_validGradErr = _gradfun->hasGradErr(); // for the errors it also depends on the function's settings
+        }
+        else {
+            throw std::invalid_argument("[NFM] The optimizer requires gradients, but the target function doesn't provide them.");
+        }
+    }
+    else { // gradients will not be calculated
+        _flag_validGrad = false;
+        _flag_validGradErr = false;
+    }
+
+    // for consistency reset some values
+    _last.f.zero();
+    _grad.zero();
+    _old_values.clear();
+    _lastDeltaX = 0.;
+    _lastDeltaF = 0.;
     _istep = 0;
     _flag_policyStop = false;
 
     // find minimum
     this->_findMin();
     LogManager::logNoisyIOPair(_last, LogLevel::NORMAL, "Final position and target value");
+
+    // reset temporary pointers
+    _targetfun = nullptr;
+    _gradfun = nullptr;
+
+    return _last;
+}
+
+NoisyIOPair NFM::findMin(NoisyFunction &targetFun, const std::vector<double> &x0)
+{
+    this->setX(x0);
+    return this->findMin(targetFun);
+}
+
+NoisyIOPair NFM::findMin(NoisyFunction &targetFun, const double x0[])
+{
+    this->setX(x0);
+    return this->findMin(targetFun);
 }
 } // namespace nfm

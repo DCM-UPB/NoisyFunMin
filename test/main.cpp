@@ -54,14 +54,13 @@ int main()
     // check Conjugate Gradient
     cout << " - - - Check ConjGrad" << endl;
     F3D f3d;
-    ConjGrad cjgrad(&f3d);
+    ConjGrad cjgrad(f3d.getNDim());
     double x[3];
     x[0] = -2.;
     x[1] = 1.0;
     x[2] = 0.0;
-    cjgrad.setX(x);
 //    cjgrad.setEpsF(0.01);
-    cjgrad.findMin();
+    cjgrad.findMin(f3d, x);
     cout << "Minimum of f3d is in " << cjgrad.getX(0) << "   " << cjgrad.getX(1) << "   " << cjgrad.getX(2) << endl;
     cout << "Value of the minimum is " << cjgrad.getF() << " +- " << cjgrad.getDf() << endl << endl;
 

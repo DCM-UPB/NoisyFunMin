@@ -10,13 +10,10 @@ namespace nfm
 
 // --- Constructor
 
-Adam::Adam(NoisyFunctionWithGradient * targetfun, const bool useAveraging, const double alpha):
-        NFM(targetfun), _useAveraging(useAveraging), _alpha(std::max(0., alpha))
+Adam::Adam(const int ndim, const bool useAveraging, const double alpha):
+        NFM(ndim, true), _useAveraging(useAveraging), _alpha(std::max(0., alpha))
 {
-    if (!_flag_gradfun) {
-        throw std::invalid_argument("[Adam] Adam optimization requires a target function with gradient.");
-    }
-    // overwrite defaults
+    // override defaults
     this->setGradErrStop(false); // don't stop on noisy-low gradients, by default
 }
 

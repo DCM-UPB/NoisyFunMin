@@ -24,7 +24,7 @@ private:
     void _findMin() override;
 
 public:
-    explicit Adam(NoisyFunctionWithGradient * targetfun, bool useAveraging = false, double alpha = 0.001);
+    explicit Adam(int ndim, bool useAveraging = false, double alpha = 0.001);
     ~Adam() override = default;
 
     // Getters

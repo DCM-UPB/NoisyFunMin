@@ -51,6 +51,7 @@ public:
 
     // Setters
     void set(double val, double err); // set both fields at once
+    void zero(); // set both fields to 0
 
     // Getters
     double getUBound() const { return val + err*_sigmaLevel; }

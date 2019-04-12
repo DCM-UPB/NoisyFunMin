@@ -10,13 +10,10 @@ namespace nfm
 
 // --- Constructor
 
-ConjGrad::ConjGrad(NoisyFunctionWithGradient * targetfun, const CGMode cgmode, const MLMParams params):
-        NFM(targetfun), _cgmode(cgmode), _mlmParams(params)
+ConjGrad::ConjGrad(const int ndim, const CGMode cgmode, const MLMParams params):
+        NFM(ndim, true), _cgmode(cgmode), _mlmParams(params)
 {
-    if (!_flag_gradfun) {
-        throw std::invalid_argument("[ConjGrad] Conjugate Gradient optimization requires a target function with gradient.");
-    }
-    // overwrite defaults
+    // override defaults
     this->setMaxNConstValues(1); // don't use the check by default
     this->setEpsX(m1d_detail::STD_XTOL); // because this means we stop on reject line search
     this->setEpsF(m1d_detail::STD_FTOL); // and this means we stop if it didn't improve target significantly (beyond tol+errors)

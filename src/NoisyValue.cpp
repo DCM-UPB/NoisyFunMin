@@ -23,6 +23,12 @@ void NoisyValue::set(const double value, const double error)
     err = error;
 }
 
+void NoisyValue::zero()
+{
+    val = 0.;
+    err = 0.;
+}
+
 // --- Binary operations
 
 // Compound assigment with scalar

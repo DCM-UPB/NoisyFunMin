@@ -30,33 +30,29 @@ int main()
 
 
     // test ConjGrad (Fletcher-Reeves)
-    ConjGrad cjgrad(&f3d);
-    cjgrad.setX(x);
-    cjgrad.findMin();
+    ConjGrad cjgrad(f3d.getNDim());
+    cjgrad.findMin(f3d, x);
     assert(fabs(cjgrad.getX(0) - 1.0) < XTOL);
     assert(fabs(cjgrad.getX(1) + 1.5) < YTOL);
     assert(fabs(cjgrad.getX(2) - 0.5) < ZTOL);
 
     // steepest descent version
     cjgrad.useRawGrad();
-    cjgrad.setX(x);
-    cjgrad.findMin();
+    cjgrad.findMin(f3d, x);
     assert(fabs(cjgrad.getX(0) - 1.0) < XTOL);
     assert(fabs(cjgrad.getX(1) + 1.5) < YTOL);
     assert(fabs(cjgrad.getX(2) - 0.5) < ZTOL);
 
     // Polak-Ribiere version
     cjgrad.useConjGradPR();
-    cjgrad.setX(x);
-    cjgrad.findMin();
+    cjgrad.findMin(f3d, x);
     assert(fabs(cjgrad.getX(0) - 1.0) < XTOL);
     assert(fabs(cjgrad.getX(1) + 1.5) < YTOL);
     assert(fabs(cjgrad.getX(2) - 0.5) < ZTOL);
 
     // PR-CG with reset
     cjgrad.useConjGradPR0();
-    cjgrad.setX(x);
-    cjgrad.findMin();
+    cjgrad.findMin(f3d, x);
     assert(fabs(cjgrad.getX(0) - 1.0) < XTOL);
     assert(fabs(cjgrad.getX(1) + 1.5) < YTOL);
     assert(fabs(cjgrad.getX(2) - 0.5) < ZTOL);

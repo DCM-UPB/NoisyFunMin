@@ -35,7 +35,7 @@ protected:
     void _findMin() override; // perform noisy CG minimization
 
 public:
-    explicit ConjGrad(NoisyFunctionWithGradient * targetfun, CGMode cgmode = CGMode::CGFR, MLMParams params = defaultMLMParams());
+    explicit ConjGrad(int ndim, CGMode cgmode = CGMode::CGFR, MLMParams params = defaultMLMParams());
     ~ConjGrad() override = default;
 
     // CG Configuration

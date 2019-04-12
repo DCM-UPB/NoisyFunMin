@@ -8,13 +8,10 @@
 namespace nfm
 {
 
-DynamicDescent::DynamicDescent(NoisyFunctionWithGradient * targetfun, const DDMode ddmode, const bool useAveraging, const double stepSize):
-        NFM(targetfun), _ddmode(ddmode), _useAveraging(useAveraging), _stepSize(std::max(0., stepSize))
+DynamicDescent::DynamicDescent(const int ndim, const DDMode ddmode, const bool useAveraging, const double stepSize):
+        NFM(ndim, true), _ddmode(ddmode), _useAveraging(useAveraging), _stepSize(std::max(0., stepSize))
 {
-    if (!_flag_gradfun) {
-        throw std::invalid_argument("[DynamicDescent] Dynamic Descent optimization requires a target function with gradient.");
-    }
-    // overwrite defaults
+    // override defaults
     this->setGradErrStop(false); // don't stop on noisy-low gradients, by default
 }
 
