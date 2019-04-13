@@ -73,8 +73,10 @@ protected: // Protected methods for child optimizers
     // TO BE IMPLEMENTED
     virtual void _findMin() = 0; // minimization implementation (called in findMin(), result to be stored in _last
 
-public:
+    // Base Constructor
     NFM(int ndim, bool needsGrad);
+
+public:
     virtual ~NFM() = default;
 
     // --- Setters

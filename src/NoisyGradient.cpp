@@ -5,13 +5,12 @@
 namespace nfm
 {
 
-NoisyGradient::NoisyGradient(const int ndim)
+NoisyGradient::NoisyGradient(const int ndim):
+    val(static_cast<size_t>(ndim)), err(val.size())
 {
     if (ndim <= 0) {
         throw std::invalid_argument("[NoisyGradient] Number of dimensions must be at least 1.");
     }
-    val.assign(static_cast<size_t>(ndim), 0.);
-    err.assign(val.size(), 0.);
 }
 
 void NoisyGradient::zero()

@@ -13,14 +13,10 @@ struct NoisyIOPair
 // Use this if you want to store pairs
 // of input and output of NoisyFunctions.
 {
-    std::vector<double> x{};
-    NoisyValue f{};
+    std::vector<double> x;
+    NoisyValue f;
 
-    explicit NoisyIOPair(int ndim)
-    {
-        x.assign(static_cast<size_t>(ndim), 0.);
-        f.set(0., 0.);
-    }
+    explicit NoisyIOPair(int ndim = 0): x(static_cast<size_t>(ndim)), f() {}
 
     int getNDim() const { return static_cast<int>(x.size()); }
 };
@@ -31,8 +27,9 @@ class NoisyFunction
 protected:
     const int _ndim;
 
-public:
     explicit NoisyFunction(int ndim): _ndim(ndim) {}
+
+public:
     virtual ~NoisyFunction() = default;
 
     int getNDim() const { return _ndim; }
@@ -51,10 +48,10 @@ class NoisyFunctionWithGradient: public NoisyFunction
 protected:
     const bool _flag_gradErr; // will the function provide gradient errors?
 
-public:
     explicit NoisyFunctionWithGradient(int ndim, bool flag_gradErr):
             NoisyFunction(ndim), _flag_gradErr(flag_gradErr) {}
 
+public:
     bool hasGradErr() const { return _flag_gradErr; }
 
     // Gradient
