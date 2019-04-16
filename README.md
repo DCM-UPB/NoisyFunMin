@@ -7,7 +7,7 @@
 
 C++ Library for minimising noisy functions, such as integrals computed with the Monte Carlo method.
 
-In `doc/` there is a user manual in pdf and a config for doxygen.
+In `doc/` there is a user manual in pdf (not accurate for current master!) and a config for doxygen.
 
 In `examples/` and `test/` there are examples and tests for the library.
 
