@@ -1,105 +1,131 @@
 #include "nfm/DynamicDescent.hpp"
 
-#include "nfm/LogNFM.hpp"
+#include "nfm/LogManager.hpp"
 
-#include <cmath>
 #include <numeric>
+#include <cmath>
 
 namespace nfm
 {
 
-// --- Log
-
-void DynamicDescent::_writeInertiaInLog()
+DynamicDescent::DynamicDescent(const int ndim, const DDMode ddmode, const bool useAveraging, const double stepSize):
+        NFM(ndim, true), _ddmode(ddmode), _useAveraging(useAveraging), _stepSize(std::max(0., stepSize))
 {
-    using namespace std;
-
-    NFMLogManager log_manager = NFMLogManager();
-    log_manager.writeVectorInLog(_inertia, nullptr, _ndim, 2, "Current inertia", "i");
+    // override defaults
+    this->setGradErrStop(false); // don't stop on noisy-low gradients, by default
 }
-
 
 // --- Minimization
 
-void DynamicDescent::findMin()
+void DynamicDescent::_findMin()
 {
-    using namespace std;
+    LogManager::logString("\nBegin DynamicDescent::findMin() procedure\n");
 
-    NFMLogManager log_manager = NFMLogManager();
-    log_manager.writeOnLog("\nBegin DynamicDescent::findMin() procedure\n");
-
-    // clear old values
-    this->_clearOldValues();
-
-    //arrays to hold the gradients
-    double grad[_ndim];
-    double graderr[_ndim];
-
-    //begin the minimization loop
-    int cont = 0;
-    while (true) {
-        // compute the gradient and current target
-        double newf, newdf;
-        this->_gradtargetfun->fgrad(_x->getX(), newf, newdf, grad, graderr);
-        _x->setF(newf, newdf);
-
-        this->_storeOldValue();
-        if (this->_shouldStop(grad, graderr)) { break; }
-
-        log_manager.writeOnLog("\n\nDynamicDescent::findMin() Step " + std::to_string(cont + 1) + "\n");
-        this->_writeCurrentXInLog();
-        this->_writeGradientInLog(grad, graderr);
-
-        // if it is the first iteration, initialise the inertia
-        if (cont == 0) {
-            for (int i = 0; i < _ndim; ++i) {
-                _inertia[i] = (grad[i] != 0) ? 1./fabs(grad[i]) : 0.;
-            }
-        }
-
-        // find the next position
-        this->findNextX(grad);
-
-        cont++;
+    // vectors used for SGD updates
+    std::vector<double> v(_grad.size()); // helper vector used by all methods
+    std::vector<double> w; // only used by AdaDelta
+    if (_ddmode == DDMode::ADAD) {
+        w = v; // v is already all 0
     }
 
-    log_manager.writeNoisyValueInLog(_x, 1, "Final position and target value");
-    log_manager.writeOnLog("\nEnd DynamicDescent::findMin() procedure\n");
-}
+    //begin the minimization loop
+    int iter = 0;
+    while (true) {
+        ++iter;
+        if (LogManager::isLoggingOn()) { // else skip string construction
+            LogManager::logString("\nDynamicDescent::findMin() Step " + std::to_string(iter) + "\n");
+        }
 
+        // compute the gradient and current target
+        this->_updateTarget();
+        if (this->_shouldStop()) { break; } // we are done
+
+        // find the next position
+        this->_findNextX(iter, v, w);
+    }
+
+    if (_useAveraging) { // calculate the old value average as end result
+        this->_averageOldValues(); // perform average and store it in last
+    }
+
+    LogManager::logString("\nEnd DynamicDescent::findMin() procedure\n");
+}
 
 // --- Internal methods
 
-void DynamicDescent::findNextX(const double * grad)
+void DynamicDescent::_updateTarget()
 {
-    using namespace std;
+    _last.f = _gradfun->fgrad(_last.x, _grad);
+    this->_storeLastValue();
+    this->_writeGradientToLog();
+}
 
-    // compute the normalized gradection vector
-    double norm_grad[_ndim];
-    const double sum = sqrt(std::inner_product(grad, grad + _ndim, grad, 0.0));
-    if (sum != 0.) {
-        for (int i = 0; i < _ndim; ++i) { norm_grad[i] = grad[i]/sum; }
-    }
-    else {
-        std::fill(norm_grad, norm_grad + _ndim, 0.);
-    }
+void DynamicDescent::_findNextX(const int iter, std::vector<double> &v, std::vector<double> &w)
+{
+    const std::vector<double> &gradv = _grad.val; // we need only the values
 
-    // update the inertia
-    for (int i = 0; i < _ndim; ++i) {
-        _inertia[i] += 0.5*_inertia[i]*_old_norm_direction[i]*norm_grad[i];
-    }
-    // report it in the log
-    this->_writeInertiaInLog();
+    // compute update
+    switch (_ddmode) {
+    case DDMode::SGDM:
+        for (int i = 0; i < _ndim; ++i) {
+            v[i] = _beta*v[i] + _stepSize*gradv[i];
+            _last.x[i] += v[i];
+        }
+        break;
 
-    // update _x
-    double dx[_ndim];
-    for (int i = 0; i < _ndim; ++i) {
-        dx[i] = -_step_size*_inertia[i]*grad[i];
-        _x->setX(i, _x->getX(i) + dx[i]);
-    }
-    this->_writeXUpdateInLog(dx);
+    case DDMode::ADAG:
+        for (int i = 0; i < _ndim; ++i) {
+            v[i] += gradv[i]*gradv[i];
+            _last.x[i] += _stepSize/(sqrt(v[i]) + _epsilon)*gradv[i];
+        }
+        break;
 
-    // store the grad for the next iteration
-    std::copy(norm_grad, norm_grad + _ndim, _old_norm_direction);
+    case DDMode::ADAD:
+        if (iter > 1) {
+            for (int i = 0; i < _ndim; ++i) {
+                v[i] = _beta*v[i] + (1. - _beta)*(gradv[i]*gradv[i]);
+                const double dx = gradv[i]*(sqrt(w[i]) + _epsilon)/(sqrt(v[i]) + _epsilon);
+                _last.x[i] += dx;
+                w[i] = _beta*w[i] + (1. - _beta)*(dx*dx);
+            }
+        }
+        else { // first step
+            for (int i = 0; i < _ndim; ++i) {
+                v[i] = gradv[i]*gradv[i];
+                const double dx = _stepSize*gradv[i]; // initially we use the stepSize
+                _last.x[i] += dx;
+                w[i] = dx*dx;
+            }
+        }
+        break;
+
+    case DDMode::RMSP: // standard RMSProp with first step as grad desc
+        if (iter > 1) {
+            for (int i = 0; i < _ndim; ++i) {
+                v[i] = _beta*v[i] + (1. - _beta)*(gradv[i]*gradv[i]);
+                _last.x[i] += _stepSize*gradv[i]/(sqrt(v[i]) + _epsilon);
+            }
+        }
+        else { // first step
+            for (int i = 0; i < _ndim; ++i) {
+                v[i] = gradv[i]*gradv[i];
+                _last.x[i] += _stepSize*gradv[i];
+            }
+        }
+        break;
+
+    case DDMode::NEST: // Bengio update with first step as grad desc
+        if (iter > 1) {
+            for (int i = 0; i < _ndim; ++i) {
+                _last.x[i] += _beta*_beta*v[i] + (1. + _beta)*_stepSize*gradv[i];
+                v[i] = _beta*v[i] + _stepSize*gradv[i];
+            }
+        }
+        else { // first step
+            for (int i = 0; i < _ndim; ++i) {
+                _last.x[i] += _stepSize*gradv[i];
+            }
+        }
+    }
 }
 } // namespace nfm

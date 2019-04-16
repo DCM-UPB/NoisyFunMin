@@ -1,130 +1,138 @@
 #include "nfm/ConjGrad.hpp"
 
-#include "nfm/1DTools.hpp"
-#include "nfm/LogNFM.hpp"
+#include "nfm/LogManager.hpp"
 
 #include <cmath>
-#include <iostream>
 #include <numeric>
 
 namespace nfm
 {
 
-// --- Logging
+// --- Constructor
 
-void ConjGrad::_writeCGDirectionInLog(const double * dir, const std::string &name)
+ConjGrad::ConjGrad(const int ndim, const CGMode cgmode, const MLMParams params):
+        NFM(ndim, true), _cgmode(cgmode), _mlmParams(params)
 {
-    NFMLogManager log_manager;
-    log_manager.writeVectorInLog(dir, nullptr, _ndim, 2, name, "g");
+    // override defaults
+    this->setMaxNConstValues(1); // don't use the check by default
+    this->setEpsX(m1d_detail::STD_XTOL); // because this means we stop on reject line search
+    this->setEpsF(m1d_detail::STD_FTOL); // and this means we stop if it didn't improve target significantly (beyond tol+errors)
 }
 
+// --- Logging
+
+void ConjGrad::_writeCGDirectionToLog(const std::vector<double> &dir, const std::string &name) const
+{
+    LogManager::logVector(dir, LogLevel::VERBOSE, name, "g");
+}
 
 // --- Minimization
 
-void ConjGrad::findMin()
+void ConjGrad::_findMin()
 {
-    using namespace std;
+    // --- Starting Position
 
-    NFMLogManager log_manager = NFMLogManager();
-    log_manager.writeOnLog("\nBegin ConjGrad::findMin() procedure\n");
+    LogManager::logString("\nBegin ConjGrad::findMin() procedure\n");
 
-    // clear old values
-    this->_clearOldValues();
+    // obtain the initial function value and gradient (uphill)
+    bool flag_cont = this->_computeGradient(true); // compute grad and value
+    if (!flag_cont) { return; } // return early
 
-    //initialize the gradients
-    double gradold[_ndim];
-    double graderr[_ndim];
-    double newf, newerr;
 
-    this->_gradtargetfun->fgrad(_x->getX(), newf, newerr, gradold, graderr);
-    _x->setF(newf, newerr);
-    this->_storeOldValue();
+    // --- Initialize CG
 
-    this->_writeCurrentXInLog();
-    this->_writeGradientInLog(gradold, graderr);
+    // initialize gradient vectors and length
+    std::vector<double> &gradnew = _grad.val; // store reference to gradient values
+    std::vector<double> conjv = gradnew; // stores the conjugate vectors, initialize with raw gradient
+    std::vector<double> gradold; // the previous inverted gradients (only used for Polak-Ribiere CG)
 
-    if (this->_meaningfulGradient(gradold, graderr)) {
-        double gradnew[_ndim];
-        double conjv[_ndim]; //interested in following -gradient
-        for (int i = 0; i < _ndim; ++i) { gradold[i] = -gradold[i]; }
-        //inizialize the conjugate vectors
-        for (int i = 0; i < _ndim; ++i) { conjv[i] = gradold[i]; }
-        this->_writeCGDirectionInLog(conjv, "Conjugated Vectors");
-        //find new position
-        double deltatargetfun, deltax;
-        this->findNextX(conjv, deltatargetfun, deltax);
+    // save old gradient for PR-CG
+    if (_cgmode == CGMode::CGPR || _cgmode == CGMode::CGPR0) {
+        gradold = gradnew; // initialize old gradient
+    }
+    // the denominator of CG update ratio
+    double gdot_old = std::inner_product(gradnew.begin(), gradnew.end(), gradnew.begin(), 0.);
 
-        this->_writeCurrentXInLog();
+    // find initial new position
+    LogManager::logString("\nConjGrad::findMin() Step 1\n");
+    this->_findNextX(conjv);
 
-        //begin the minimization loop
-        //cout << "deltatargetfunction = " << deltatargetfun << "   " << _epstargetfun << endl;
-        //cout << "deltax = " << deltax << "   " << _epsx << endl << endl;
-        int cont = 0;
-        while ((deltatargetfun >= _epstargetfun) && (deltax >= _epsx)) {
-            log_manager.writeOnLog("\n\nConjGrad::findMin() Step " + std::to_string(cont + 1) + "\n");
-            //cout << "x is in " << getX(0) << "   " << getX(1) << "   " << getX(2) << endl << endl;
-            //evaluate the new gradient
-            this->_gradtargetfun->grad(_x->getX(), gradnew, graderr);
-            this->_writeGradientInLog(gradnew, graderr);
-            for (int i = 0; i < _ndim; ++i) { gradnew[i] = -gradnew[i]; }
-            if (!this->_meaningfulGradient(gradnew, graderr)) { break; }
-            // compute the direction to follow for finding the next x
-            //    if _use_conjgrad == true   ->   Conjugate Gradient
-            //    else   ->   Steepest Descent
-            if (_use_conjgrad) {
-                //determine the new conjugate vector
-                const double scalprodnew = std::inner_product(gradnew, gradnew + _ndim, gradnew, 0.);
-                const double scalprodold = std::inner_product(gradold, gradold + _ndim, gradold, 0.);
-                const double ratio = scalprodnew/scalprodold;
-                for (int i = 0; i < _ndim; ++i) { conjv[i] = gradnew[i] + conjv[i]*ratio; }
-            }
-            else {
-                // simply use as conjugate gradient the gradient (i.e. make a steepest descent!)
-                std::copy(gradnew, gradnew + _ndim, conjv);
-            }
-            this->_writeCGDirectionInLog(conjv, "Conjugated vectors");
-            //find new position
-            this->findNextX(conjv, deltatargetfun, deltax);
-            //cout << "deltatargetfunction = " << deltatargetfun << "   " << _epstargetfun << endl;
-            //cout << "deltax = " << deltax << "   " << _epsx << endl << endl;
 
-            this->_writeCurrentXInLog();
+    // --- Main CG Loop
 
-            _storeOldValue();
-            if (this->_isConverged()) { break; }
-            cont++;
+    int iter = 1;
+    while (!this->_shouldStop()) {
+        ++iter;
+        if (LogManager::isLoggingOn()) { // else skip string construction
+            LogManager::logString("\nConjGrad::findMin() Step " + std::to_string(iter) + "\n");
         }
+
+        // evaluate the new gradient
+        flag_cont = this->_computeGradient(false);
+        if (!flag_cont) { return; } // gradient is only noise
+
+        // compute the next direction to follow
+        if (_cgmode == CGMode::NOCG) { // use raw gradient (i.e. steepest descent)
+            std::copy(gradnew.begin(), gradnew.end(), conjv.begin());
+        }
+        else { // use conjugate gradients
+            const double gdot_new = std::inner_product(gradnew.begin(), gradnew.end(), gradnew.begin(), 0.);
+
+            double ratio; // CG update factor
+            if (_cgmode == CGMode::CGFR) { // Fletcher-Reeves CG
+                ratio = gdot_old != 0 ? gdot_new/gdot_old : 0.;
+            }
+            else { // Polak-Ribiere CG
+                double prprod = 0.;
+                for (int i = 0; i < _ndim; ++i) { prprod += gradnew[i]*(gradnew[i] - gradold[i]); }
+                ratio = gdot_old != 0 ? prprod/gdot_old : 0.;
+                if (_cgmode == CGMode::CGPR0) { ratio = std::max(0., ratio); } // CG reset
+                gradold = gradnew; // gradient old to new
+            }
+            gdot_old = gdot_new; // gdot old to new
+
+            // update conjugate gradients
+            for (int i = 0; i < _ndim; ++i) {
+                conjv[i] = gradnew[i] + ratio*conjv[i];
+            }
+            this->_writeCGDirectionToLog(conjv, "Conjugated vectors");
+        }
+
+        // find new position and continue loop
+        this->_findNextX(conjv);
     }
 
-    log_manager.writeOnLog("\nEnd ConjGrad::findMin() procedure\n");
+    LogManager::logString("\nEnd ConjGrad::findMin() procedure\n");
 }
 
 
 // --- Internal methods
 
-void ConjGrad::findNextX(const double * dir, double &deltatargetfun, double &deltax)
+bool ConjGrad::_computeGradient(const bool flag_value)
 {
-    using namespace std;
+    if (flag_value) { // value and gradient
+        _last.f = _gradfun->fgrad(_last.x, _grad);
+        this->_storeLastValue();
+    }
+    else { // only gradient
+        _gradfun->grad(_last.x, _grad);
+    }
+    this->_writeGradientToLog();
+    if (this->_isGradNoisySmall()) { // we directly check and print the exit message here
+        LogManager::logString("\nEnd ConjGrad::findMin() procedure\n");
+        return false;
+    }
+    return true;
+}
 
-    //project the original multidimensional wave function into a one-dimensional function
-    auto * proj1d = new FunProjection1D(_ndim, _x->getX(), dir, _targetfun);
-    //determine the initial bracket
-    NoisyFunctionValue a(1), b(1), c(1);
-    a.setX(0.);
-    double newf, dnewf;
-    proj1d->f(a.getX(), newf, dnewf);
-    a.setF(newf, dnewf);
-    nfm::findBracket(proj1d, a, b, c);
-    //find the minimum in the bracket
-    nfm::parabgoldMinimization(proj1d, _epstargetfun, a, b, c);
-    //get the x corresponding to the found b
-    proj1d->getVecFromX(b.getX(0), _x->getX());
-    _x->setF(b.getF(), b.getDf());
-    //compute the two deltas
-    deltatargetfun = fabs(b.getF() - newf) - dnewf - b.getDf();
-    deltax = std::inner_product(dir, dir + _ndim, dir, 0.);
-    deltax = fabs(b.getX(0)*sqrt(deltax)); //*NORMA VETTORE dir
-    //cout << "x is in " << this->getX(0) << "   " << this->getX(1) << "   " << this->getX(2) << endl;
-    delete proj1d;
+void ConjGrad::_findNextX(const std::vector<double> &dir)
+{
+    // use NFM tolerances for MLM
+    _mlmParams.epsx = this->getEpsX();
+    _mlmParams.epsf = this->getEpsF();
+
+    // do line-minimization and store result in last
+    _last = nfm::multiLineMin(*_targetfun, _last, dir, _mlmParams);
+    this->_storeLastValue();
 }
 } // namespace nfm

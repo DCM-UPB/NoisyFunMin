@@ -1,117 +1,86 @@
-#include <cmath>
-#include <fstream>
-#include <iostream>
-#include <random>
-
 #include "nfm/DynamicDescent.hpp"
-#include "nfm/LogNFM.hpp"
+#include "nfm/Adam.hpp"
+#include "nfm/LogManager.hpp"
 
+#include "../common/ExampleFunctions.hpp"
 
-class Noiseless2DParabola: public nfm::NoisyFunctionWithGradient
+#include <iostream>
+
+void reportMinimum(const nfm::NFM &optimizer)
 {
-public:
-    Noiseless2DParabola(): nfm::NoisyFunctionWithGradient(2) {}
-
-    void f(const double * in, double &f, double &df) override
-    {
-        f = pow(in[0] - 1., 2) + pow(in[1] + 2., 2);   // minimum in (1, -2)
-        df = 0.0;
+    using namespace std;
+    cout << "The found minimum is: ";
+    cout << "f(" << optimizer.getX(0);
+    for (int i = 1; i < optimizer.getNDim(); ++i) {
+        cout << ", " << optimizer.getX(i);
     }
-
-    void grad(const double * in, double * g, double * dg) override
-    {
-        g[0] = 2.*(in[0] - 1.);
-        g[1] = 2.*(in[1] + 2.);
-        dg[0] = 0.0;
-        dg[1] = 0.0;
-    }
-};
-
-
-class Noisy2DParabola: public nfm::NoisyFunctionWithGradient
-{
-private:
-    const double _sigma = 0.15;
-    std::random_device _rdev;
-    std::mt19937_64 _rgen;
-    std::uniform_real_distribution<double> _rd;  //after initialization (done in the constructor) can be used with _rd(_rgen)
-
-public:
-    Noisy2DParabola(): nfm::NoisyFunctionWithGradient(2)
-    {
-        // initialize random generator
-        _rgen = std::mt19937_64(_rdev());
-        _rd = std::uniform_real_distribution<double>(-_sigma, _sigma);
-    }
-
-    void f(const double * in, double &f, double &df) override
-    {
-        f = pow(in[0] - 1., 2) + pow(in[1] + 2., 2);   // minimum in (1, -2)
-        df = _sigma;
-        f += _rd(_rgen);
-    }
-
-    void grad(const double * in, double * g, double * dg) override
-    {
-        g[0] = 2.*(in[0] - 1.);
-        g[1] = 2.*(in[1] + 2.);
-        dg[0] = 2.*_sigma;
-        dg[1] = 2.*_sigma;
-        g[0] += 2.*_rd(_rgen);
-        g[1] += 2.*_rd(_rgen);
-    }
-};
-
+    cout << ") = " << optimizer.getFDf() << endl << endl;
+}
 
 int main()
 {
     using namespace std;
     using namespace nfm;
 
-    cout << "We want to minimize the 2D function" << endl;
-    cout << "    (x-1)^2 + (y+2)^2" << endl;
-    cout << "whose min is in (1, -2)." << endl << endl << endl;
+    //LogManager::setLoggingOn(); // use this to enable log printout
+    //LogManager::setLoggingOn(true); // use this for verbose printout of the method
 
-    NFMLogManager log;
-    //log.setLoggingOn(); // use this to enable log printout
-    //log.setLogLevel(2); // use this for verbose printout of the DD method
+    cout << endl;
+    cout << "Stochastic Gradient Descent Example" << endl << endl;
+    cout << "We want to minimize the 3D function" << endl;
+    cout << "    x^2 + (y+1)^2 + (z-2)^2" << endl;
+    cout << "whose min is in (0, -1, 2)." << endl << endl;
+    cout << "We will always start at (2.5, 1, -1)." << endl << endl << endl;
 
-    cout << "we first minimize it, supposing to have no noise at all" << endl;
+    cout << "We first minimize it, supposing to have no noise at all" << endl;
 
-    auto * nlp = new Noiseless2DParabola();
+    TestParabola3D nlp;
+    DynamicDescent dd(nlp.getNDim());
+    double initpos[3]{2.5, 1., -1.};
 
-    DynamicDescent * dd = new DynamicDescent(nlp);
+    // in the case without noise we change settings
+    dd.setStepSize(0.5); // the magic step size
+    dd.setBeta(0.); // disable momentum
+    dd.setEpsF(0.001); // we should enable stopping on too small function changes
 
-    double initpos[2];
-    initpos[0] = -1.;
-    initpos[1] = -1.;
-    dd->setX(initpos);
-
-    dd->findMin();
-
-    cout << "The found minimum is: ";
-    cout << dd->getX(0) << "    " << dd->getX(1) << endl << endl << endl;
+    // and now find the min
+    dd.findMin(nlp, initpos);
+    reportMinimum(dd);
 
 
     cout << "Now we repeat the minimisation adding a noise to the function and its gradient." << endl;
 
-    delete dd;
-    delete nlp;
+    NoisyWrapper np(&nlp, 0.25); // sigma 0.25
 
-    auto * np = new Noisy2DParabola();
-    dd = new DynamicDescent(np);
+    // here we use different settings
+    dd.setStepSize(0.01); // a smaller step size
+    dd.setBeta(0.9); // a reasonable default
+    dd.setEpsF(0.); // this time we stop by other means
+    dd.setMaxNConstValues(20);
+    dd.setAveraging(true); // this option usually improves the final result significantly
 
-    dd->setX(initpos);
+    dd.findMin(np, initpos);
+    reportMinimum(dd);
 
-    dd->findMin();
+    cout << "We may also use a different Stochastic Gradient algorithm, like AdaDelta:" << endl;
 
-    cout << "The found minimum is: ";
-    cout << dd->getX(0) << "    " << dd->getX(1) << endl << endl;
+    dd.useAdaDelta();
+    dd.setStepSize(0.1); // the initial step size (in AdaDelta this is only used in step 1!)
+
+    dd.findMin(np, initpos);
+    reportMinimum(dd);
 
 
-    delete np;
-    delete dd;
+    cout << "Another SGD algorithm is Adam, which resides in its own class. Let's try it:" << endl;
 
+    Adam adam(np.getNDim(), true /* use averaging to obtian final result */, 0.1 /* step size factor */);
+
+    adam.setX(dd.getX());
+    adam.findMin(np);
+    reportMinimum(adam);
+
+    cout << "NOTE: You may enable detailed logging by uncommenting" << endl;
+    cout << "      one of two lines in the beginning of the example." << endl;
 
     // end
     return 0;

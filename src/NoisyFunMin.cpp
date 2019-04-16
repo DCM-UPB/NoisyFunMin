@@ -1,192 +1,241 @@
 #include "nfm/NoisyFunMin.hpp"
-#include "nfm/LogNFM.hpp"
 
+#include "nfm/LogManager.hpp"
+
+#include <algorithm>
 #include <cmath>
-#include <iostream>
+#include <numeric>
 #include <sstream>
+
 
 namespace nfm
 {
 
-// --- Protected methods
+// --- Constructor
 
-void NFM::_clearOldValues()
+NFM::NFM(const int ndim, const bool needsGrad):
+        _ndim(ndim), _flag_needsGrad(needsGrad), _last(_ndim), _grad(_ndim), _flag_gradErrStop(needsGrad /*default*/)
 {
-    for (NoisyFunctionValue * v : _old_values) {
-        delete v;
-    }
-    _old_values.clear();
+    _old_values.reserve(static_cast<size_t>(_max_n_const_values));
 }
 
 
-void NFM::_storeOldValue()
+// --- Private methods
+
+bool NFM::_isConverged() const
 {
-    if (_max_n_const_values > 0) {
-        auto * v = new NoisyFunctionValue(_x->getNDim());
-        *v = *_x;
-        _old_values.push_front(v);
+    const auto max_nold = static_cast<size_t>(_max_n_const_values);
+    if (max_nold < 2) { return false; } // we need at least two values for this check
 
-        if (_old_values.size() > _max_n_const_values) {
-            delete _old_values.back();
-            _old_values.pop_back();
-        }
-    }
-}
-
-
-bool NFM::_isConverged()
-{
-    using namespace std;
-
-    if (_max_n_const_values < 1) { return false; }
-
-    if (_old_values.size() == _max_n_const_values) {
-        for (auto it = _old_values.begin(); it != _old_values.end(); ++it) {
-            if (it != _old_values.begin()) {
-                if (!(**it == **_old_values.begin())) {
-                    return false;
-                }
+    if (_old_values.size() >= max_nold) {
+        for (const auto &oldp : _old_values.vec()) {
+            if (oldp.f != _old_values.back().f) {
+                return false;
             }
         }
-
-        NFMLogManager log_manager;
-        log_manager.writeOnLog("\nCost function has stabilised, interrupting minimization procedure.\n");
-
+        LogManager::logString("\nStopping Reason: Target function list has stabilized.\n");
         return true;
     }
 
     return false;
 }
 
-
-bool NFM::_meaningfulGradient(const double * grad, const double * graderr)
+void NFM::_updateDeltas()
 {
-    if (_useGradientError) {
+    if (!_old_values.empty()) {
+        const NoisyIOPair &old = _old_values.back(); // reference to last old value
+        // deltaX
+        _lastDeltaX = 0.;
         for (int i = 0; i < _ndim; ++i) {
-            if (fabs(grad[i]) > graderr[i]) { return true; }
+            _lastDeltaX += pow(old.x[i] - _last.x[i], 2);
         }
+        _lastDeltaX = sqrt(_lastDeltaX);
+        // deltaF
+        _lastDeltaF = std::max(0., _last.f.minDist(old.f));
     }
-    else {
+    else { // is first step, initialize deltas
+        _lastDeltaX = _epsx; // check will pass
+        _lastDeltaF = _epsf; // same
+    }
+}
+
+bool NFM::_changedEnough() const
+{
+    if (_epsx > 0. && _lastDeltaX < _epsx) {
+        LogManager::logString("\nStopping Reason: Position did not change enough.\n");
+        return false;
+    }
+    if (_epsf > 0. && _lastDeltaF < _epsf) {
+        LogManager::logString("\nStopping Reason: Target function did not change enough.\n");
+        return false;
+    }
+    return true;
+}
+
+bool NFM::_stepLimitReached() const
+{
+    if (_max_n_iterations > 0 && _istep > _max_n_iterations) {
+        LogManager::logString("\nStopping Reason: Maximal iteration count reached.\n");
         return true;
     }
-
-    NFMLogManager log_manager;
-    log_manager.writeOnLog("\nGradient seems to be meaningless, i.e. its error is too large.\n");
     return false;
 }
 
-bool NFM::_shouldStop(const double * grad, const double * graderr)
+// --- Protected methods
+
+void NFM::_storeLastValue()
 {
-    return _isConverged() || !_meaningfulGradient(grad, graderr);
+    this->_writeCurrentXToLog();
+    this->_updateDeltas(); // changes in x and f
+
+    // update old value list
+    _old_values.push_back(_last); // oldest element will be deleted (if full)
+
+    // call policy
+    if (_policy) { _flag_policyStop = _policy(*this, *_targetfun); }
+
+    // count step
+    ++_istep;
+}
+
+void NFM::_averageOldValues()
+{
+    std::fill(_last.x.begin(), _last.x.end(), 0.);
+    for (const auto &oldp : _old_values.vec()) {
+        std::transform(_last.x.begin(), _last.x.end(), oldp.x.begin(), _last.x.begin(), std::plus<>());
+    }
+    for (double &x : _last.x) { x /= _old_values.size(); } // get proper averages
+    _last.f = _targetfun->f(_last.x); // evaluate final function value
+}
+
+
+bool NFM::_isGradNoisySmall(const bool flag_log) const
+{
+    if (_flag_gradErrStop && this->hasGradErr()) {
+        if (_grad > 0.) { return false; } // use overload
+        if (flag_log) { LogManager::logString("\nStopping Reason: Gradient is dominated by noise.\n"); }
+        return true;
+    }
+    return false;
+}
+
+bool NFM::_shouldStop() const
+{   // check all stopping criteria
+    if (_flag_policyStop) {
+        LogManager::logString("\nStopping Reason: User provided policy.\n");
+        return true;
+    }
+    return (_isConverged() || !_changedEnough() || _stepLimitReached() || _isGradNoisySmall());
 }
 
 
 // --- Loggers
 
-void NFM::_writeCurrentXInLog()
+void NFM::_writeCurrentXToLog() const
 {
-    NFMLogManager log_manager;
-    if (log_manager.isVerbose()) {
-        log_manager.writeNoisyValueInLog(_x, 2, "Current position and target value", "f", true, "x");
+    if (LogManager::isVerbose()) {
+        LogManager::logNoisyIOPair(_last, LogLevel::VERBOSE, "Current position and target value", "x", "f");
     }
-    else { log_manager.writeNoisyValueInLog(_x, 1, "Current target value", "f", false); }
+    else { LogManager::logNoisyValue(_last.f, LogLevel::NORMAL, "Current target value", "f"); }
 }
 
-void NFM::_writeGradientInLog(const double * grad, const double * dgrad)
-{
-    NFMLogManager log_manager;
-    log_manager.writeVectorInLog(grad, _useGradientError ? dgrad : nullptr, _ndim, 2, "Raw gradient", "g");
+void NFM::_writeGradientToLog() const
+{   // !! Derived: Use only if NFM constructor is called with needsErr = true
+    LogManager::logNoisyVector(_grad, LogLevel::VERBOSE, this->hasGradErr(), "Raw gradient", "g");
 }
 
-void NFM::_writeXUpdateInLog(const double * xu)
+// --- Setters/Getters
+
+void NFM::setX(const double x[])
 {
-    NFMLogManager log_manager;
-    log_manager.writeVectorInLog(xu, nullptr, _ndim, 2, "Position update", "u");
+    std::copy(x, x + _ndim, _last.x.data());
 }
 
-void NFM::_writeOldValuesInLog()
+void NFM::setX(const std::vector<double> &x)
 {
-    using namespace std;
-
-    NFMLogManager log_manager;
-
-    stringstream s;
-    s << endl << "last values:    ";
-    for (auto &_old_value : _old_values) {
-        s << _old_value->getF() << " +- " << _old_value->getDf() << "    ";
+    if (x.size() == _last.x.size()) {
+        _last.x = x;
     }
-    s << endl;
-    s << "equal to first element? ";
-    for (auto it = _old_values.begin(); it != _old_values.end(); ++it) {
-        if (it != _old_values.begin()) {
-            s << ((**it) == (**_old_values.begin())) << "    ";
+    else {
+        throw std::invalid_argument("[NFM::setX] Passed vector length didn't match NFM's number of dimensions.");
+    }
+}
+
+void NFM::getX(double x[]) const
+{
+    std::copy(_last.x.data(), _last.x.data() + _ndim, x);
+}
+
+void NFM::setMaxNConstValues(int maxn_const_values)
+{
+    _max_n_const_values = std::max(1, maxn_const_values);
+    _old_values.set_cap(static_cast<size_t>(_max_n_const_values));
+}
+
+void NFM::disableStopping()
+{ // turn NFM::findMin into an endless loop (unless policy cares for stopping)
+    _epsx = 0.;
+    _epsf = 0.;
+    _flag_gradErrStop = false;
+    this->setMaxNConstValues(1);
+    _max_n_iterations = 0;
+}
+
+// --- findMin
+
+NoisyIOPair NFM::findMin(NoisyFunction &targetfun)
+{
+    if (targetfun.getNDim() != this->getNDim()) {
+        throw std::invalid_argument("[NFM] Passed target function's number of inputs is not equal to NFM's number of dimensions.");
+    }
+
+    // setup target function
+    _targetfun = &targetfun; // we keep a pointer during findMin()
+    _gradfun = dynamic_cast<NoisyFunctionWithGradient *>(_targetfun); // we do this single dynamic cast to check for gradient functions
+
+    if (this->needsGrad()) { // setup gradient case
+        if (_gradfun != nullptr) {
+            _flag_validGrad = true; // gradient values will be calulcated and stored
+            _flag_validGradErr = _gradfun->hasGradErr(); // for the errors it also depends on the function's settings
+        }
+        else {
+            throw std::invalid_argument("[NFM] The optimizer requires gradients, but the target function doesn't provide them.");
         }
     }
-    s << endl;
-    log_manager.writeOnLog(s.str());
+    else { // gradients will not be calculated
+        _flag_validGrad = false;
+        _flag_validGradErr = false;
+    }
+
+    // for consistency reset some values
+    _last.f.zero();
+    _grad.zero();
+    _old_values.clear();
+    _lastDeltaX = 0.;
+    _lastDeltaF = 0.;
+    _istep = 0;
+    _flag_policyStop = false;
+
+    // find minimum
+    this->_findMin();
+    LogManager::logNoisyIOPair(_last, LogLevel::NORMAL, "Final position and target value");
+
+    // reset temporary pointers
+    _targetfun = nullptr;
+    _gradfun = nullptr;
+
+    return _last;
 }
 
-// --- Getters
-
-
-
-
-// --- Setters
-
-//void NFM::setDomain(nfm::DomainFun domain)
-//{
-//   _indomain = domain;
-//   _flagindomain = true;
-//}
-
-
-void NFM::setGradientTargetFun(NoisyFunctionWithGradient * grad)
+NoisyIOPair NFM::findMin(NoisyFunction &targetFun, const std::vector<double> &x0)
 {
-    _gradtargetfun = grad;
-    _flaggradtargetfun = true;
+    this->setX(x0);
+    return this->findMin(targetFun);
 }
 
-
-void NFM::setX(const double * x)
+NoisyIOPair NFM::findMin(NoisyFunction &targetFun, const double x0[])
 {
-    _x->setX(x);
-}
-
-
-void NFM::setX(const int &i, const double &x)
-{
-    _x->setX(i, x);
-}
-
-
-// --- Constructor and destructor
-
-NFM::NFM(NoisyFunction * targetfun, const bool useGradientError, const size_t &max_n_const_values)
-        : _useGradientError(useGradientError), _max_n_const_values(max_n_const_values)
-{
-    //set ndim and the target function
-    _targetfun = targetfun;
-    _ndim = _targetfun->getNDim();
-    //allocate and initialize x
-    _x = new NoisyFunctionValue(_ndim);
-    for (int i = 0; i < _ndim; ++i) { _x->setX(i, 0.); }
-    //gradient of the target function
-    _gradtargetfun = nullptr;
-    _flaggradtargetfun = false;
-    //optimization's domain
-    //_indomain = 0;
-    //_flagindomain = false;
-    //eps
-    _epstargetfun = 0.;
-    _epsx = 0.;
-}
-
-
-NFM::~NFM()
-{
-    //deallocate x
-    delete _x;
-
-    _clearOldValues();
+    this->setX(x0);
+    return this->findMin(targetFun);
 }
 } // namespace nfm

@@ -8,35 +8,27 @@
 namespace nfm
 {
 
-class FunProjection1D: public NoisyFunction
+class FunProjection1D final: public NoisyFunction
 {
-protected:
-    double * _p0;   //starting point
-    double * _direction;   //direction
-    double * _vec;  //vector used internally
-    NoisyFunction * _mdf;  //multidimensional function that must be projected
-    int _originalndim;  //dimension of the multidimensional function
+private:
+    NoisyFunction * const _mdf;  //multidimensional function that must be projected
+    const std::vector<double> _p0;   //starting point
+    const std::vector<double> _dir;   //direction
+    std::vector<double> _vec;  //vector used internally
 
 public:
-    FunProjection1D(const int &originalndim, const double * p0, const double * direction, NoisyFunction * mdf):
-            NoisyFunction(1)
-    {
-        _originalndim = originalndim;
-        _p0 = new double[_originalndim];
-        _direction = new double[_originalndim];
-        _vec = new double[_originalndim];
+    FunProjection1D(NoisyFunction * mdf, std::vector<double> p0, std::vector<double> dir);
+    ~FunProjection1D() final = default;
 
-        std::copy(p0, p0 + _originalndim, _p0);
-        std::copy(direction, direction + _originalndim, _direction);
-        std::fill(_vec, _vec + _originalndim, 0.);
+    // calculate true vector from scalar projection coordinate
+    void getVecFromX(double x, std::vector<double> &vec /*out*/);
 
-        _mdf = mdf;
-    }
-    ~FunProjection1D() override;
+    //projected one-dimensional function
+    NoisyValue f(const std::vector<double> &x) final;
 
-    void f(const double * x, double &f, double &df) override;  //projected one-dimensional function
-
-    void getVecFromX(const double &x, double * vec);
+    //projected one-dimensional function (using single double)
+    NoisyValue f(double x);
+    NoisyValue operator()(double x) { return this->f(x); }
 };
 } // namespace nfm
 

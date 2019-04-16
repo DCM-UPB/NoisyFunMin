@@ -1,9 +1,8 @@
 #include <cassert>
 #include <iostream>
 
-#include "nfm/1DTools.hpp"
 #include "nfm/ConjGrad.hpp"
-#include "nfm/LogNFM.hpp"
+#include "nfm/LogManager.hpp"
 
 #include "TestNFMFunctions.hpp"
 
@@ -13,35 +12,41 @@ int main()
     using namespace std;
     using namespace nfm;
 
-    NFMLogManager log_manager;
-    //log_manager.setLoggingOn();
+    LogManager::setLogLevel(LogLevel::VERBOSE);
+    assert(LogManager::isLoggingOn());
+    assert(LogManager::isVerbose());
+    LogManager::setLogLevel(LogLevel::NORMAL);
+    assert(LogManager::isLoggingOn());
+    assert(!LogManager::isVerbose());
+    LogManager::setLogLevel(LogLevel::OFF);
+    assert(!LogManager::isLoggingOn());
+    assert(!LogManager::isVerbose());
 
-    double f, df;
+    //LogManager::setLoggingOn(true); // uncomment if you actually want printout
 
-    // define 3 noisy function values
-    NoisyFunctionValue p1(1);
-    NoisyFunctionValue p2(1);
-    NoisyFunctionValue p3(1);
+    // define bracket of 3 noisy function input/output pairs
+    NoisyBracket bracket{};
+    NoisyIOPair1D &p1 = bracket.a;
+    NoisyIOPair1D &p2 = bracket.b;
+    NoisyIOPair1D &p3 = bracket.c;
 
-
+    std::vector<double> inp(1); // helper vector
 
     // check pwr4   x^4   ...
     PowerFour pwr4;
 
     // ... using a=-3.   b=-2.   c=5.
-    p1.setX(-3.);
-    pwr4.f(p1.getX(), f, df);
-    p1.setF(f, df);
-    p2.setX(-2.);
-    pwr4.f(p2.getX(), f, df);
-    p2.setF(f, df);
-    p3.setX(+5.);
-    pwr4.f(p3.getX(), f, df);
-    p3.setF(f, df);
-    nfm::parabgoldMinimization(&pwr4, 0., p1, p2, p3);
-    assert(p2.getX(0) < 0.1);
-    assert(p2.getX(0) > -0.1);
-    assert(p2.getF() < 0.00001);
+    p1.x = inp[0] = -3.;
+    p1.f = pwr4.f(inp);
+    p2.x = inp[0] = -2.;
+    p2.f = pwr4.f(inp);
+    p3.x = inp[0] = 5.;
+    p3.f = pwr4.f(inp);
+
+    p2 = nfm::brentMin(pwr4, bracket, 20, 1e-5, 1e-10);
+    assert(p2.x < 0.1);
+    assert(p2.x > -0.1);
+    assert(p2.f.val < 0.00001);
 
 
     return 0;

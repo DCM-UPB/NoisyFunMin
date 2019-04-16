@@ -1,3 +1,6 @@
+#ifndef NFM_TESTNFMFUNCTIONS_HPP
+#define NFM_TESTNFMFUNCTIONS_HPP
+
 #include "nfm/NoisyFunction.hpp"
 #include <cmath>
 
@@ -7,10 +10,9 @@ class Parabola: public nfm::NoisyFunction
 public:
     Parabola(): nfm::NoisyFunction(1) {}
 
-    void f(const double * in, double &f, double &df) override
+    nfm::NoisyValue f(const std::vector<double> &in) override
     {
-        f = in[0]*in[0];
-        df = 0.5;
+        return nfm::NoisyValue({in[0]*in[0], 0.5});
     }
 };
 
@@ -20,15 +22,13 @@ class Well: public nfm::NoisyFunction
 public:
     Well(): nfm::NoisyFunction(1) {}
 
-    void f(const double * in, double &f, double &df) override
+    nfm::NoisyValue f(const std::vector<double> &in) override
     {
+        nfm::NoisyValue y{-1, 0.1};
         if ((in[0] <= -1.) || (in[0] >= 1.)) {
-            f = 1.;
+            y.val = 1.;
         }
-        else {
-            f = -1.;
-        }
-        df = 0.1;
+        return y;
     }
 };
 
@@ -38,10 +38,11 @@ class PowerFour: public nfm::NoisyFunction
 public:
     PowerFour(): nfm::NoisyFunction(1) {}
 
-    void f(const double * in, double &f, double &df) override
+    nfm::NoisyValue f(const std::vector<double> &in) override
     {
-        f = in[0]*in[0]*in[0]*in[0];
-        df = 0.000000001;
+        nfm::NoisyValue y{in[0]*in[0], 0.000000001};
+        y.val *= y.val;
+        return y;
     }
 };
 
@@ -51,10 +52,11 @@ class F1D: public nfm::NoisyFunction
 public:
     F1D(): nfm::NoisyFunction(1) {}
 
-    void f(const double * in, double &f, double &df) override
+    nfm::NoisyValue f(const std::vector<double> &in) override
     {
-        f = pow(*in - 1., 4);
-        df = 0.00001;
+        nfm::NoisyValue y{in[0] - 1., 0.00001};
+        y.val = pow(y.val, 4);
+        return y;
     }
 };
 
@@ -62,21 +64,21 @@ public:
 class F3D: public nfm::NoisyFunctionWithGradient
 {
 public:
-    F3D(): NoisyFunctionWithGradient(3) {}
+    F3D(): NoisyFunctionWithGradient(3, true) {}
 
-    void f(const double * in, double &f, double &df) override   // f = (x-1)^4 + (y+1.5)^4 + (z-0.5)^4
+    nfm::NoisyValue f(const std::vector<double> &in) override   // f = (x-1)^4 + (y+1.5)^4 + (z-0.5)^4
     {
-        f = pow(in[0] - 1., 4) + pow(in[1] + 1.5, 4) + pow(in[2] - 0.5, 4);
-        df = 0.00001;
+        nfm::NoisyValue y{in[0] - 1., 0.00001};
+        y.val = pow(y.val, 4) + pow(in[1] + 1.5, 4) + pow(in[2] - 0.5, 4);
+        return y;
     }
 
-    void grad(const double * in, double * g, double * dg) override
+    void grad(const std::vector<double> &in, nfm::NoisyGradient &grad) override
     {
-        g[0] = 4.*pow(in[0] - 1.0, 3);
-        g[1] = 4.*pow(in[1] + 1.5, 3);
-        g[2] = 4.*pow(in[2] - 0.5, 3);
-        dg[0] = 0.000001;
-        dg[1] = 0.000001;
-        dg[2] = 0.000001;
+        grad.set(0, {-4.*pow(in[0] - 1.0, 3), 0.000001});
+        grad.set(1, {-4.*pow(in[1] + 1.5, 3), 0.000001});
+        grad.set(2, {-4.*pow(in[2] - 0.5, 3), 0.000001});
     }
 };
+
+#endif

@@ -2,31 +2,44 @@
 #define NFM_ADAM_HPP
 
 #include "nfm/NoisyFunMin.hpp"
-#include "nfm/NoisyFunction.hpp"
-#include "nfm/NoisyFunctionValue.hpp"
-
-#include <list>
 
 namespace nfm
 {
 
+// Adam algorithm, based on https://arxiv.org/abs/1412.6980
+//
+// This method is similar in principle to the optimization
+// methods provided by the DynamicDescent class. However,
+// Adam has a more complex update scheme involving second
+// order momentum and it provides an inherent averaging method.
 class Adam: public NFM
 {
-protected:
-    const bool _useAveraging; // use automatic exponential decaying (beta2) parameter averaging, as proposed in the end of Adam paper
-    const double _alpha; // stepsize, default 0.001
-    const double _beta1, _beta2; // decay rates in [0, 1), default 0.9 and 0.999 respectively
-    const double _epsilon; // offset to stabilize division in update, default 10e-8
-
-public:
-    explicit Adam(NoisyFunctionWithGradient * targetfun,
-                  const bool useGradientError = false, const size_t &max_n_const_values = 20, const bool useAveraging = false,
-                  const double &alpha = 0.001, const double &beta1 = 0.9, const double &beta2 = 0.999, const double &epsilon = 10e-8):
-            NFM(targetfun, useGradientError, max_n_const_values), _useAveraging(useAveraging),
-            _alpha(alpha), _beta1(beta1), _beta2(beta2), _epsilon(epsilon) { setGradientTargetFun(targetfun); }
+private:
+    bool _useAveraging; // use automatic exponential decaying (beta2) parameter averaging, as proposed in the end of Adam paper
+    double _alpha; // stepsize, default 0.001
+    double _beta1 = 0.9, _beta2 = 0.999; // decay rates in [0, 1)
+    double _epsilon = 1.e-8; // offset to stabilize division in update
 
     // --- Minimization
-    void findMin() override;
+    void _findMin() override;
+
+public:
+    explicit Adam(int ndim, bool useAveraging = false, double alpha = 0.001);
+    ~Adam() override = default;
+
+    // Getters
+    bool usesAveraging() const { return _useAveraging; }
+    double getAlpha() const { return _alpha; }
+    double getBeta1() const { return _beta1; }
+    double getBeta2() const { return _beta2; }
+    double get_epsilon() const { return _epsilon; }
+
+    // Setters
+    void setAveraging(bool useAveraging) { _useAveraging = useAveraging; }
+    void setAlpha(double alpha) { _alpha = std::max(0., alpha); }
+    void setBeta1(double beta1) { _beta1 = std::max(0., std::min(1., beta1)); }
+    void setBeta2(double beta2) { _beta2 = std::max(0., std::min(1., beta2)); }
+    void setEpsilon(double epsilon) { _epsilon = std::max(0., epsilon); }
 };
 } // namespace nfm
 

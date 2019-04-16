@@ -2,7 +2,8 @@
 #include <cmath>
 #include <iostream>
 
-#include "nfm/Adam.hpp"
+#include "nfm/DynamicDescent.hpp"
+#include "nfm/LogManager.hpp"
 
 #include "TestNFMFunctions.hpp"
 
@@ -12,39 +13,75 @@ int main()
     using namespace std;
     using namespace nfm;
 
-    // NFMLogManager * log_manager = new NFMLogManager();
-    // log_manager->setLoggingOn();
+    LogManager::setLoggingOff();
+    //LogManager::setLoggingOn(true);
 
     // define 3D function that I want to minimise
-    auto * f3d = new F3D();
+    F3D f3d;
     // introduce array with the initial position
-    double x[3];
+    double x[3]{-2., 1., 0.};
 
-    bool useGradientError = false;
-    bool useAveraging = true;
-    for (int i = 0; i < 2; ++i) {
-        useGradientError = !useGradientError;
-        for (int j = 0; j < 2; ++j) {
-            useAveraging = !useAveraging;
 
-            // cout << "useGradientError " << useGradientError << " useAveraging " << useAveraging << endl;
+    // test DynamicDescent
+    DynamicDescent dyndesc(f3d.getNDim());
+    dyndesc.findMin(f3d, x);
 
-            // test Adam
-            Adam adam = Adam(f3d, useGradientError, 20, useAveraging, 0.1, 0.1, 0.1); // since the gradient is exact we chose very high decay (0 would actually be ideal)
-            x[0] = -2.;
-            x[1] = 1.0;
-            x[2] = 0.0;
-            adam.setX(x);
-            adam.findMin();
+    assert(fabs(dyndesc.getX(0) - 1.0) < 0.1);
+    assert(fabs(dyndesc.getX(1) + 1.5) < 0.1);
+    assert(fabs(dyndesc.getX(2) - 0.5) < 0.1);
 
-            assert(fabs(adam.getX(0) - 1.0) < 0.1);
-            assert(fabs(adam.getX(1) + 1.5) < 0.1);
-            assert(fabs(adam.getX(2) - 0.5) < 0.1);
-        }
-    }
 
-    delete f3d;
-    // delete log_manager;
+    // also with averaging
+    dyndesc.setAveraging(true);
+    dyndesc.setMaxNConstValues(5);
+    dyndesc.findMin(f3d, x);
+
+    assert(fabs(dyndesc.getX(0) - 1.0) < 0.1);
+    assert(fabs(dyndesc.getX(1) + 1.5) < 0.1);
+    assert(fabs(dyndesc.getX(2) - 0.5) < 0.1);
+
+
+    // AdaGrad
+    dyndesc.useAdaGrad();
+    dyndesc.setStepSize(3.);
+    dyndesc.findMin(f3d, x);
+
+    assert(fabs(dyndesc.getX(0) - 1.0) < 0.1);
+    assert(fabs(dyndesc.getX(1) + 1.5) < 0.15);
+    assert(fabs(dyndesc.getX(2) - 0.5) < 0.15);
+
+
+    // AdaDelta
+    dyndesc.useAdaDelta();
+    dyndesc.setStepSize(0.05);
+    const double oldBeta = dyndesc.getBeta();
+    dyndesc.setBeta(0.5); // I had problems when leaving this at default
+    dyndesc.findMin(f3d, x);
+    dyndesc.setBeta(oldBeta); // set back the original value
+
+    assert(fabs(dyndesc.getX(0) - 1.0) < 0.1);
+    assert(fabs(dyndesc.getX(1) + 1.5) < 0.1);
+    assert(fabs(dyndesc.getX(2) - 0.5) < 0.1);
+
+
+    // RMSProp
+    dyndesc.useRMSProp();
+    dyndesc.setStepSize(0.05);
+    dyndesc.findMin(f3d, x);
+
+    assert(fabs(dyndesc.getX(0) - 1.0) < 0.1);
+    assert(fabs(dyndesc.getX(1) + 1.5) < 0.1);
+    assert(fabs(dyndesc.getX(2) - 0.5) < 0.1);
+
+
+    // Nesterov
+    dyndesc.useNesterov();
+    dyndesc.setStepSize(0.025);
+    dyndesc.findMin(f3d, x);
+
+    assert(fabs(dyndesc.getX(0) - 1.0) < 0.1);
+    assert(fabs(dyndesc.getX(1) + 1.5) < 0.1);
+    assert(fabs(dyndesc.getX(2) - 0.5) < 0.1);
 
     return 0;
 }
