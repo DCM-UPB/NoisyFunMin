@@ -1,7 +1,5 @@
 [![Build Status](https://travis-ci.com/DCM-UPB/NoisyFunMin.svg?branch=master)](https://travis-ci.com/DCM-UPB/NoisyFunMin)
 [![Coverage Status](https://coveralls.io/repos/github/DCM-UPB/NoisyFunMin/badge.svg?branch=master)](https://coveralls.io/github/DCM-UPB/NoisyFunMin?branch=master)
-[![Codacy Badge](https://api.codacy.com/project/badge/Grade/9b819da118734bf9bdc80ba1c8cabf8b)](https://www.codacy.com/app/NNVMC/NoisyFunMin?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=DCM-UPB/NoisyFunMin&amp;utm_campaign=Badge_Grade)
-[![CodeFactor](https://www.codefactor.io/repository/github/dcm-upb/noisyfunmin/badge)](https://www.codefactor.io/repository/github/dcm-upb/noisyfunmin)
 
 # NoisyFunMin
 
