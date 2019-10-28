@@ -16,6 +16,7 @@ class Adam: public NFM
 {
 private:
     bool _useAveraging; // use automatic exponential decaying (beta2) parameter averaging, as proposed in the end of Adam paper
+    bool _useAMSGrad; // use the second order momentum update rule of AMSGrad
     double _alpha; // stepsize, default 0.001
     double _beta1 = 0.9, _beta2 = 0.999; // decay rates in [0, 1)
     double _epsilon = 1.e-8; // offset to stabilize division in update
@@ -29,6 +30,7 @@ public:
 
     // Getters
     bool usesAveraging() const { return _useAveraging; }
+    bool usesAMSGrad() const { return _useAMSGrad; }
     double getAlpha() const { return _alpha; }
     double getBeta1() const { return _beta1; }
     double getBeta2() const { return _beta2; }
@@ -36,6 +38,7 @@ public:
 
     // Setters
     void setAveraging(bool useAveraging) { _useAveraging = useAveraging; }
+    void setAMSGrad(bool useAMSGrad) { _useAMSGrad = useAMSGrad; }
     void setAlpha(double alpha) { _alpha = std::max(0., alpha); }
     void setBeta1(double beta1) { _beta1 = std::max(0., std::min(1., beta1)); }
     void setBeta2(double beta2) { _beta2 = std::max(0., std::min(1., beta2)); }

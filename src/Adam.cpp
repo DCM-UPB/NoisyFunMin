@@ -23,7 +23,6 @@ void Adam::_findMin()
 {
     LogManager::logString("\nBegin Adam::findMin() procedure\n");
 
-
     //initialize the vectors
     const size_t nd = _grad.size();
     std::vector<double> m(nd), v(nd); // moment vectors
@@ -54,7 +53,13 @@ void Adam::_findMin()
         // compute the update
         for (int i = 0; i < _ndim; ++i) {
             m[i] = _beta1*m[i] + (1. - _beta1)*_grad.val[i]; // Update biased first moment
-            v[i] = _beta2*v[i] + (1. - _beta2)*_grad.val[i]*_grad.val[i]; // Update biased second raw moment
+            const double vi_new = _beta2*v[i] + (1. - _beta2)*_grad.val[i]*_grad.val[i];
+            if (!_useAMSGrad) {
+                v[i] = vi_new; // Update biased second raw moment (ADAM)
+            }
+            else {
+                v[i] = std::max(v[i], vi_new); // Update biased second raw moment (AMSGrad)
+            }
 
             _last.x[i] += afac*m[i]/(sqrt(v[i]) + _epsilon); // update _last
 

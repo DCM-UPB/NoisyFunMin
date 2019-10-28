@@ -18,7 +18,7 @@ enum class DDMode
 // Stochastic Gradient Descent Algorithms
 //
 // All contained algorithms provide some kind of adaptive learning rate,
-// usually by the use of momenta. There
+// controlled by a base or initial step size and up to one "beta" parameter.
 class DynamicDescent: public NFM
 {
 protected:
